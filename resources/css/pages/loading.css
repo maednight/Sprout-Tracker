@@ -1,0 +1,73 @@
+/*
+|--------------------------------------------------------------------------
+| Loading Page Styles (Sprout)
+|--------------------------------------------------------------------------
+| Mobile-first + centered “phone” container on desktop
+*/
+
+.app-background {
+    min-height: 100vh;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.mobile-screen {
+    width: 100%;
+    max-width: 430px;
+    min-height: 100vh;
+}
+
+.loading-page {
+    min-height: 100vh;
+    width: 100%;
+    background: linear-gradient(
+        to bottom,
+        #8FFFA2 0%,
+        #F3FFF5 45%,
+        #FFFFFF 100%
+    );
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.loading-logo {
+    width: 110px;
+    height: auto;
+    display: block;
+}
+
+.loading-title {
+    font-family: 'Inknut Antiqua', serif;
+    font-size: 24px;
+    color: #00C656;
+    margin-top: 10px;
+    letter-spacing: 2px;
+}
+
+.loading-bar {
+    width: 220px;
+    height: 8px;
+    background: #00C656;
+    border-radius: 9999px;
+    margin-top: 16px;
+}
+
+/* Desktop: phone card */
+@media (min-width: 1024px) {
+    .mobile-screen {
+        min-height: 760px;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+    }
+}
