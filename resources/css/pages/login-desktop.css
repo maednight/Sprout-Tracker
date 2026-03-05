@@ -19,14 +19,15 @@
 
 /* Expanded container */
 .sprout-desktop__card {
-  width: min(1200px, 95vw);          /* wider than before */
-  min-height: 520px;                 /* taller so it feels “full” */
+  width: min(1240px, 94vw);
+  min-height: 560px;
   border-radius: 22px;
-  background: rgba(255, 255, 255, 0.78);
+  background: rgba(255, 255, 255, 0.82);
   border: 1px solid rgba(0, 0, 0, 0.06);
 
   display: grid;
-  grid-template-columns: 1.15fr 0.85fr;
+  grid-template-columns: 1.1fr 0.9fr;
+  align-items: center;
   overflow: hidden;
 }
 
@@ -154,4 +155,40 @@
   .sprout-desktop__right {
     justify-content: flex-start;
   }
+}
+
+@media (min-width: 900px) {
+
+  .sprout-btn::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -120%;
+    width: 120%;
+    height: 100%;
+
+    background: linear-gradient(
+      120deg,
+      transparent,
+      rgba(255,255,255,0.35),
+      transparent
+    );
+
+    transition: left 0.55s ease;
+  }
+
+  .sprout-btn:hover::before {
+    left: 120%;
+  }
+
+  .sprout-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 22px rgba(0, 217, 95, 0.25);
+  }
+
+  .sprout-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 5px 12px rgba(0, 217, 95, 0.18);
+  }
+
 }

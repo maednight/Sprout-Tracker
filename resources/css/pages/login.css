@@ -105,6 +105,7 @@
     }
 
     .sprout-btn {
+      position: relative;
       margin-top: 14px;
       height: 52px;
       border: 0;
@@ -113,7 +114,14 @@
       color: #fff;
       font-weight: 700;
       cursor: pointer;
-    }
+
+      overflow: hidden;
+
+      transition:
+        transform 0.18s ease,
+        box-shadow 0.18s ease,
+        background 0.18s ease;
+}
 
     .sprout-foot {
       text-align: center;
@@ -168,3 +176,4 @@
         width: 120px;
       }
     }
+
