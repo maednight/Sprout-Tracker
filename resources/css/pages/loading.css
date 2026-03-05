@@ -1,73 +1,141 @@
-/*
-|--------------------------------------------------------------------------
-| Loading Page Styles (Sprout)
-|--------------------------------------------------------------------------
-| Mobile-first + centered “phone” container on desktop
-*/
+/*font*/
+/*sets the default font for the page*/
+.sprout-font {
+    font-family: 'Inter', sans-serif;
+}
 
-.app-background {
+/*app shell*/
+/*full-viewport background + centers content on larger screens*/
+.sprout-shell {
     min-height: 100vh;
     width: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
-}
 
-.mobile-screen {
-    width: 100%;
-    max-width: 430px;
-    min-height: 100vh;
-}
-
-.loading-page {
-    min-height: 100vh;
-    width: 100%;
+    /*figma background*/
     background: linear-gradient(
         to bottom,
         #8FFFA2 0%,
         #F3FFF5 45%,
         #FFFFFF 100%
     );
+}
+
+/*phone container*/
+/*makes it full screen on mobile, and "phone-like" centered on desktop*/
+.sprout-phone {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+}
+
+/*loading page*/
+/*keeps loading content centered inside the phone container*/
+.loading-page {
+    width: 100%;
+    min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
+/*loading content*/
+/*logo + title + bar grouped and centered*/
 .loading-container {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+
+    gap: 2px;
+    transform: translateY(24px);
 }
 
+/*logo*/
+/*svg scales cleanly on all screens*/
 .loading-logo {
-    width: 110px;
+    width: 120px;
     height: auto;
     display: block;
 }
 
+/*title*/
+/*uses Inknut Antiqua and thicker weight like your design*/
 .loading-title {
     font-family: 'Inknut Antiqua', serif;
     font-size: 24px;
+    font-weight: 600;
     color: #00C656;
-    margin-top: 10px;
     letter-spacing: 2px;
+
+    margin-top: -6px;
 }
 
+/*loading bar*/
+/*green rounded bar under the title*/
 .loading-bar {
     width: 220px;
     height: 8px;
     background: #00C656;
     border-radius: 9999px;
-    margin-top: 16px;
+    margin-top: 14px;
 }
 
-/* Desktop: phone card */
-@media (min-width: 1024px) {
-    .mobile-screen {
-        min-height: 760px;
-        border-radius: 20px;
+/*tablet+*/
+/*centers a "mobile screen" on larger screens with rounding + shadow*/
+@media (min-width: 768px) {
+    .sprout-phone {
+        max-width: 430px;
+        min-height: 900px;
+
+        border-radius: 28px;
         overflow: hidden;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+
+        box-shadow: 0 16px 50px rgba(0, 0, 0, 0.18);
+        background: linear-gradient(
+            to bottom,
+            #8FFFA2 0%,
+            #F3FFF5 45%,
+            #FFFFFF 100%
+        );
+    }
+
+    .loading-logo {
+        width: 130px;
+    }
+
+    .loading-title {
+        font-size: 28px;
+    }
+
+    .loading-bar {
+        width: 260px;
+        height: 9px;
+    }
+}
+
+/*desktop+*/
+/*slightly larger phone on wider screens*/
+@media (min-width: 1024px) {
+    .sprout-phone {
+        max-width: 100%;
+        min-height: 100vh;
+        border-radius: 0;
+        box-shadow: none;
+        background: transparent;
+    }
+
+    .loading-logo {
+        width: 140px;
+    }
+
+    .loading-title {
+        font-size: 30px;
+    }
+
+    .loading-bar {
+        width: 280px;
+        height: 10px;
     }
 }
