@@ -61,7 +61,7 @@
 
                     <p class="sprout-foot">
                         Doesn’t have an account?
-                        <a href="#" class="sprout-link">Sign Up</a>
+                        <a href="{{ route('signup') }}" class="sprout-link">Sign Up</a>
                     </p>
                 </form>
             </div>

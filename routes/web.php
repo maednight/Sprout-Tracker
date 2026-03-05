@@ -7,3 +7,5 @@
         Route::get('/home', [SproutAuthController::class, 'home'])->name('home');
         Route::post('/login', [SproutAuthController::class, 'login'])->name('login');
         Route::get('/dashboard', fn () => view('public.dashboard'))->name('dashboard');
+        Route::get('/signup', [SproutAuthController::class, 'showSignup'])->name('signup');
+        Route::post('/signup', [SproutAuthController::class, 'storeSignup'])->name('signup.store');
