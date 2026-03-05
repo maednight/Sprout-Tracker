@@ -1,0 +1,157 @@
+/* Full height desktop wrapper */
+.sprout-desktop {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+}
+
+/* Less empty space, bigger card */
+.sprout-desktop__wrap {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  /* reduced padding so card looks larger */
+  padding: 18px 24px;
+}
+
+/* Expanded container */
+.sprout-desktop__card {
+  width: min(1200px, 95vw);          /* wider than before */
+  min-height: 520px;                 /* taller so it feels “full” */
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  overflow: hidden;
+}
+
+/* LEFT */
+.sprout-desktop__left {
+  padding: 54px 56px;
+  display: flex;
+  align-items: center;        
+}
+
+.sprout-left__content {
+  width: 100%;
+  max-width: 520px;           
+}
+
+/* RIGHT */
+.sprout-desktop__right {
+  padding: 54px 56px;
+  display: flex;
+  align-items: center;        
+  justify-content: flex-end;
+}
+
+/* Brand stack: logo + title = one block */
+.sprout-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* left aligned like your design */
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.sprout-brand__logo {
+  width: 78px;          /* “icon sits on top” size */
+  height: auto;
+  display: block;
+}
+
+/* Desktop typography */
+.sprout-title--desktop {
+  text-align: left;
+  font-size: 40px;
+  line-height: 1.05;          
+  letter-spacing: -0.2px;
+  margin: 0;                 
+  padding: 0;
+}
+
+
+
+/* "Sprout" word is a stacked unit (logo above only the word Sprout) */
+.sprout-word {
+  position: relative;
+  display: center;
+  margin-left: 2px;
+  padding-top: 22px;          
+}
+
+.sprout-word__logo {
+  position: absolute;
+  top: 10px;
+  left: 0;
+  margin-left: 45px;
+  width: 46px;
+  height: auto;
+}
+
+.sprout-word__text {
+  color: #00D95F;
+  font-weight: 800;
+  display: inline-block;
+}
+
+.sprout-subtitle--desktop {
+  text-align: left;
+  font-size: 15px;
+  line-height: 1.5;
+  margin: 10px 0 0;        
+  padding: 0;
+  color: #7a7a7a;
+}
+
+/* hint */
+.sprout-desktop__hint {
+  margin: 10px 0 0;         
+  padding: 0;
+  color: #5a5a5a;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* form width */
+.sprout-form--desktop {
+  width: 100%;
+  max-width: 420px;
+}
+
+/* Responsive adjustments for smaller laptops */
+@media (max-width: 1100px) {
+  .sprout-desktop__left,
+  .sprout-desktop__right {
+    padding: 38px 34px;
+  }
+
+  .sprout-left__content {
+    max-width: 460px;
+  }
+
+  .sprout-title--desktop {
+    font-size: 34px;
+  }
+
+  .sprout-form--desktop {
+    max-width: 380px;
+  }
+}
+
+/* If user shrinks window, stack columns nicely */
+@media (max-width: 900px) {
+  .sprout-desktop__card {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+
+  .sprout-desktop__right {
+    justify-content: flex-start;
+  }
+}

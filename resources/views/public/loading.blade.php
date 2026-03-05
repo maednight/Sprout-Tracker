@@ -7,12 +7,10 @@
     <title>Sprout</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> 
     <link href="https://fonts.googleapis.com/css2?family=Inknut+Antiqua:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <!-- VITE ASSET LOADER -->
-
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
 </head>
@@ -61,5 +59,9 @@
 
     </div>
 
+      <script>
+          setTimeout(() => window.location.href = "{{ route('home') }}", 1000)
+      </script>
 </body>
+
 </html>
