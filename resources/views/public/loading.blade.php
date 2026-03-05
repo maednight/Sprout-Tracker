@@ -15,7 +15,7 @@
 
 </head>
 
-<body class="sprout-font">
+<body class="sprout-font sprout-loading">
 
         <!-- APP WRAPPER (Desktop background container) -->
         <!-- Centers the mobile screen on desktop -->

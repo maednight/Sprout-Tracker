@@ -13,3 +13,7 @@ Route::post('/signup', [SproutAuthController::class, 'register'])->name('signup'
 
 Route::get('/home', [SproutAuthController::class, 'home'])->name('home');
 Route::get('/dashboard', fn () => view('public.dashboard'))->name('dashboard');
+Route::get('/transactions', fn () => 'Transactions page')->name('transaction.index');
+Route::get('/budget', fn () => 'Budget page')->name('budget.index');
+Route::get('/savings', fn () => 'Savings page')->name('savings.index');
+Route::get('/settings', fn () => 'Settings page')->name('settings.index');
