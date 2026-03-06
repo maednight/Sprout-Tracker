@@ -1,0 +1,126 @@
+    :root{
+    --sprout-green: #00F36B;
+    --sprout-gray: #898989;
+    --sprout-ink: #0a2b18;
+    --sprout-card: rgba(255, 255, 255, 0.78);
+    }
+
+    /* Full-screen app shell (NOT centered like login) */
+    .sprout-appshell{
+    min-height: 100vh;
+    width: 100%;
+    background: linear-gradient(
+        to bottom,
+        #8FFFA2 0%,
+        #F3FFF5 45%,
+        #FFFFFF 100%
+    );
+    }
+
+    /* View switch (dashboard wrapper) */
+    .sprout-appshell .sprout-view--mobile{ display: block; width: 100%; }
+    .sprout-appshell .sprout-view--desktop{ display: none; width: 100%; }
+
+    @media (min-width: 900px){
+    .sprout-appshell .sprout-view--mobile{ display: none; }
+    .sprout-appshell .sprout-view--desktop{ display: block; }
+    }
+
+    /* Mobile page spacing */
+    .sprout-page--mobile{
+    min-height: 100vh;
+    padding-bottom: 90px; /* space for fixed bottom nav */
+    }
+
+    .sprout-page__content{
+    padding: 18px 18px 24px;
+    }
+
+    .sprout-page__title{
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--sprout-ink);
+    margin: 0 0 10px;
+    }
+
+    /* Basic cards (for placeholders now) */
+    .sprout-card{
+    border-radius: 18px;
+    background: var(--sprout-card);
+    border: 1px solid rgba(0,0,0,0.06);
+    overflow: hidden;
+    margin-top: 12px;
+    }
+
+    .sprout-card__head{
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .sprout-card__title{
+    font-weight: 800;
+    color: var(--sprout-ink);
+    }
+
+    .sprout-card__body{
+    padding: 16px;
+    }
+
+    .sprout-placeholder{
+    color: var(--sprout-gray);
+    font-size: 14px;
+    }
+
+    /* Desktop layout */
+    .sprout-app--desktop{
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    }
+
+    .sprout-main{
+    flex: 1;
+    min-width: 0;
+    padding: 20px 24px;
+    }
+
+    .sprout-main__header{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+    }
+
+    .sprout-main__title{
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--sprout-ink);
+    margin: 0;
+    }
+
+    .sprout-pill{
+    height: 40px;
+    padding: 0 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(0,0,0,0.08);
+    background: rgba(255,255,255,0.86);
+    color: var(--sprout-ink);
+    font-weight: 600;
+    cursor: pointer;
+    }
+
+    .sprout-main__grid{
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: 16px;
+    align-items: start;
+    }
+
+    .sprout-card--xl{
+    min-height: 360px;
+    }
+
+    .sprout-card--wide{
+    grid-column: 1 / -1;
+    }

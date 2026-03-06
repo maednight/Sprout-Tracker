@@ -14,29 +14,30 @@
                             >
                             <span class="sprout-word__text">Sprout</span>
                         </span>
+                        account
                     </h1>
 
                     <p class="sprout-subtitle sprout-subtitle--desktop">
-                        Start tracking your income and expenses today
+                        Grow Your Money, One Entry at a Time
                     </p>
 
                     <p class="sprout-desktop__hint">
-                        Simple • Secure • Always accessible
+                        Track income • Track expenses • View summaries
                     </p>
                 </div>
             </div>
 
             <div class="sprout-desktop__right">
-                <form method="POST" action="{{ route('signup.store') }}" class="sprout-form sprout-form--desktop" novalidate>
+                <form method="POST" action="{{ route('signup') }}" class="sprout-form sprout-form--desktop sprout-form--signup" novalidate>
                     @csrf
 
-                    <label class="sprout-label" for="name_desktop">Name</label>
+                    <label class="sprout-label" for="name_desktop">Full Name</label>
                     <input
                         id="name_desktop"
                         name="name"
                         type="text"
                         class="sprout-input"
-                        placeholder="Enter Name"
+                        placeholder="Enter Full Name"
                         value="{{ old('name') }}"
                         required
                         autocomplete="name"
@@ -60,7 +61,7 @@
                         name="password"
                         type="password"
                         class="sprout-input"
-                        placeholder="Password"
+                        placeholder="Create Password"
                         required
                         autocomplete="new-password"
                     />
@@ -84,7 +85,7 @@
 
                     <p class="sprout-foot">
                         Already have an account?
-                        <a href="{{ route('home') }}" class="sprout-link">Log In</a>
+                        <a href="{{ route('login.view') }}" class="sprout-link">Log In</a>
                     </p>
                 </form>
             </div>

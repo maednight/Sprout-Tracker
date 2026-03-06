@@ -3,20 +3,21 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\User;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rules\Password;
+use Illuminate\View\View;
 
 class SproutAuthController extends Controller
 {
-    public function home()
+    public function home(): View
     {
         return view('public.home');
     }
 
-    public function login(Request $request)
+    public function login(Request $request): RedirectResponse
     {
         $credentials = $request->validate([
             'email' => ['required', 'email'],
@@ -26,38 +27,33 @@ class SproutAuthController extends Controller
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
 
-            // change later to your real dashboard route
             return redirect()->route('dashboard');
         }
 
         return back()
-            ->withErrors(['email' => 'Invalid email or password.'])
+            ->withErrors([
+                'email' => 'Invalid email or password.',
+            ])
             ->onlyInput('email');
     }
 
-public function showSignup()
-{
-    return view('public.signup');
-}
+    public function register(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
 
-public function storeSignup(Request $request)
-{
-    $validated = $request->validate([
-        'name' => ['required', 'string', 'max:100'],
-        'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-        'password' => ['required', 'confirmed', Password::min(8)],
-    ]);
+        $user = User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
+        ]);
 
-    $user = User::create([
-        'name' => $validated['name'],
-        'email' => $validated['email'],
-        'password' => Hash::make($validated['password']),
-    ]);
+        Auth::login($user);
+        $request->session()->regenerate();
 
-    Auth::login($user);
-    $request->session()->regenerate();
-
-    return redirect()->route('dashboard');
-}
-
+        return redirect()->route('dashboard');
+    }
 }

@@ -11,22 +11,15 @@
 
     @vite(['resources/css/app.css'])
 </head>
-
 <body class="sprout-font">
+    <div class="sprout-shell">
+        <div class="sprout-view sprout-view--mobile">
+            @include('public.mobile.signup')
+        </div>
 
-<div class="sprout-shell">
-
-    <!-- Mobile version -->
-    <div class="sprout-view sprout-view--mobile">
-        @include('public.mobile.signup')
+        <div class="sprout-view sprout-view--desktop">
+            @include('public.desktop.signup')
+        </div>
     </div>
-
-    <!-- Desktop version -->
-    <div class="sprout-view sprout-view--desktop">
-        @include('public.desktop.signup')
-    </div>
-
-</div>
-
 </body>
 </html>

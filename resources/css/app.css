@@ -2,6 +2,11 @@
 @import './pages/loading.css';
 @import "./pages/login.css";
 @import "./pages/login-desktop.css";
+@import "./pages/signup.css";
+@import "./pages/signup-desktop.css";
+@import "./pages/dashboard-nav.css";
+@import "./pages/dashboard-layout.css";
+@import './pages/transaction-create.css';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';

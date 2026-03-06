@@ -1,0 +1,17 @@
+.sprout-form .sprout-input {
+height: 46px;
+}
+
+.sprout-form {
+gap: 10px;
+}
+
+@media (min-width: 768px) {
+.sprout-auth__content {
+    padding: 22px;
+}
+}
+
+.sprout-form--signup {
+  gap: 10px;
+}
