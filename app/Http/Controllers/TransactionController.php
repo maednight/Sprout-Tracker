@@ -5,54 +5,91 @@ namespace App\Http\Controllers;
 use App\Models\Account;
 use App\Models\Category;
 use App\Models\Transaction;
+use Carbon\Carbon;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class TransactionController extends Controller
 {
-    public function store(Request $request)
+    public function create(): View
     {
-        $user = $request->user();
+        return view('public.transaction-create');
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        $user = auth()->user();
+
         if (!$user) {
-            abort(401);
+            return redirect()
+                ->route('login.view')
+                ->withErrors([
+                    'email' => 'Please log in again.',
+                ]);
         }
 
-        $data = $request->validate([
-            'type' => ['required', 'in:income,expense,savings'],
-            'date' => ['required', 'date'], // yyyy-mm-dd
-            'time' => ['nullable', 'date_format:H:i'],
-            'amount' => ['required', 'numeric', 'min:0.01'],
+        $validatedData = $request->validate([
+            'transaction_type' => ['required', 'in:income,expense,savings'],
+            'transaction_date' => ['required', 'date_format:m/d/Y'],
+            'amount' => ['required', 'string'],
             'category' => ['nullable', 'string', 'max:80'],
             'account' => ['nullable', 'string', 'max:80'],
             'description' => ['nullable', 'string', 'max:255'],
         ]);
 
+        $normalizedAmount = preg_replace('/[^\d.]/', '', $validatedData['amount']);
+
+        if (!$normalizedAmount || !is_numeric($normalizedAmount)) {
+            return back()
+                ->withErrors([
+                    'amount' => 'Please enter a valid amount.',
+                ])
+                ->withInput();
+        }
+
+        $transactionType = $validatedData['transaction_type'];
+
+        $parsedDate = Carbon::createFromFormat(
+            'm/d/Y',
+            $validatedData['transaction_date']
+        )->format('Y-m-d');
+
         $categoryId = null;
-        if (!empty($data['category'])) {
-            $categoryId = Category::firstOrCreate(
-                ['user_id' => $user->id, 'name' => trim($data['category'])]
-            )->id;
+
+        if (!empty($validatedData['category'])) {
+            $category = Category::firstOrCreate([
+                'user_id' => $user->id,
+                'type' => $transactionType,
+                'name' => trim($validatedData['category']),
+            ]);
+
+            $categoryId = $category->id;
         }
 
         $accountId = null;
-        if (!empty($data['account'])) {
-            $accountId = Account::firstOrCreate(
-                ['user_id' => $user->id, 'name' => trim($data['account'])]
-            )->id;
+
+        if (!empty($validatedData['account'])) {
+            $account = Account::firstOrCreate([
+                'user_id' => $user->id,
+                'name' => trim($validatedData['account']),
+            ]);
+
+            $accountId = $account->id;
         }
 
-        $time = $data['time'] ?? '12:00';
-        $occurredAt = $data['date'] . ' ' . $time . ':00';
-
-        $tx = Transaction::create([
+        Transaction::create([
             'user_id' => $user->id,
-            'type' => $data['type'],
-            'amount' => $data['amount'],
+            'type' => $transactionType,
+            'amount' => $normalizedAmount,
             'category_id' => $categoryId,
             'account_id' => $accountId,
-            'occurred_at' => $occurredAt,
-            'description' => $data['description'] ?? null,
+            'occurred_at' => $parsedDate . ' 12:00:00',
+            'description' => $validatedData['description'] ?? null,
         ]);
 
-        return response()->json(['ok' => true, 'transaction' => $tx], 201);
+        return redirect()
+            ->route('dashboard')
+            ->with('success', 'Transaction saved successfully.');
     }
 }

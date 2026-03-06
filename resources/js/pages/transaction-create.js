@@ -2,7 +2,19 @@ const transactionSelectors = {
     tabs: '[data-transaction-tab]',
     transactionTitle: '[data-transaction-title]',
     transactionTypeInput: '[data-transaction-type-input]',
+
+    dateTrigger: '[data-date-trigger]',
+    dateInput: '#transaction_date',
+    dateModal: '[data-date-modal]',
+    dateCloseButtons: '[data-date-close]',
+    dateMonthLabel: '[data-date-month-label]',
+    datePrevButton: '[data-date-prev]',
+    dateNextButton: '[data-date-next]',
+    dateGrid: '[data-date-grid]',
+    dateTodayButton: '[data-date-today]',
+
     amountInput: '#amount',
+
     categoryTrigger: '[data-category-trigger]',
     categoryInput: '[data-category-input]',
     categorySelectedText: '[data-category-selected-text]',
@@ -10,19 +22,23 @@ const transactionSelectors = {
     categoryCloseButtons: '[data-category-close]',
     categoryGrid: '[data-category-grid]',
     categoryItems: '[data-category-item]',
+
     accountTrigger: '[data-account-trigger]',
     accountInput: '[data-account-input]',
     accountSelectedText: '[data-account-selected-text]',
     accountModal: '[data-account-modal]',
     accountCloseButtons: '[data-account-close]',
     accountItems: '[data-account-item]',
+
     addCategoryButton: '.sprout-category-modal__add-button',
     addAccountButton: '.sprout-account-modal__add-button',
+
     addCategoryOverlay: '[data-add-category-overlay]',
     addCategoryCloseButtons: '[data-add-category-close]',
     addCategoryInput: '[data-add-category-input]',
     addCategorySave: '[data-add-category-save]',
     addCategoryTitle: '[data-add-category-title]',
+
     addAccountOverlay: '[data-add-account-overlay]',
     addAccountCloseButtons: '[data-add-account-close]',
     addAccountInput: '[data-add-account-input]',
@@ -31,6 +47,7 @@ const transactionSelectors = {
 
 const transactionClasses = {
     activeTab: 'sprout-transaction__tab--active',
+    hiddenDateModal: 'sprout-date-modal--hidden',
     hiddenCategoryModal: 'sprout-category-modal--hidden',
     selectedCategoryItem: 'sprout-category-modal__item--selected',
     hiddenAccountModal: 'sprout-account-modal--hidden',
@@ -39,7 +56,7 @@ const transactionClasses = {
     emptyPickerText: 'sprout-transaction__picker-text--empty'
 }
 
-/** Category Options Per Transaction Type */
+/* Category Options Per Transaction Type */
 const categoryOptionsByType = {
     expense: [
         'Food',
@@ -78,7 +95,7 @@ const categoryOptionsByType = {
     ]
 }
 
-/** Account Options Per Transaction Type */
+/* Account Options Per Transaction Type */
 const accountOptionsByType = {
     expense: [
         'Cash',
@@ -99,10 +116,13 @@ const accountOptionsByType = {
     ]
 }
 
-/** Current Transaction Type */
+/* Current Transaction Type */
 let currentTransactionType = 'expense'
 
-/** Format Peso Currency */
+/* Calendar State */
+let currentCalendarDate = new Date()
+
+/* Format Peso Currency */
 const formatPesoCurrency = (digits) => {
     if (!digits) {
         return ''
@@ -117,7 +137,190 @@ const formatPesoCurrency = (digits) => {
     return `₱${number.toLocaleString('en-PH')}.00`
 }
 
-/** Initialize Amount Formatter */
+/* Format Date For Input */
+const formatDateForInput = (date) => {
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    const year = date.getFullYear()
+
+    return `${month}/${day}/${year}`
+}
+
+/* Parse Input Date */
+const parseInputDate = (value) => {
+    if (!value) {
+        return null
+    }
+
+    const matchedParts = value.match(/^(\d{2})\/(\d{2})\/(\d{4})$/)
+
+    if (!matchedParts) {
+        return null
+    }
+
+    const month = Number(matchedParts[1]) - 1
+    const day = Number(matchedParts[2])
+    const year = Number(matchedParts[3])
+
+    const parsedDate = new Date(year, month, day)
+
+    if (
+        parsedDate.getFullYear() !== year ||
+        parsedDate.getMonth() !== month ||
+        parsedDate.getDate() !== day
+    ) {
+        return null
+    }
+
+    return parsedDate
+}
+
+/* Format Month Label */
+const formatMonthLabel = (date) => {
+    return date.toLocaleDateString('en-US', {
+        month: 'long',
+        year: 'numeric'
+    })
+}
+
+/* Same Date Check */
+const isSameDate = (firstDate, secondDate) => {
+    return firstDate.getFullYear() === secondDate.getFullYear()
+        && firstDate.getMonth() === secondDate.getMonth()
+        && firstDate.getDate() === secondDate.getDate()
+}
+
+/* Create Calendar Day Button */
+const createCalendarDayButton = (
+    date,
+    isMuted,
+    isSelected,
+    isToday,
+    inputElement,
+    modalElement,
+    triggerElement
+) => {
+    const dayButton = document.createElement('button')
+
+    dayButton.type = 'button'
+    dayButton.className = 'sprout-date-modal__day'
+    dayButton.textContent = String(date.getDate())
+
+    if (isMuted) {
+        dayButton.classList.add('sprout-date-modal__day--muted')
+    }
+
+    if (isSelected) {
+        dayButton.classList.add('sprout-date-modal__day--selected')
+    }
+
+    if (isToday) {
+        dayButton.classList.add('sprout-date-modal__day--today')
+    }
+
+    if (isSelected && isToday) {
+        dayButton.classList.remove('sprout-date-modal__day--today')
+    }
+
+    dayButton.addEventListener('click', () => {
+        if (inputElement) {
+            inputElement.value = formatDateForInput(date)
+        }
+
+        closeDateModal(modalElement, triggerElement)
+    })
+
+    return dayButton
+}
+
+/* Render Calendar */
+const renderDateCalendar = (
+    viewDate,
+    inputElement,
+    modalElement,
+    triggerElement,
+    monthLabelElement,
+    gridElement
+) => {
+    if (!monthLabelElement || !gridElement) {
+        return
+    }
+
+    const selectedDate = parseInputDate(inputElement?.value ?? '')
+    const today = new Date()
+
+    monthLabelElement.textContent = formatMonthLabel(viewDate)
+    gridElement.innerHTML = ''
+
+    const year = viewDate.getFullYear()
+    const month = viewDate.getMonth()
+
+    const firstDayOfMonth = new Date(year, month, 1)
+    const lastDayOfMonth = new Date(year, month + 1, 0)
+
+    const startDayIndex = firstDayOfMonth.getDay()
+    const totalDaysInMonth = lastDayOfMonth.getDate()
+    const previousMonthLastDay = new Date(year, month, 0).getDate()
+
+    for (let index = startDayIndex - 1; index >= 0; index -= 1) {
+        const date = new Date(year, month - 1, previousMonthLastDay - index)
+        const isToday = isSameDate(date, today)
+        const isSelected = selectedDate ? isSameDate(date, selectedDate) : false
+
+        gridElement.appendChild(
+            createCalendarDayButton(
+                date,
+                true,
+                isSelected,
+                isToday,
+                inputElement,
+                modalElement,
+                triggerElement
+            )
+        )
+    }
+
+    for (let day = 1; day <= totalDaysInMonth; day += 1) {
+        const date = new Date(year, month, day)
+        const isToday = isSameDate(date, today)
+        const isSelected = selectedDate ? isSameDate(date, selectedDate) : false
+
+        gridElement.appendChild(
+            createCalendarDayButton(
+                date,
+                false,
+                isSelected,
+                isToday,
+                inputElement,
+                modalElement,
+                triggerElement
+            )
+        )
+    }
+
+    const renderedCells = gridElement.children.length
+    const remainingCells = renderedCells % 7 === 0 ? 0 : 7 - (renderedCells % 7)
+
+    for (let day = 1; day <= remainingCells; day += 1) {
+        const date = new Date(year, month + 1, day)
+        const isToday = isSameDate(date, today)
+        const isSelected = selectedDate ? isSameDate(date, selectedDate) : false
+
+        gridElement.appendChild(
+            createCalendarDayButton(
+                date,
+                true,
+                isSelected,
+                isToday,
+                inputElement,
+                modalElement,
+                triggerElement
+            )
+        )
+    }
+}
+
+/* Initialize Amount Formatter */
 const initializeAmountFormatter = () => {
     const amountInput = document.querySelector(transactionSelectors.amountInput)
 
@@ -125,7 +328,12 @@ const initializeAmountFormatter = () => {
         return
     }
 
-    amountInput.dataset.rawDigits = ''
+    const initialDigits = (amountInput.value ?? '').replace(/[^\d]/g, '')
+    amountInput.dataset.rawDigits = initialDigits
+
+    if (initialDigits) {
+        amountInput.value = formatPesoCurrency(initialDigits)
+    }
 
     amountInput.addEventListener('keydown', (event) => {
         const allowedKeys = [
@@ -185,7 +393,7 @@ const initializeAmountFormatter = () => {
     })
 }
 
-/** Category Title Per Transaction Type */
+/* Category Title Per Transaction Type */
 const getAddCategoryTitle = (transactionType) => {
     const titleMap = {
         expense: 'Add Expense Category',
@@ -196,7 +404,7 @@ const getAddCategoryTitle = (transactionType) => {
     return titleMap[transactionType] ?? 'Add Category'
 }
 
-/** Transaction Tabs */
+/* Transaction Tabs */
 const setActiveTransactionTab = (tabs, selectedTab, titleElement, typeInput) => {
     tabs.forEach((tabElement) => {
         tabElement.classList.remove(transactionClasses.activeTab)
@@ -215,7 +423,29 @@ const setActiveTransactionTab = (tabs, selectedTab, titleElement, typeInput) => 
     }
 }
 
-/** Category Modal Open */
+/* Date Modal Open */
+const openDateModal = (modalElement, triggerElement) => {
+    modalElement.classList.remove(transactionClasses.hiddenDateModal)
+
+    if (triggerElement) {
+        triggerElement.setAttribute('aria-expanded', 'true')
+    }
+
+    document.body.style.overflow = 'hidden'
+}
+
+/* Date Modal Close */
+const closeDateModal = (modalElement, triggerElement) => {
+    modalElement.classList.add(transactionClasses.hiddenDateModal)
+
+    if (triggerElement) {
+        triggerElement.setAttribute('aria-expanded', 'false')
+    }
+
+    document.body.style.overflow = ''
+}
+
+/* Category Modal Open */
 const openCategoryModal = (modalElement, triggerElement) => {
     modalElement.classList.remove(transactionClasses.hiddenCategoryModal)
 
@@ -226,7 +456,7 @@ const openCategoryModal = (modalElement, triggerElement) => {
     document.body.style.overflow = 'hidden'
 }
 
-/** Category Modal Close */
+/* Category Modal Close */
 const closeCategoryModal = (modalElement, triggerElement) => {
     modalElement.classList.add(transactionClasses.hiddenCategoryModal)
 
@@ -237,7 +467,7 @@ const closeCategoryModal = (modalElement, triggerElement) => {
     document.body.style.overflow = ''
 }
 
-/** Account Modal Open */
+/* Account Modal Open */
 const openAccountModal = (modalElement, triggerElement) => {
     modalElement.classList.remove(transactionClasses.hiddenAccountModal)
 
@@ -248,7 +478,7 @@ const openAccountModal = (modalElement, triggerElement) => {
     document.body.style.overflow = 'hidden'
 }
 
-/** Account Modal Close */
+/* Account Modal Close */
 const closeAccountModal = (modalElement, triggerElement) => {
     modalElement.classList.add(transactionClasses.hiddenAccountModal)
 
@@ -259,7 +489,7 @@ const closeAccountModal = (modalElement, triggerElement) => {
     document.body.style.overflow = ''
 }
 
-/** Add Overlay Open */
+/* Add Overlay Open */
 const openAddOverlay = (overlayElement) => {
     if (!overlayElement) {
         return
@@ -269,17 +499,17 @@ const openAddOverlay = (overlayElement) => {
     document.body.style.overflow = 'hidden'
 }
 
-/** Add Overlay Close */
+/* Add Overlay Close */
 const closeAddOverlay = (overlayElement) => {
     if (!overlayElement) {
         return
     }
 
     overlayElement.classList.add(transactionClasses.hiddenAddOptionOverlay)
-    document.body.style.overflow = 'hidden'
+    document.body.style.overflow = ''
 }
 
-/** Clear Category Selection */
+/* Clear Category Selection */
 const clearSelectedCategory = (inputElement, textElement) => {
     if (inputElement) {
         inputElement.value = ''
@@ -291,7 +521,7 @@ const clearSelectedCategory = (inputElement, textElement) => {
     }
 }
 
-/** Clear Account Selection */
+/* Clear Account Selection */
 const clearSelectedAccount = (inputElement, textElement) => {
     if (inputElement) {
         inputElement.value = ''
@@ -303,7 +533,7 @@ const clearSelectedAccount = (inputElement, textElement) => {
     }
 }
 
-/** Update Selected Category */
+/* Update Selected Category */
 const updateSelectedCategory = (selectedItem, categoryItems, inputElement, textElement) => {
     const categoryName = selectedItem.dataset.categoryName ?? ''
 
@@ -323,7 +553,7 @@ const updateSelectedCategory = (selectedItem, categoryItems, inputElement, textE
     selectedItem.classList.add(transactionClasses.selectedCategoryItem)
 }
 
-/** Update Selected Account */
+/* Update Selected Account */
 const updateSelectedAccount = (selectedItem, accountItems, inputElement, textElement) => {
     const accountName = selectedItem.dataset.accountName ?? ''
 
@@ -343,7 +573,7 @@ const updateSelectedAccount = (selectedItem, accountItems, inputElement, textEle
     selectedItem.classList.add(transactionClasses.selectedAccountItem)
 }
 
-/** Create Category Button */
+/* Create Category Button */
 const createCategoryButton = (categoryName) => {
     const buttonElement = document.createElement('button')
 
@@ -356,7 +586,7 @@ const createCategoryButton = (categoryName) => {
     return buttonElement
 }
 
-/** Create Account Button */
+/* Create Account Button */
 const createAccountButton = (accountName) => {
     const buttonElement = document.createElement('button')
 
@@ -369,7 +599,7 @@ const createAccountButton = (accountName) => {
     return buttonElement
 }
 
-/** Render Category Buttons */
+/* Render Category Buttons */
 const renderCategoryButtons = (
     transactionType,
     gridElement,
@@ -415,7 +645,7 @@ const renderCategoryButtons = (
     }
 }
 
-/** Render Account Buttons */
+/* Render Account Buttons */
 const renderAccountButtons = (
     transactionType,
     modalElement,
@@ -462,7 +692,136 @@ const renderAccountButtons = (
     }
 }
 
-/** Initialize Transaction Tabs */
+/* Initialize Existing Picker Values */
+const initializeExistingPickerValues = () => {
+    const categoryInputElement = document.querySelector(transactionSelectors.categoryInput)
+    const categoryTextElement = document.querySelector(transactionSelectors.categorySelectedText)
+    const accountInputElement = document.querySelector(transactionSelectors.accountInput)
+    const accountTextElement = document.querySelector(transactionSelectors.accountSelectedText)
+
+    if (categoryInputElement?.value && categoryTextElement) {
+        categoryTextElement.textContent = categoryInputElement.value
+        categoryTextElement.classList.remove(transactionClasses.emptyPickerText)
+    }
+
+    if (accountInputElement?.value && accountTextElement) {
+        accountTextElement.textContent = accountInputElement.value
+        accountTextElement.classList.remove(transactionClasses.emptyPickerText)
+    }
+}
+
+/* Initialize Date Modal */
+const initializeDateModal = () => {
+    const triggerElement = document.querySelector(transactionSelectors.dateTrigger)
+    const inputElement = document.querySelector(transactionSelectors.dateInput)
+    const modalElement = document.querySelector(transactionSelectors.dateModal)
+    const closeButtons = document.querySelectorAll(transactionSelectors.dateCloseButtons)
+    const monthLabelElement = document.querySelector(transactionSelectors.dateMonthLabel)
+    const prevButton = document.querySelector(transactionSelectors.datePrevButton)
+    const nextButton = document.querySelector(transactionSelectors.dateNextButton)
+    const gridElement = document.querySelector(transactionSelectors.dateGrid)
+    const todayButton = document.querySelector(transactionSelectors.dateTodayButton)
+
+    if (!triggerElement || !inputElement || !modalElement || !monthLabelElement || !gridElement) {
+        return
+    }
+
+    const openModalHandler = (event) => {
+        event.preventDefault()
+
+        const selectedDate = parseInputDate(inputElement.value)
+
+        currentCalendarDate = selectedDate
+            ? new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1)
+            : new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+
+        renderDateCalendar(
+            currentCalendarDate,
+            inputElement,
+            modalElement,
+            triggerElement,
+            monthLabelElement,
+            gridElement
+        )
+
+        openDateModal(modalElement, triggerElement)
+    }
+
+    triggerElement.addEventListener('click', openModalHandler)
+
+    triggerElement.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault()
+            openModalHandler(event)
+        }
+    })
+
+    closeButtons.forEach((closeButton) => {
+        closeButton.addEventListener('click', () => {
+            closeDateModal(modalElement, triggerElement)
+        })
+    })
+
+    if (prevButton) {
+        prevButton.addEventListener('click', () => {
+            currentCalendarDate = new Date(
+                currentCalendarDate.getFullYear(),
+                currentCalendarDate.getMonth() - 1,
+                1
+            )
+
+            renderDateCalendar(
+                currentCalendarDate,
+                inputElement,
+                modalElement,
+                triggerElement,
+                monthLabelElement,
+                gridElement
+            )
+        })
+    }
+
+    if (nextButton) {
+        nextButton.addEventListener('click', () => {
+            currentCalendarDate = new Date(
+                currentCalendarDate.getFullYear(),
+                currentCalendarDate.getMonth() + 1,
+                1
+            )
+
+            renderDateCalendar(
+                currentCalendarDate,
+                inputElement,
+                modalElement,
+                triggerElement,
+                monthLabelElement,
+                gridElement
+            )
+        })
+    }
+
+    if (todayButton) {
+        todayButton.addEventListener('click', () => {
+            const today = new Date()
+
+            inputElement.value = formatDateForInput(today)
+            currentCalendarDate = new Date(today.getFullYear(), today.getMonth(), 1)
+
+            renderDateCalendar(
+                currentCalendarDate,
+                inputElement,
+                modalElement,
+                triggerElement,
+                monthLabelElement,
+                gridElement
+            )
+
+            closeDateModal(modalElement, triggerElement)
+        })
+    }
+}
+
+/* Initialize Transaction Tabs */
 const initializeTransactionTabs = (
     categoryGridElement,
     categoryInputElement,
@@ -529,7 +888,7 @@ const initializeTransactionTabs = (
     })
 }
 
-/** Initialize Category Modal */
+/* Initialize Category Modal */
 const initializeCategoryModal = () => {
     const triggerElement = document.querySelector(transactionSelectors.categoryTrigger)
     const inputElement = document.querySelector(transactionSelectors.categoryInput)
@@ -587,7 +946,7 @@ const initializeCategoryModal = () => {
     }
 }
 
-/** Initialize Account Modal */
+/* Initialize Account Modal */
 const initializeAccountModal = () => {
     const triggerElement = document.querySelector(transactionSelectors.accountTrigger)
     const inputElement = document.querySelector(transactionSelectors.accountInput)
@@ -641,7 +1000,7 @@ const initializeAccountModal = () => {
     }
 }
 
-/** Initialize Add Category Overlay */
+/* Initialize Add Category Overlay */
 const initializeAddCategoryOverlay = (
     categoryGridElement,
     categoryInputElement,
@@ -702,15 +1061,6 @@ const initializeAddCategoryOverlay = (
             categoryOptionsByType[currentTransactionType].push(newCategoryName)
         }
 
-        renderCategoryButtons(
-            currentTransactionType,
-            categoryGridElement,
-            categoryInputElement,
-            categoryTextElement,
-            categoryModalElement,
-            categoryTriggerElement
-        )
-
         categoryInputElement.value = newCategoryName
         categoryTextElement.textContent = newCategoryName
         categoryTextElement.classList.remove(transactionClasses.emptyPickerText)
@@ -729,7 +1079,7 @@ const initializeAddCategoryOverlay = (
     })
 }
 
-/** Initialize Add Account Overlay */
+/* Initialize Add Account Overlay */
 const initializeAddAccountOverlay = (
     accountInputElement,
     accountTextElement,
@@ -781,9 +1131,9 @@ const initializeAddAccountOverlay = (
         )
 
         if (!alreadyExists) {
-            Object.keys(accountOptionsByType).forEach((transactionType) => {
-                accountOptionsByType[transactionType].push(newAccountName)
-            })
+            accountOptionsByType.expense.push(newAccountName)
+            accountOptionsByType.income.push(newAccountName)
+            accountOptionsByType.savings.push(newAccountName)
         }
 
         accountInputElement.value = newAccountName
@@ -803,9 +1153,11 @@ const initializeAddAccountOverlay = (
     })
 }
 
-/** Initialize Page */
+/* Initialize Page */
 const initializeTransactionCreatePage = () => {
     initializeAmountFormatter()
+    initializeDateModal()
+    initializeExistingPickerValues()
 
     const categoryModalData = initializeCategoryModal()
     const accountModalData = initializeAccountModal()
