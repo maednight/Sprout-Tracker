@@ -2,6 +2,7 @@ const transactionSelectors = {
     tabs: '[data-transaction-tab]',
     transactionTitle: '[data-transaction-title]',
     transactionTypeInput: '[data-transaction-type-input]',
+        amountInput: '#amount',
     categoryTrigger: '[data-category-trigger]',
     categoryInput: '[data-category-input]',
     categorySelectedText: '[data-category-selected-text]',
@@ -15,6 +16,90 @@ const transactionSelectors = {
     accountModal: '[data-account-modal]',
     accountCloseButtons: '[data-account-close]',
     accountItems: '[data-account-item]'
+}
+
+/** Format Peso Currency */
+const formatPesoCurrency = (digits) => {
+    if (!digits) {
+        return ''
+    }
+
+    const number = Number(digits)
+
+    if (Number.isNaN(number)) {
+        return ''
+    }
+
+    return `₱${number.toLocaleString('en-PH')}.00`
+}
+
+/** Initialize Amount Formatter */
+const initializeAmountFormatter = () => {
+    const amountInput = document.querySelector(transactionSelectors.amountInput)
+
+    if (!amountInput) {
+        return
+    }
+
+    amountInput.dataset.rawDigits = ''
+
+    amountInput.addEventListener('keydown', (event) => {
+        const allowedKeys = [
+            'Backspace',
+            'Delete',
+            'Tab',
+            'ArrowLeft',
+            'ArrowRight',
+            'ArrowUp',
+            'ArrowDown',
+            'Home',
+            'End'
+        ]
+
+        if (allowedKeys.includes(event.key)) {
+            if (event.key === 'Backspace') {
+                event.preventDefault()
+
+                const currentDigits = amountInput.dataset.rawDigits ?? ''
+                const updatedDigits = currentDigits.slice(0, -1)
+
+                amountInput.dataset.rawDigits = updatedDigits
+                amountInput.value = formatPesoCurrency(updatedDigits)
+            }
+
+            return
+        }
+
+        if (/^\d$/.test(event.key)) {
+            event.preventDefault()
+
+            const currentDigits = amountInput.dataset.rawDigits ?? ''
+            const updatedDigits = currentDigits + event.key
+
+            amountInput.dataset.rawDigits = updatedDigits
+            amountInput.value = formatPesoCurrency(updatedDigits)
+        }
+    })
+
+    amountInput.addEventListener('paste', (event) => {
+        event.preventDefault()
+
+        const pastedText = event.clipboardData?.getData('text') ?? ''
+        const pastedDigits = pastedText.replace(/[^\d]/g, '')
+
+        if (!pastedDigits) {
+            return
+        }
+
+        amountInput.dataset.rawDigits = pastedDigits
+        amountInput.value = formatPesoCurrency(pastedDigits)
+    })
+
+    amountInput.addEventListener('focus', () => {
+        const currentDigits = amountInput.dataset.rawDigits ?? ''
+
+        amountInput.value = formatPesoCurrency(currentDigits)
+    })
 }
 
 const transactionClasses = {
@@ -50,20 +135,41 @@ const categoryOptionsByType = {
         'Others'
     ],
     savings: [
-    'Emergency',
-    'Retirement',
-    'Travel',
-    'Education',
-    'House',
-    'Gadget',
-    'Car',
-    'Investment',
-    'Insurance',
-    'Family',
-    'Goal',
-    'Others'
+        'Emergency',
+        'Retirement',
+        'Travel',
+        'Education',
+        'House',
+        'Gadget',
+        'Car',
+        'Investment',
+        'Insurance',
+        'Family',
+        'Goal',
+        'Others'
 ]    
     
+}
+
+/** Account Options Per Transaction Type */
+const accountOptionsByType = {
+    expense: [
+        'Cash',
+        'Bank',
+        'Card'
+    ],
+    income: [
+        'Cash',
+        'Bank',
+        'Card',
+        'Petty Cash'
+    ],
+    savings: [
+        'Bank',
+        'Digital Wallet',
+        'Cash',
+        'Others'
+    ]
 }
 
 /** Current Transaction Type */
@@ -144,6 +250,18 @@ const clearSelectedCategory = (inputElement, textElement) => {
     }
 }
 
+/** Clear Account Selection */
+const clearSelectedAccount = (inputElement, textElement) => {
+    if (inputElement) {
+        inputElement.value = ''
+    }
+
+    if (textElement) {
+        textElement.textContent = ''
+        textElement.classList.add(transactionClasses.emptyPickerText)
+    }
+}
+
 /** Update Selected Category */
 const updateSelectedCategory = (selectedItem, categoryItems, inputElement, textElement) => {
     const categoryName = selectedItem.dataset.categoryName ?? ''
@@ -197,6 +315,19 @@ const createCategoryButton = (categoryName) => {
     return buttonElement
 }
 
+/** Create Account Button */
+const createAccountButton = (accountName) => {
+    const buttonElement = document.createElement('button')
+
+    buttonElement.type = 'button'
+    buttonElement.className = 'sprout-account-modal__item'
+    buttonElement.dataset.accountItem = ''
+    buttonElement.dataset.accountName = accountName
+    buttonElement.textContent = accountName
+
+    return buttonElement
+}
+
 /** Render Category Buttons */
 const renderCategoryButtons = (
     transactionType,
@@ -243,13 +374,64 @@ const renderCategoryButtons = (
     }
 }
 
+/** Render Account Buttons */
+const renderAccountButtons = (
+    transactionType,
+    modalElement,
+    triggerElement,
+    inputElement,
+    textElement
+) => {
+    const gridElement = modalElement?.querySelector('.sprout-account-modal__grid')
+
+    if (!gridElement) {
+        return
+    }
+
+    const accounts = accountOptionsByType[transactionType] ?? []
+    const currentSelectedAccount = inputElement?.value ?? ''
+
+    gridElement.innerHTML = ''
+
+    accounts.forEach((accountName) => {
+        const buttonElement = createAccountButton(accountName)
+
+        if (currentSelectedAccount === accountName) {
+            buttonElement.classList.add(transactionClasses.selectedAccountItem)
+        }
+
+        buttonElement.addEventListener('click', () => {
+            const accountItems = gridElement.querySelectorAll(transactionSelectors.accountItems)
+
+            updateSelectedAccount(
+                buttonElement,
+                accountItems,
+                inputElement,
+                textElement
+            )
+
+            closeAccountModal(modalElement, triggerElement)
+        })
+
+        gridElement.appendChild(buttonElement)
+    })
+
+    if (currentSelectedAccount && !accounts.includes(currentSelectedAccount)) {
+        clearSelectedAccount(inputElement, textElement)
+    }
+}
+
 /** Initialize Transaction Tabs */
 const initializeTransactionTabs = (
     categoryGridElement,
     categoryInputElement,
     categoryTextElement,
     categoryModalElement,
-    categoryTriggerElement
+    categoryTriggerElement,
+    accountInputElement,
+    accountTextElement,
+    accountModalElement,
+    accountTriggerElement
 ) => {
     const tabs = document.querySelectorAll(transactionSelectors.tabs)
     const titleElement = document.querySelector(transactionSelectors.transactionTitle)
@@ -274,6 +456,14 @@ const initializeTransactionTabs = (
         categoryTriggerElement
     )
 
+    renderAccountButtons(
+        currentTransactionType,
+        accountModalElement,
+        accountTriggerElement,
+        accountInputElement,
+        accountTextElement
+    )
+
     tabs.forEach((tabElement) => {
         tabElement.addEventListener('click', () => {
             setActiveTransactionTab(tabs, tabElement, titleElement, typeInput)
@@ -285,6 +475,14 @@ const initializeTransactionTabs = (
                 categoryTextElement,
                 categoryModalElement,
                 categoryTriggerElement
+            )
+
+            renderAccountButtons(
+                currentTransactionType,
+                accountModalElement,
+                accountTriggerElement,
+                accountInputElement,
+                accountTextElement
             )
         })
     })
@@ -355,14 +553,27 @@ const initializeAccountModal = () => {
     const textElement = document.querySelector(transactionSelectors.accountSelectedText)
     const modalElement = document.querySelector(transactionSelectors.accountModal)
     const closeButtons = document.querySelectorAll(transactionSelectors.accountCloseButtons)
-    const accountItems = document.querySelectorAll(transactionSelectors.accountItems)
 
     if (!triggerElement || !modalElement) {
-        return
+        return {
+            accountInputElement: null,
+            accountTextElement: null,
+            accountModalElement: null,
+            accountTriggerElement: null
+        }
     }
 
     const openModalHandler = (event) => {
         event.preventDefault()
+
+        renderAccountButtons(
+            currentTransactionType,
+            modalElement,
+            triggerElement,
+            inputElement,
+            textElement
+        )
+
         openAccountModal(modalElement, triggerElement)
     }
 
@@ -381,27 +592,32 @@ const initializeAccountModal = () => {
         })
     })
 
-    accountItems.forEach((itemElement) => {
-        itemElement.addEventListener('click', () => {
-            updateSelectedAccount(itemElement, accountItems, inputElement, textElement)
-            closeAccountModal(modalElement, triggerElement)
-        })
-    })
+    return {
+        accountInputElement: inputElement,
+        accountTextElement: textElement,
+        accountModalElement: modalElement,
+        accountTriggerElement: triggerElement
+    }
 }
 
 /** Initialize Page */
 const initializeTransactionCreatePage = () => {
+    initializeAmountFormatter()
+
     const categoryModalData = initializeCategoryModal()
+    const accountModalData = initializeAccountModal()
 
     initializeTransactionTabs(
         categoryModalData.categoryGridElement,
         categoryModalData.categoryInputElement,
         categoryModalData.categoryTextElement,
         categoryModalData.categoryModalElement,
-        categoryModalData.categoryTriggerElement
+        categoryModalData.categoryTriggerElement,
+        accountModalData.accountInputElement,
+        accountModalData.accountTextElement,
+        accountModalData.accountModalElement,
+        accountModalData.accountTriggerElement
     )
-
-    initializeAccountModal()
 }
 
 document.addEventListener('DOMContentLoaded', initializeTransactionCreatePage)
