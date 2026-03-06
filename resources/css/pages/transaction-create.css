@@ -149,6 +149,11 @@
   border-bottom: 1px solid var(--sprout-line);
 }
 
+/* Clickable Picker Row */
+.sprout-transaction__field--picker {
+  cursor: pointer;
+}
+
 /* Last Transaction Field */
 .sprout-transaction__field--last {
   border-bottom: none;
@@ -170,6 +175,31 @@
   font-size: 14px;
   color: var(--sprout-ink);
   font-family: 'Inter', sans-serif;
+}
+
+/* Picker Trigger */
+.sprout-transaction__picker-trigger {
+  width: 100%;
+  min-height: 17px;
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 0;
+  text-align: left;
+  pointer-events: none;
+}
+
+.sprout-transaction__picker-text {
+  display: block;
+  width: 100%;
+  min-height: 17px;
+  font-size: 14px;
+  line-height: 1.2;
+  color: var(--sprout-ink);
+}
+
+.sprout-transaction__picker-text--empty {
+  color: transparent;
 }
 
 /* Description Header */
@@ -247,4 +277,146 @@
   border: 1.5px solid #00F36B;
   background: #FFFFFF;
   color: #00F36B;
+}
+
+/* Category Modal */
+.sprout-category-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.sprout-category-modal--hidden {
+  display: none;
+}
+
+.sprout-category-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  border: none;
+  background: rgba(0, 0, 0, 0.08);
+  padding: 0;
+  margin: 0;
+}
+
+.sprout-category-modal__sheet {
+  position: relative;
+  width: 100%;
+  max-width: 414px;
+  height: min(62vh, 520px);
+  background: #FFFFFF;
+  border-radius: 22px 22px 0 0;
+  padding: 20px 20px 24px;
+  box-sizing: border-box;
+  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+}
+
+.sprout-category-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  flex-shrink: 0;
+}
+
+.sprout-category-modal__title {
+  margin: 0;
+  color: #1F1F1F;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.sprout-category-modal__close {
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  color: #1F1F1F;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.sprout-category-modal__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.sprout-category-modal__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px 10px;
+}
+
+/* Category Item */
+.sprout-category-modal__item {
+  min-height: 40px;
+  padding: 0 8px;
+  border: 1.4px solid #00F36B;
+  border-radius: 6px;
+  background: #FFFFFF;
+  color: #00C957;
+  font-size: 13px;
+  font-weight: 350;
+  font-family: 'Inter', sans-serif;
+  line-height: 1.2;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.15s ease;
+}
+
+/* Selected Category Item */
+.sprout-category-modal__item--selected {
+  background: #00F36B;
+  border-color: #00D95F;
+  color: #FFFFFF;
+  font-weight: 400;
+}
+
+/* Category Item Hover */
+.sprout-category-modal__item:hover {
+  background: #DFFFE6;
+  border-color: #00E766;
+  color: #00C957;
+}
+
+/* Category Item Pressed */
+.sprout-category-modal__item:active {
+  background: #BAFFC6;
+  border-color: #BAFFC6;
+  color: #FFFFFF;
+  transform: scale(0.98);
+}
+
+/* Category Actions */
+.sprout-category-modal__actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px 10px;
+  margin-top: 12px;
+}
+
+/* Add Category Button */
+.sprout-category-modal__add-button {
+  min-height: 40px;
+  padding: 0 8px;
+  border: 1.4px solid #00F36B;
+  border-radius: 6px;
+  background: #00F36B;
+  color: #FFFFFF;
+  font-size: 13px;
+  font-weight: 400;
+  font-family: 'Inter', sans-serif;
+  line-height: 1.2;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
 }

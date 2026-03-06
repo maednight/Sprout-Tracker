@@ -20,7 +20,6 @@
             <main class="sprout-transaction__page">
                 <div class="sprout-transaction__content">
 
-                    <!-- Transaction Header -->
                     <header class="sprout-transaction__header">
                         <div class="sprout-transaction__header-side sprout-transaction__header-side--left">
                             <a href="{{ route('dashboard') }}" class="sprout-transaction__back">
@@ -29,7 +28,7 @@
                         </div>
 
                         <div class="sprout-transaction__header-center">
-                            <h1 class="sprout-transaction__title">
+                            <h1 class="sprout-transaction__title" data-transaction-title>
                                 Expense
                             </h1>
                         </div>
@@ -37,26 +36,48 @@
                         <div class="sprout-transaction__header-side sprout-transaction__header-side--right"></div>
                     </header>
 
-                    <!-- Transaction Tabs -->
                     <div class="sprout-transaction__tabs">
-                        <button type="button" class="sprout-transaction__tab">
+                        <button
+                            type="button"
+                            class="sprout-transaction__tab"
+                            data-transaction-tab
+                            data-transaction-type="income"
+                            data-transaction-title="Income"
+                        >
                             Income
                         </button>
 
-                        <button type="button" class="sprout-transaction__tab sprout-transaction__tab--active">
+                        <button
+                            type="button"
+                            class="sprout-transaction__tab sprout-transaction__tab--active"
+                            data-transaction-tab
+                            data-transaction-type="expense"
+                            data-transaction-title="Expense"
+                        >
                             Expense
                         </button>
 
-                        <button type="button" class="sprout-transaction__tab">
+                        <button
+                            type="button"
+                            class="sprout-transaction__tab"
+                            data-transaction-tab
+                            data-transaction-type="savings"
+                            data-transaction-title="Savings"
+                        >
                             Savings
                         </button>
                     </div>
 
-                    <!-- Transaction Form -->
                     <form class="sprout-transaction__form" method="POST" action="#">
                         @csrf
 
-                        <!-- Transaction Details Card -->
+                        <input
+                            type="hidden"
+                            name="transaction_type"
+                            value="expense"
+                            data-transaction-type-input
+                        >
+
                         <section class="sprout-transaction__card">
                             <div class="sprout-transaction__field">
                                 <label for="transaction_date" class="sprout-transaction__label">Date</label>
@@ -78,13 +99,29 @@
                                 >
                             </div>
 
-                            <div class="sprout-transaction__field">
+                            <div
+                                class="sprout-transaction__field sprout-transaction__field--picker"
+                                data-category-trigger
+                                aria-expanded="false"
+                                aria-controls="sproutCategoryModal"
+                                role="button"
+                                tabindex="0"
+                            >
                                 <label for="category" class="sprout-transaction__label">Category</label>
+
+                                <div class="sprout-transaction__picker-trigger">
+                                    <span
+                                        class="sprout-transaction__picker-text sprout-transaction__picker-text--empty"
+                                        data-category-selected-text
+                                    ></span>
+                                </div>
+
                                 <input
                                     id="category"
                                     name="category"
-                                    type="text"
-                                    class="sprout-transaction__input"
+                                    type="hidden"
+                                    value=""
+                                    data-category-input
                                 >
                             </div>
 
@@ -99,7 +136,6 @@
                             </div>
                         </section>
 
-                        <!-- Transaction Description Card -->
                         <section class="sprout-transaction__card sprout-transaction__card--description">
                             <div class="sprout-transaction__description-head">
                                 <label for="description" class="sprout-transaction__label">Description</label>
@@ -124,7 +160,6 @@
                             ></textarea>
                         </section>
 
-                        <!-- Transaction Actions -->
                         <div class="sprout-transaction__actions">
                             <button type="submit" class="sprout-transaction__button sprout-transaction__button--primary">
                                 Save
@@ -140,6 +175,105 @@
             </main>
 
             @include('public.partials.nav-mobile')
+        </div>
+    </div>
+
+    <div
+        class="sprout-category-modal sprout-category-modal--hidden"
+        data-category-modal
+    >
+        <button
+            type="button"
+            class="sprout-category-modal__backdrop"
+            data-category-close
+            aria-label="Close category modal"
+        ></button>
+
+        <div
+            class="sprout-category-modal__sheet"
+            id="sproutCategoryModal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="sproutCategoryModalTitle"
+        >
+            <div class="sprout-category-modal__header">
+                <h2
+                    id="sproutCategoryModalTitle"
+                    class="sprout-category-modal__title"
+                >
+                    Category
+                </h2>
+
+                <button
+                    type="button"
+                    class="sprout-category-modal__close"
+                    data-category-close
+                    aria-label="Close category modal"
+                >
+                    ×
+                </button>
+            </div>
+
+            <div class="sprout-category-modal__body">
+                <div class="sprout-category-modal__grid">
+                    <button type="button" class="sprout-category-modal__item" data-category-item data-category-name="Food">
+                        Food
+                    </button>
+
+                    <button type="button" class="sprout-category-modal__item" data-category-item data-category-name="Transportation">
+                        Transportation
+                    </button>
+
+                    <button type="button" class="sprout-category-modal__item" data-category-item data-category-name="Pets">
+                        Pets
+                    </button>
+
+                    <button type="button" class="sprout-category-modal__item" data-category-item data-category-name="Culture">
+                        Culture
+                    </button>
+
+                    <button type="button" class="sprout-category-modal__item" data-category-item data-category-name="Household">
+                        Household
+                    </button>
+
+                    <button type="button" class="sprout-category-modal__item" data-category-item data-category-name="Apparel">
+                        Apparel
+                    </button>
+
+                    <button type="button" class="sprout-category-modal__item" data-category-item data-category-name="Beauty">
+                        Beauty
+                    </button>
+
+                    <button type="button" class="sprout-category-modal__item" data-category-item data-category-name="Health">
+                        Health
+                    </button>
+
+                    <button type="button" class="sprout-category-modal__item" data-category-item data-category-name="Education">
+                        Education
+                    </button>
+
+                    <button type="button" class="sprout-category-modal__item" data-category-item data-category-name="Work">
+                        Work
+                    </button>
+
+                    <button type="button" class="sprout-category-modal__item" data-category-item data-category-name="Gift">
+                        Gift
+                    </button>
+
+                    <button type="button" class="sprout-category-modal__item" data-category-item data-category-name="Others">
+                        Others
+                    </button>
+                </div>
+
+                <div class="sprout-category-modal__actions">
+                    <button
+                        type="button"
+                        class="sprout-category-modal__add-button"
+                    >
+                        Add
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
