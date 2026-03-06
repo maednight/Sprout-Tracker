@@ -2,7 +2,7 @@ const transactionSelectors = {
     tabs: '[data-transaction-tab]',
     transactionTitle: '[data-transaction-title]',
     transactionTypeInput: '[data-transaction-type-input]',
-        amountInput: '#amount',
+    amountInput: '#amount',
     categoryTrigger: '[data-category-trigger]',
     categoryInput: '[data-category-input]',
     categorySelectedText: '[data-category-selected-text]',
@@ -15,8 +15,92 @@ const transactionSelectors = {
     accountSelectedText: '[data-account-selected-text]',
     accountModal: '[data-account-modal]',
     accountCloseButtons: '[data-account-close]',
-    accountItems: '[data-account-item]'
+    accountItems: '[data-account-item]',
+    addCategoryButton: '.sprout-category-modal__add-button',
+    addAccountButton: '.sprout-account-modal__add-button',
+    addCategoryOverlay: '[data-add-category-overlay]',
+    addCategoryCloseButtons: '[data-add-category-close]',
+    addCategoryInput: '[data-add-category-input]',
+    addCategorySave: '[data-add-category-save]',
+    addCategoryTitle: '[data-add-category-title]',
+    addAccountOverlay: '[data-add-account-overlay]',
+    addAccountCloseButtons: '[data-add-account-close]',
+    addAccountInput: '[data-add-account-input]',
+    addAccountSave: '[data-add-account-save]'
 }
+
+const transactionClasses = {
+    activeTab: 'sprout-transaction__tab--active',
+    hiddenCategoryModal: 'sprout-category-modal--hidden',
+    selectedCategoryItem: 'sprout-category-modal__item--selected',
+    hiddenAccountModal: 'sprout-account-modal--hidden',
+    selectedAccountItem: 'sprout-account-modal__item--selected',
+    hiddenAddOptionOverlay: 'sprout-add-option-overlay--hidden',
+    emptyPickerText: 'sprout-transaction__picker-text--empty'
+}
+
+/** Category Options Per Transaction Type */
+const categoryOptionsByType = {
+    expense: [
+        'Food',
+        'Transportation',
+        'Pets',
+        'Culture',
+        'Household',
+        'Apparel',
+        'Beauty',
+        'Health',
+        'Education',
+        'Work',
+        'Gift',
+        'Others'
+    ],
+    income: [
+        'Allowance',
+        'Salary',
+        'Petty Cash',
+        'Bonus',
+        'Others'
+    ],
+    savings: [
+        'Emergency',
+        'Retirement',
+        'Travel',
+        'Education',
+        'House',
+        'Gadget',
+        'Car',
+        'Investment',
+        'Insurance',
+        'Family',
+        'Goal',
+        'Others'
+    ]
+}
+
+/** Account Options Per Transaction Type */
+const accountOptionsByType = {
+    expense: [
+        'Cash',
+        'Bank',
+        'Card'
+    ],
+    income: [
+        'Cash',
+        'Bank',
+        'Card',
+        'Petty Cash'
+    ],
+    savings: [
+        'Bank',
+        'Digital Wallet',
+        'Cash',
+        'Others'
+    ]
+}
+
+/** Current Transaction Type */
+let currentTransactionType = 'expense'
 
 /** Format Peso Currency */
 const formatPesoCurrency = (digits) => {
@@ -97,83 +181,20 @@ const initializeAmountFormatter = () => {
 
     amountInput.addEventListener('focus', () => {
         const currentDigits = amountInput.dataset.rawDigits ?? ''
-
         amountInput.value = formatPesoCurrency(currentDigits)
     })
 }
 
-const transactionClasses = {
-    activeTab: 'sprout-transaction__tab--active',
-    hiddenCategoryModal: 'sprout-category-modal--hidden',
-    selectedCategoryItem: 'sprout-category-modal__item--selected',
-    hiddenAccountModal: 'sprout-account-modal--hidden',
-    selectedAccountItem: 'sprout-account-modal__item--selected',
-    emptyPickerText: 'sprout-transaction__picker-text--empty'
-}
+/** Category Title Per Transaction Type */
+const getAddCategoryTitle = (transactionType) => {
+    const titleMap = {
+        expense: 'Add Expense Category',
+        income: 'Add Income Category',
+        savings: 'Add Savings Category'
+    }
 
-/** Category Options Per Transaction Type */
-const categoryOptionsByType = {
-    expense: [
-        'Food',
-        'Transportation',
-        'Pets',
-        'Culture',
-        'Household',
-        'Apparel',
-        'Beauty',
-        'Health',
-        'Education',
-        'Work',
-        'Gift',
-        'Others'
-    ],
-    income: [
-        'Allowance',
-        'Salary',
-        'Petty Cash',
-        'Bonus',
-        'Others'
-    ],
-    savings: [
-        'Emergency',
-        'Retirement',
-        'Travel',
-        'Education',
-        'House',
-        'Gadget',
-        'Car',
-        'Investment',
-        'Insurance',
-        'Family',
-        'Goal',
-        'Others'
-]    
-    
+    return titleMap[transactionType] ?? 'Add Category'
 }
-
-/** Account Options Per Transaction Type */
-const accountOptionsByType = {
-    expense: [
-        'Cash',
-        'Bank',
-        'Card'
-    ],
-    income: [
-        'Cash',
-        'Bank',
-        'Card',
-        'Petty Cash'
-    ],
-    savings: [
-        'Bank',
-        'Digital Wallet',
-        'Cash',
-        'Others'
-    ]
-}
-
-/** Current Transaction Type */
-let currentTransactionType = 'expense'
 
 /** Transaction Tabs */
 const setActiveTransactionTab = (tabs, selectedTab, titleElement, typeInput) => {
@@ -236,6 +257,26 @@ const closeAccountModal = (modalElement, triggerElement) => {
     }
 
     document.body.style.overflow = ''
+}
+
+/** Add Overlay Open */
+const openAddOverlay = (overlayElement) => {
+    if (!overlayElement) {
+        return
+    }
+
+    overlayElement.classList.remove(transactionClasses.hiddenAddOptionOverlay)
+    document.body.style.overflow = 'hidden'
+}
+
+/** Add Overlay Close */
+const closeAddOverlay = (overlayElement) => {
+    if (!overlayElement) {
+        return
+    }
+
+    overlayElement.classList.add(transactionClasses.hiddenAddOptionOverlay)
+    document.body.style.overflow = 'hidden'
 }
 
 /** Clear Category Selection */
@@ -600,6 +641,168 @@ const initializeAccountModal = () => {
     }
 }
 
+/** Initialize Add Category Overlay */
+const initializeAddCategoryOverlay = (
+    categoryGridElement,
+    categoryInputElement,
+    categoryTextElement,
+    categoryModalElement,
+    categoryTriggerElement
+) => {
+    const addButton = document.querySelector(transactionSelectors.addCategoryButton)
+    const overlayElement = document.querySelector(transactionSelectors.addCategoryOverlay)
+    const closeButtons = document.querySelectorAll(transactionSelectors.addCategoryCloseButtons)
+    const inputElement = document.querySelector(transactionSelectors.addCategoryInput)
+    const saveButton = document.querySelector(transactionSelectors.addCategorySave)
+    const titleElement = document.querySelector(transactionSelectors.addCategoryTitle)
+
+    if (!addButton || !overlayElement || !inputElement || !saveButton) {
+        return
+    }
+
+    const openOverlay = () => {
+        if (titleElement) {
+            titleElement.textContent = getAddCategoryTitle(currentTransactionType)
+        }
+
+        inputElement.value = ''
+
+        closeCategoryModal(categoryModalElement, categoryTriggerElement)
+        openAddOverlay(overlayElement)
+
+        window.setTimeout(() => {
+            inputElement.focus()
+        }, 50)
+    }
+
+    const closeOverlay = () => {
+        closeAddOverlay(overlayElement)
+        openCategoryModal(categoryModalElement, categoryTriggerElement)
+    }
+
+    addButton.addEventListener('click', openOverlay)
+
+    closeButtons.forEach((closeButton) => {
+        closeButton.addEventListener('click', closeOverlay)
+    })
+
+    saveButton.addEventListener('click', () => {
+        const newCategoryName = inputElement.value.trim()
+
+        if (!newCategoryName) {
+            return
+        }
+
+        const currentCategories = categoryOptionsByType[currentTransactionType] ?? []
+        const alreadyExists = currentCategories.some(
+            (categoryName) => categoryName.toLowerCase() === newCategoryName.toLowerCase()
+        )
+
+        if (!alreadyExists) {
+            categoryOptionsByType[currentTransactionType].push(newCategoryName)
+        }
+
+        renderCategoryButtons(
+            currentTransactionType,
+            categoryGridElement,
+            categoryInputElement,
+            categoryTextElement,
+            categoryModalElement,
+            categoryTriggerElement
+        )
+
+        categoryInputElement.value = newCategoryName
+        categoryTextElement.textContent = newCategoryName
+        categoryTextElement.classList.remove(transactionClasses.emptyPickerText)
+
+        closeAddOverlay(overlayElement)
+        openCategoryModal(categoryModalElement, categoryTriggerElement)
+
+        renderCategoryButtons(
+            currentTransactionType,
+            categoryGridElement,
+            categoryInputElement,
+            categoryTextElement,
+            categoryModalElement,
+            categoryTriggerElement
+        )
+    })
+}
+
+/** Initialize Add Account Overlay */
+const initializeAddAccountOverlay = (
+    accountInputElement,
+    accountTextElement,
+    accountModalElement,
+    accountTriggerElement
+) => {
+    const addButton = document.querySelector(transactionSelectors.addAccountButton)
+    const overlayElement = document.querySelector(transactionSelectors.addAccountOverlay)
+    const closeButtons = document.querySelectorAll(transactionSelectors.addAccountCloseButtons)
+    const inputElement = document.querySelector(transactionSelectors.addAccountInput)
+    const saveButton = document.querySelector(transactionSelectors.addAccountSave)
+
+    if (!addButton || !overlayElement || !inputElement || !saveButton) {
+        return
+    }
+
+    const openOverlay = () => {
+        inputElement.value = ''
+
+        closeAccountModal(accountModalElement, accountTriggerElement)
+        openAddOverlay(overlayElement)
+
+        window.setTimeout(() => {
+            inputElement.focus()
+        }, 50)
+    }
+
+    const closeOverlay = () => {
+        closeAddOverlay(overlayElement)
+        openAccountModal(accountModalElement, accountTriggerElement)
+    }
+
+    addButton.addEventListener('click', openOverlay)
+
+    closeButtons.forEach((closeButton) => {
+        closeButton.addEventListener('click', closeOverlay)
+    })
+
+    saveButton.addEventListener('click', () => {
+        const newAccountName = inputElement.value.trim()
+
+        if (!newAccountName) {
+            return
+        }
+
+        const allAccountLists = Object.values(accountOptionsByType)
+        const alreadyExists = allAccountLists.some((accountList) =>
+            accountList.some((accountName) => accountName.toLowerCase() === newAccountName.toLowerCase())
+        )
+
+        if (!alreadyExists) {
+            Object.keys(accountOptionsByType).forEach((transactionType) => {
+                accountOptionsByType[transactionType].push(newAccountName)
+            })
+        }
+
+        accountInputElement.value = newAccountName
+        accountTextElement.textContent = newAccountName
+        accountTextElement.classList.remove(transactionClasses.emptyPickerText)
+
+        closeAddOverlay(overlayElement)
+        openAccountModal(accountModalElement, accountTriggerElement)
+
+        renderAccountButtons(
+            currentTransactionType,
+            accountModalElement,
+            accountTriggerElement,
+            accountInputElement,
+            accountTextElement
+        )
+    })
+}
+
 /** Initialize Page */
 const initializeTransactionCreatePage = () => {
     initializeAmountFormatter()
@@ -613,6 +816,21 @@ const initializeTransactionCreatePage = () => {
         categoryModalData.categoryTextElement,
         categoryModalData.categoryModalElement,
         categoryModalData.categoryTriggerElement,
+        accountModalData.accountInputElement,
+        accountModalData.accountTextElement,
+        accountModalData.accountModalElement,
+        accountModalData.accountTriggerElement
+    )
+
+    initializeAddCategoryOverlay(
+        categoryModalData.categoryGridElement,
+        categoryModalData.categoryInputElement,
+        categoryModalData.categoryTextElement,
+        categoryModalData.categoryModalElement,
+        categoryModalData.categoryTriggerElement
+    )
+
+    initializeAddAccountOverlay(
         accountModalData.accountInputElement,
         accountModalData.accountTextElement,
         accountModalData.accountModalElement,

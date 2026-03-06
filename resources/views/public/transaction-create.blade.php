@@ -375,5 +375,132 @@
   </div>
 </div>
 
+<!-- Add Category Overlay -->
+<div
+    class="sprout-add-option-overlay sprout-add-option-overlay--hidden"
+    data-add-category-overlay
+>
+    <button
+        type="button"
+        class="sprout-add-option-overlay__backdrop"
+        data-add-category-close
+        aria-label="Close add category overlay"
+    ></button>
+
+    <div
+        class="sprout-add-option-overlay__sheet"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="sproutAddCategoryTitle"
+    >
+        <div class="sprout-add-option-overlay__header">
+            <button
+                type="button"
+                class="sprout-add-option-overlay__back"
+                data-add-category-close
+                aria-label="Go back"
+            >
+                ‹
+            </button>
+
+            <h2
+                id="sproutAddCategoryTitle"
+                class="sprout-add-option-overlay__title"
+                data-add-category-title
+            >
+                Add Expense Category
+            </h2>
+
+            <div class="sprout-add-option-overlay__spacer" aria-hidden="true"></div>
+        </div>
+
+        <div class="sprout-add-option-overlay__body">
+            <div class="sprout-add-option-overlay__field">
+                <label for="custom_category_name" class="sprout-add-option-overlay__label">
+                    Category Name
+                </label>
+
+                <input
+                    id="custom_category_name"
+                    type="text"
+                    class="sprout-add-option-overlay__input"
+                    data-add-category-input
+                >
+            </div>
+
+            <button
+                type="button"
+                class="sprout-add-option-overlay__save"
+                data-add-category-save
+            >
+                Save
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Add Account Overlay -->
+<div
+    class="sprout-add-option-overlay sprout-add-option-overlay--hidden"
+    data-add-account-overlay
+>
+    <button
+        type="button"
+        class="sprout-add-option-overlay__backdrop"
+        data-add-account-close
+        aria-label="Close add account overlay"
+    ></button>
+
+    <div
+        class="sprout-add-option-overlay__sheet"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="sproutAddAccountTitle"
+    >
+        <div class="sprout-add-option-overlay__header">
+            <button
+                type="button"
+                class="sprout-add-option-overlay__back"
+                data-add-account-close
+                aria-label="Go back"
+            >
+                ‹
+            </button>
+
+            <h2
+                id="sproutAddAccountTitle"
+                class="sprout-add-option-overlay__title"
+            >
+                Add Account
+            </h2>
+
+            <div class="sprout-add-option-overlay__spacer" aria-hidden="true"></div>
+        </div>
+
+        <div class="sprout-add-option-overlay__body">
+            <div class="sprout-add-option-overlay__field">
+                <label for="custom_account_name" class="sprout-add-option-overlay__label">
+                    Account Name
+                </label>
+
+                <input
+                    id="custom_account_name"
+                    type="text"
+                    class="sprout-add-option-overlay__input"
+                    data-add-account-input
+                >
+            </div>
+
+            <button
+                type="button"
+                class="sprout-add-option-overlay__save"
+                data-add-account-save
+            >
+                Save
+            </button>
+        </div>
+    </div>
+</div>
+
 </body>
 </html>
