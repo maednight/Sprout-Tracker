@@ -7,16 +7,69 @@ const transactionSelectors = {
     categorySelectedText: '[data-category-selected-text]',
     categoryModal: '[data-category-modal]',
     categoryCloseButtons: '[data-category-close]',
-    categoryItems: '[data-category-item]'
+    categoryGrid: '[data-category-grid]',
+    categoryItems: '[data-category-item]',
+    accountTrigger: '[data-account-trigger]',
+    accountInput: '[data-account-input]',
+    accountSelectedText: '[data-account-selected-text]',
+    accountModal: '[data-account-modal]',
+    accountCloseButtons: '[data-account-close]',
+    accountItems: '[data-account-item]'
 }
 
 const transactionClasses = {
     activeTab: 'sprout-transaction__tab--active',
-    hiddenModal: 'sprout-category-modal--hidden',
+    hiddenCategoryModal: 'sprout-category-modal--hidden',
     selectedCategoryItem: 'sprout-category-modal__item--selected',
+    hiddenAccountModal: 'sprout-account-modal--hidden',
+    selectedAccountItem: 'sprout-account-modal__item--selected',
     emptyPickerText: 'sprout-transaction__picker-text--empty'
 }
 
+/** Category Options Per Transaction Type */
+const categoryOptionsByType = {
+    expense: [
+        'Food',
+        'Transportation',
+        'Pets',
+        'Culture',
+        'Household',
+        'Apparel',
+        'Beauty',
+        'Health',
+        'Education',
+        'Work',
+        'Gift',
+        'Others'
+    ],
+    income: [
+        'Allowance',
+        'Salary',
+        'Petty Cash',
+        'Bonus',
+        'Others'
+    ],
+    savings: [
+    'Emergency',
+    'Retirement',
+    'Travel',
+    'Education',
+    'House',
+    'Gadget',
+    'Car',
+    'Investment',
+    'Insurance',
+    'Family',
+    'Goal',
+    'Others'
+]    
+    
+}
+
+/** Current Transaction Type */
+let currentTransactionType = 'expense'
+
+/** Transaction Tabs */
 const setActiveTransactionTab = (tabs, selectedTab, titleElement, typeInput) => {
     tabs.forEach((tabElement) => {
         tabElement.classList.remove(transactionClasses.activeTab)
@@ -24,17 +77,20 @@ const setActiveTransactionTab = (tabs, selectedTab, titleElement, typeInput) => 
 
     selectedTab.classList.add(transactionClasses.activeTab)
 
+    currentTransactionType = selectedTab.dataset.transactionType ?? 'expense'
+
     if (titleElement) {
         titleElement.textContent = selectedTab.dataset.transactionTitle ?? 'Expense'
     }
 
     if (typeInput) {
-        typeInput.value = selectedTab.dataset.transactionType ?? 'expense'
+        typeInput.value = currentTransactionType
     }
 }
 
+/** Category Modal Open */
 const openCategoryModal = (modalElement, triggerElement) => {
-    modalElement.classList.remove(transactionClasses.hiddenModal)
+    modalElement.classList.remove(transactionClasses.hiddenCategoryModal)
 
     if (triggerElement) {
         triggerElement.setAttribute('aria-expanded', 'true')
@@ -43,8 +99,9 @@ const openCategoryModal = (modalElement, triggerElement) => {
     document.body.style.overflow = 'hidden'
 }
 
+/** Category Modal Close */
 const closeCategoryModal = (modalElement, triggerElement) => {
-    modalElement.classList.add(transactionClasses.hiddenModal)
+    modalElement.classList.add(transactionClasses.hiddenCategoryModal)
 
     if (triggerElement) {
         triggerElement.setAttribute('aria-expanded', 'false')
@@ -53,6 +110,41 @@ const closeCategoryModal = (modalElement, triggerElement) => {
     document.body.style.overflow = ''
 }
 
+/** Account Modal Open */
+const openAccountModal = (modalElement, triggerElement) => {
+    modalElement.classList.remove(transactionClasses.hiddenAccountModal)
+
+    if (triggerElement) {
+        triggerElement.setAttribute('aria-expanded', 'true')
+    }
+
+    document.body.style.overflow = 'hidden'
+}
+
+/** Account Modal Close */
+const closeAccountModal = (modalElement, triggerElement) => {
+    modalElement.classList.add(transactionClasses.hiddenAccountModal)
+
+    if (triggerElement) {
+        triggerElement.setAttribute('aria-expanded', 'false')
+    }
+
+    document.body.style.overflow = ''
+}
+
+/** Clear Category Selection */
+const clearSelectedCategory = (inputElement, textElement) => {
+    if (inputElement) {
+        inputElement.value = ''
+    }
+
+    if (textElement) {
+        textElement.textContent = ''
+        textElement.classList.add(transactionClasses.emptyPickerText)
+    }
+}
+
+/** Update Selected Category */
 const updateSelectedCategory = (selectedItem, categoryItems, inputElement, textElement) => {
     const categoryName = selectedItem.dataset.categoryName ?? ''
 
@@ -72,7 +164,93 @@ const updateSelectedCategory = (selectedItem, categoryItems, inputElement, textE
     selectedItem.classList.add(transactionClasses.selectedCategoryItem)
 }
 
-const initializeTransactionTabs = () => {
+/** Update Selected Account */
+const updateSelectedAccount = (selectedItem, accountItems, inputElement, textElement) => {
+    const accountName = selectedItem.dataset.accountName ?? ''
+
+    if (inputElement) {
+        inputElement.value = accountName
+    }
+
+    if (textElement) {
+        textElement.textContent = accountName
+        textElement.classList.remove(transactionClasses.emptyPickerText)
+    }
+
+    accountItems.forEach((itemElement) => {
+        itemElement.classList.remove(transactionClasses.selectedAccountItem)
+    })
+
+    selectedItem.classList.add(transactionClasses.selectedAccountItem)
+}
+
+/** Create Category Button */
+const createCategoryButton = (categoryName) => {
+    const buttonElement = document.createElement('button')
+
+    buttonElement.type = 'button'
+    buttonElement.className = 'sprout-category-modal__item'
+    buttonElement.dataset.categoryItem = ''
+    buttonElement.dataset.categoryName = categoryName
+    buttonElement.textContent = categoryName
+
+    return buttonElement
+}
+
+/** Render Category Buttons */
+const renderCategoryButtons = (
+    transactionType,
+    gridElement,
+    inputElement,
+    textElement,
+    modalElement,
+    triggerElement
+) => {
+    if (!gridElement) {
+        return
+    }
+
+    const categories = categoryOptionsByType[transactionType] ?? []
+    const currentSelectedCategory = inputElement?.value ?? ''
+
+    gridElement.innerHTML = ''
+
+    categories.forEach((categoryName) => {
+        const buttonElement = createCategoryButton(categoryName)
+
+        if (currentSelectedCategory === categoryName) {
+            buttonElement.classList.add(transactionClasses.selectedCategoryItem)
+        }
+
+        buttonElement.addEventListener('click', () => {
+            const categoryItems = gridElement.querySelectorAll(transactionSelectors.categoryItems)
+
+            updateSelectedCategory(
+                buttonElement,
+                categoryItems,
+                inputElement,
+                textElement
+            )
+
+            closeCategoryModal(modalElement, triggerElement)
+        })
+
+        gridElement.appendChild(buttonElement)
+    })
+
+    if (currentSelectedCategory && !categories.includes(currentSelectedCategory)) {
+        clearSelectedCategory(inputElement, textElement)
+    }
+}
+
+/** Initialize Transaction Tabs */
+const initializeTransactionTabs = (
+    categoryGridElement,
+    categoryInputElement,
+    categoryTextElement,
+    categoryModalElement,
+    categoryTriggerElement
+) => {
     const tabs = document.querySelectorAll(transactionSelectors.tabs)
     const titleElement = document.querySelector(transactionSelectors.transactionTitle)
     const typeInput = document.querySelector(transactionSelectors.transactionTypeInput)
@@ -81,27 +259,68 @@ const initializeTransactionTabs = () => {
         return
     }
 
+    const activeTabElement = document.querySelector(`.${transactionClasses.activeTab}`)
+
+    if (activeTabElement) {
+        currentTransactionType = activeTabElement.dataset.transactionType ?? 'expense'
+    }
+
+    renderCategoryButtons(
+        currentTransactionType,
+        categoryGridElement,
+        categoryInputElement,
+        categoryTextElement,
+        categoryModalElement,
+        categoryTriggerElement
+    )
+
     tabs.forEach((tabElement) => {
         tabElement.addEventListener('click', () => {
             setActiveTransactionTab(tabs, tabElement, titleElement, typeInput)
+
+            renderCategoryButtons(
+                currentTransactionType,
+                categoryGridElement,
+                categoryInputElement,
+                categoryTextElement,
+                categoryModalElement,
+                categoryTriggerElement
+            )
         })
     })
 }
 
+/** Initialize Category Modal */
 const initializeCategoryModal = () => {
     const triggerElement = document.querySelector(transactionSelectors.categoryTrigger)
     const inputElement = document.querySelector(transactionSelectors.categoryInput)
     const textElement = document.querySelector(transactionSelectors.categorySelectedText)
     const modalElement = document.querySelector(transactionSelectors.categoryModal)
     const closeButtons = document.querySelectorAll(transactionSelectors.categoryCloseButtons)
-    const categoryItems = document.querySelectorAll(transactionSelectors.categoryItems)
+    const gridElement = document.querySelector(transactionSelectors.categoryGrid)
 
-    if (!triggerElement || !modalElement) {
-        return
+    if (!triggerElement || !modalElement || !gridElement) {
+        return {
+            categoryGridElement: null,
+            categoryInputElement: null,
+            categoryTextElement: null,
+            categoryModalElement: null,
+            categoryTriggerElement: null
+        }
     }
 
     const openModalHandler = (event) => {
         event.preventDefault()
+
+        renderCategoryButtons(
+            currentTransactionType,
+            gridElement,
+            inputElement,
+            textElement,
+            modalElement,
+            triggerElement
+        )
+
         openCategoryModal(modalElement, triggerElement)
     }
 
@@ -110,7 +329,7 @@ const initializeCategoryModal = () => {
     triggerElement.addEventListener('keydown', (event) => {
         if (event.key === 'Enter' || event.key === ' ') {
             event.preventDefault()
-            openCategoryModal(modalElement, triggerElement)
+            openModalHandler(event)
         }
     })
 
@@ -120,17 +339,69 @@ const initializeCategoryModal = () => {
         })
     })
 
-    categoryItems.forEach((itemElement) => {
+    return {
+        categoryGridElement: gridElement,
+        categoryInputElement: inputElement,
+        categoryTextElement: textElement,
+        categoryModalElement: modalElement,
+        categoryTriggerElement: triggerElement
+    }
+}
+
+/** Initialize Account Modal */
+const initializeAccountModal = () => {
+    const triggerElement = document.querySelector(transactionSelectors.accountTrigger)
+    const inputElement = document.querySelector(transactionSelectors.accountInput)
+    const textElement = document.querySelector(transactionSelectors.accountSelectedText)
+    const modalElement = document.querySelector(transactionSelectors.accountModal)
+    const closeButtons = document.querySelectorAll(transactionSelectors.accountCloseButtons)
+    const accountItems = document.querySelectorAll(transactionSelectors.accountItems)
+
+    if (!triggerElement || !modalElement) {
+        return
+    }
+
+    const openModalHandler = (event) => {
+        event.preventDefault()
+        openAccountModal(modalElement, triggerElement)
+    }
+
+    triggerElement.addEventListener('click', openModalHandler)
+
+    triggerElement.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault()
+            openModalHandler(event)
+        }
+    })
+
+    closeButtons.forEach((closeButton) => {
+        closeButton.addEventListener('click', () => {
+            closeAccountModal(modalElement, triggerElement)
+        })
+    })
+
+    accountItems.forEach((itemElement) => {
         itemElement.addEventListener('click', () => {
-            updateSelectedCategory(itemElement, categoryItems, inputElement, textElement)
-            closeCategoryModal(modalElement, triggerElement)
+            updateSelectedAccount(itemElement, accountItems, inputElement, textElement)
+            closeAccountModal(modalElement, triggerElement)
         })
     })
 }
 
+/** Initialize Page */
 const initializeTransactionCreatePage = () => {
-    initializeTransactionTabs()
-    initializeCategoryModal()
+    const categoryModalData = initializeCategoryModal()
+
+    initializeTransactionTabs(
+        categoryModalData.categoryGridElement,
+        categoryModalData.categoryInputElement,
+        categoryModalData.categoryTextElement,
+        categoryModalData.categoryModalElement,
+        categoryModalData.categoryTriggerElement
+    )
+
+    initializeAccountModal()
 }
 
 document.addEventListener('DOMContentLoaded', initializeTransactionCreatePage)
