@@ -17,3 +17,5 @@ Route::get('/transactions', fn () => 'Transactions page')->name('transaction.ind
 Route::get('/budget', fn () => 'Budget page')->name('budget.index');
 Route::get('/savings', fn () => 'Savings page')->name('savings.index');
 Route::get('/settings', fn () => 'Settings page')->name('settings.index');
+
+Route::get('/transactions/create', fn () => view('public.transaction-create'))->name('transaction.create');
