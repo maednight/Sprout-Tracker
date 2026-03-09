@@ -1,0 +1,773 @@
+:root {
+  --sprout-dashboard-green: #00f36b;
+  --sprout-dashboard-green-dark: #00c957;
+  --sprout-dashboard-bg-top: #8fffa2;
+  --sprout-dashboard-bg-mid: #f3fff5;
+  --sprout-dashboard-bg-bottom: #ffffff;
+  --sprout-dashboard-card: rgba(255, 255, 255, 0.78);
+  --sprout-dashboard-text: #2b2b2b;
+  --sprout-dashboard-text-light: #8d8d8d;
+  --sprout-dashboard-income: #00d95f;
+  --sprout-dashboard-expense: #ff6f5d;
+  --sprout-dashboard-balance: #5e5e5e;
+  --sprout-dashboard-soft-cell: #eef8ee;
+  --sprout-dashboard-soft-muted: #f5faf5;
+  --sprout-dashboard-shadow: 0 10px 28px rgba(0, 0, 0, 0.06);
+  --sprout-dashboard-border: rgba(0, 0, 0, 0.05);
+}
+
+/* Dashboard Root */
+.sprout-dashboard-mobile {
+  min-height: 100vh;
+  padding: 20px 16px 110px;
+  box-sizing: border-box;
+  background: linear-gradient(
+    to bottom,
+    var(--sprout-dashboard-bg-top) 0%,
+    var(--sprout-dashboard-bg-mid) 45%,
+    var(--sprout-dashboard-bg-bottom) 100%
+  );
+  position: relative;
+}
+
+/* Top Bar */
+.sprout-dashboard-mobile__topbar {
+  display: grid;
+  grid-template-columns: 56px 1fr 56px;
+  align-items: center;
+  margin-bottom: 16px;
+  position: relative;
+}
+
+.sprout-dashboard-mobile__topbar-space {
+  width: 56px;
+}
+
+.sprout-dashboard-mobile__filter {
+  border: none;
+  background: transparent;
+  padding: 0;
+  color: var(--sprout-dashboard-green-dark);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.sprout-dashboard-mobile__filter-caret {
+  font-size: 10px;
+}
+
+.sprout-dashboard-mobile__period {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.sprout-dashboard-mobile__period-trigger {
+  border: none;
+  background: transparent;
+  padding: 0;
+  color: var(--sprout-dashboard-text);
+  font-family: 'Inter', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.sprout-dashboard-mobile__period-arrow {
+  border: none;
+  background: transparent;
+  padding: 0;
+  color: var(--sprout-dashboard-green-dark);
+  font-family: 'Inter', sans-serif;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* Filter Dropdown */
+.sprout-dashboard-mobile__dropdown {
+  width: 110px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: var(--sprout-dashboard-shadow);
+  border: 1px solid var(--sprout-dashboard-border);
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+
+.sprout-dashboard-mobile__dropdown-item {
+  width: 100%;
+  height: 40px;
+  border: none;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  background: transparent;
+  color: var(--sprout-dashboard-text-light);
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  text-align: left;
+  padding: 0 14px;
+  cursor: pointer;
+}
+
+.sprout-dashboard-mobile__dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.sprout-dashboard-mobile__dropdown-item--active {
+  color: var(--sprout-dashboard-green-dark);
+  font-weight: 700;
+}
+
+/* Period Panel */
+.sprout-dashboard-mobile__period-panel {
+  background: rgba(255, 255, 255, 0.82);
+  border-radius: 24px;
+  box-shadow: var(--sprout-dashboard-shadow);
+  border: 1px solid var(--sprout-dashboard-border);
+  padding: 16px;
+  margin-bottom: 18px;
+}
+
+/* Period Tabs */
+.sprout-dashboard-mobile__period-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.sprout-dashboard-mobile__period-tab {
+  height: 38px;
+  border: none;
+  border-radius: 12px;
+  background: #f3f6f3;
+  color: #a0a0a0;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.sprout-dashboard-mobile__period-tab--active {
+  background: var(--sprout-dashboard-green);
+  color: #ffffff;
+  border: none;
+  box-shadow: none;
+}
+
+/* Week Panel */
+.sprout-dashboard-mobile__week-panel {
+  margin-top: 14px;
+}
+
+.sprout-dashboard-mobile__week-strip {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.sprout-dashboard-mobile__week-option {
+  aspect-ratio: 1 / 1;
+  min-height: 0;
+  border: none;
+  border-radius: 10px;
+  background: #f3f6f3;
+  color: #909090;
+  font-family: 'Inter', sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  cursor: pointer;
+  padding: 4px 2px;
+}
+
+.sprout-dashboard-mobile__week-option--active {
+  background: var(--sprout-dashboard-green);
+  color: #ffffff;
+}
+
+.sprout-dashboard-mobile__week-option-label {
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.sprout-dashboard-mobile__week-option-number {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* Month Panel */
+.sprout-dashboard-mobile__month-panel {
+  margin-top: 14px;
+}
+
+.sprout-dashboard-mobile__month-selector {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.sprout-dashboard-mobile__month-option {
+  height: 34px;
+  border: none;
+  border-radius: 999px;
+  background: #f3f6f3;
+  color: #9a9a9a;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.sprout-dashboard-mobile__month-option--active {
+  background: var(--sprout-dashboard-green);
+  color: #ffffff;
+  outline: none;
+}
+
+/* Year Panel */
+.sprout-dashboard-mobile__year-panel {
+  margin-top: 14px;
+}
+
+/* Year Switcher */
+.sprout-dashboard-mobile__year-switcher {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+/* Year Arrow */
+.sprout-dashboard-mobile__year-arrow {
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 999px;
+  background: #f3f6f3;
+  color: var(--sprout-dashboard-green-dark);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Year Value */
+.sprout-dashboard-mobile__year-value {
+  color: var(--sprout-dashboard-green-dark);
+  font-family: 'Inter', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* Year Month Grid */
+.sprout-dashboard-mobile__year-months {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+/* Year Month Button */
+.sprout-dashboard-mobile__year-month {
+  height: 32px;
+  border: none;
+  background: #f3f6f3;
+  border-radius: 999px;
+  color: #9a9a9a;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+}
+
+/* Active Year Month Button */
+.sprout-dashboard-mobile__year-month--active {
+  background: var(--sprout-dashboard-green);
+  color: #ffffff;
+}
+
+/* Calendar Card */
+.sprout-dashboard-mobile__calendar-card {
+  background: var(--sprout-dashboard-card);
+  border-radius: 24px;
+  box-shadow: var(--sprout-dashboard-shadow);
+  padding: 18px 12px 18px;
+  margin-bottom: 18px;
+}
+
+/* Calendar Heading */
+.sprout-dashboard-mobile__calendar-heading {
+  text-align: center;
+  color: var(--sprout-dashboard-green-dark);
+  font-family: 'Inter', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+
+/* Weekday Row */
+.sprout-dashboard-mobile__weekday-row {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.sprout-dashboard-mobile__weekday {
+  color: var(--sprout-dashboard-text-light);
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  text-align: center;
+}
+
+/* Month Grid */
+.sprout-dashboard-mobile__month-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+  margin-bottom: 20px;
+}
+
+/* Week Grid */
+.sprout-dashboard-mobile__week-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+  margin-bottom: 20px;
+}
+
+/* Day Cell */
+.sprout-dashboard-mobile__day-cell {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border: none;
+  border-radius: 10px;
+  background: var(--sprout-dashboard-soft-cell);
+  padding: 4px 2px;
+  color: #888888;
+  font-family: 'Inter', sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  cursor: pointer;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.sprout-dashboard-mobile__day-cell--week {
+  aspect-ratio: 0.85 / 1;
+}
+
+.sprout-dashboard-mobile__day-cell--muted {
+  background: transparent;
+  color: #b9b9b9;
+}
+
+.sprout-dashboard-mobile__day-cell--selected {
+  background: var(--sprout-dashboard-green);
+  color: #ffffff;
+}
+
+/* Week Cell Label */
+.sprout-dashboard-mobile__week-cell-label {
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+  margin-top: 2px;
+}
+
+/* Day Number */
+.sprout-dashboard-mobile__day-number {
+  font-size: clamp(13px, 3.5vw, 16px);
+  font-weight: 500;
+  line-height: 1.1;
+  margin-top: 2px;
+}
+
+/* Day Legends */
+.sprout-dashboard-mobile__day-legends {
+  margin-top: 3px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.sprout-dashboard-mobile__day-amount {
+  font-size: clamp(7px, 1.9vw, 9px);
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.sprout-dashboard-mobile__day-amount--income {
+  color: #d8ffe7;
+}
+
+.sprout-dashboard-mobile__day-amount--expense {
+  color: #ff6f5d;
+}
+
+/* Year Summary Grid */
+.sprout-dashboard-mobile__year-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+/* Year Summary Item */
+.sprout-dashboard-mobile__year-summary-item {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  min-height: 0;
+  border: none;
+  border-radius: 10px;
+  background: var(--sprout-dashboard-soft-cell);
+  padding: 3px 2px;
+  color: #777777;
+  font-family: 'Inter', sans-serif;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 1px;
+  cursor: pointer;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* Active Year Summary Item */
+.sprout-dashboard-mobile__year-summary-item--active {
+  background: var(--sprout-dashboard-green);
+  outline: none;
+}
+
+/* Year Summary Label */
+.sprout-dashboard-mobile__year-summary-label {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.05;
+}
+
+.sprout-dashboard-mobile__year-summary-item--active .sprout-dashboard-mobile__year-summary-label {
+  color: #ffffff;
+}
+
+/* Year Summary Income */
+.sprout-dashboard-mobile__year-summary-income {
+  color: var(--sprout-dashboard-income);
+  font-size: 8px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.sprout-dashboard-mobile__year-summary-item--active .sprout-dashboard-mobile__year-summary-income {
+  color: #d8ffe7;
+}
+
+/* Year Summary Expense */
+.sprout-dashboard-mobile__year-summary-expense {
+  color: var(--sprout-dashboard-expense);
+  font-size: 8px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.sprout-dashboard-mobile__year-summary-item--active .sprout-dashboard-mobile__year-summary-expense {
+  color: #ffb3a8;
+}
+
+/* Summary Row */
+.sprout-dashboard-mobile__summary-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.sprout-dashboard-mobile__summary-item--left {
+  text-align: left;
+}
+
+.sprout-dashboard-mobile__summary-item--center {
+  text-align: center;
+}
+
+.sprout-dashboard-mobile__summary-item--right {
+  text-align: right;
+}
+
+.sprout-dashboard-mobile__summary-label {
+  color: var(--sprout-dashboard-text-light);
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
+.sprout-dashboard-mobile__summary-value {
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(16px, 4vw, 18px);
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.sprout-dashboard-mobile__summary-value--income {
+  color: var(--sprout-dashboard-income);
+}
+
+.sprout-dashboard-mobile__summary-value--expense {
+  color: var(--sprout-dashboard-expense);
+}
+
+.sprout-dashboard-mobile__summary-value--balance {
+  color: var(--sprout-dashboard-balance);
+}
+
+/* History List */
+.sprout-dashboard-mobile__history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* History Card */
+.sprout-dashboard-mobile__history-card {
+  background: var(--sprout-dashboard-card);
+  border-radius: 24px;
+  box-shadow: var(--sprout-dashboard-shadow);
+  overflow: hidden;
+}
+
+/* History Header */
+.sprout-dashboard-mobile__history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 18px 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.sprout-dashboard-mobile__history-date {
+  color: #3a3a3a;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.sprout-dashboard-mobile__history-totals {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.sprout-dashboard-mobile__history-total {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.sprout-dashboard-mobile__history-total--income {
+  color: var(--sprout-dashboard-income);
+}
+
+.sprout-dashboard-mobile__history-total--expense {
+  color: var(--sprout-dashboard-expense);
+}
+
+/* Transaction Row */
+.sprout-dashboard-mobile__transaction-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.sprout-dashboard-mobile__transaction-row:last-child {
+  border-bottom: none;
+}
+
+.sprout-dashboard-mobile__transaction-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  flex: 1;
+}
+
+/* Transaction Icon */
+.sprout-dashboard-mobile__transaction-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sprout-dashboard-mobile__transaction-icon--coral {
+  background: #ff745f;
+}
+
+.sprout-dashboard-mobile__transaction-icon--green {
+  background: #0fe25f;
+}
+
+.sprout-dashboard-mobile__transaction-icon--blue {
+  background: #2d9af0;
+}
+
+/* Transaction Icon Image */
+.sprout-dashboard-mobile__transaction-icon-image {
+  width: 24px;
+  height: 24px;
+  display: block;
+  object-fit: contain;
+  filter: brightness(0) saturate(100%) invert(100%);
+}
+
+/* Transaction Text */
+.sprout-dashboard-mobile__transaction-text {
+  min-width: 0;
+}
+
+.sprout-dashboard-mobile__transaction-category {
+  color: #1f1f1f;
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.sprout-dashboard-mobile__transaction-description {
+  color: #909090;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  line-height: 1.2;
+  margin-top: 3px;
+}
+
+/* Transaction Right Side */
+.sprout-dashboard-mobile__transaction-right {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.sprout-dashboard-mobile__transaction-amount {
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.sprout-dashboard-mobile__transaction-amount--income {
+  color: var(--sprout-dashboard-income);
+}
+
+.sprout-dashboard-mobile__transaction-amount--expense {
+  color: var(--sprout-dashboard-expense);
+}
+
+.sprout-dashboard-mobile__transaction-amount--savings {
+  color: #ffb54c;
+}
+
+.sprout-dashboard-mobile__transaction-time {
+  color: #909090;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+/* Floating Action Button */
+.sprout-dashboard-mobile__fab {
+  position: fixed;
+  right: 24px;
+  bottom: 92px;
+  width: 62px;
+  height: 62px;
+  border-radius: 999px;
+  background: var(--sprout-dashboard-green);
+  color: #ffffff;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Inter', sans-serif;
+  font-size: 34px;
+  font-weight: 500;
+  line-height: 1;
+  padding: 0;
+  margin: 0;
+  box-shadow: 0 12px 26px rgba(0, 243, 107, 0.32);
+  z-index: 1001;
+}
+
+/* Small Phones */
+@media (max-width: 380px) {
+  .sprout-dashboard-mobile {
+    padding: 18px 12px 110px;
+  }
+
+  .sprout-dashboard-mobile__calendar-card {
+    padding: 16px 10px 18px;
+  }
+
+  .sprout-dashboard-mobile__month-grid,
+  .sprout-dashboard-mobile__weekday-row,
+  .sprout-dashboard-mobile__week-grid,
+  .sprout-dashboard-mobile__week-strip {
+    gap: 4px;
+  }
+
+  .sprout-dashboard-mobile__day-cell {
+    border-radius: 8px;
+    padding: 3px 1px;
+  }
+
+  .sprout-dashboard-mobile__day-number {
+    font-size: 12px;
+  }
+
+  .sprout-dashboard-mobile__day-amount {
+    font-size: 7px;
+  }
+
+  .sprout-dashboard-mobile__summary-value {
+    font-size: 15px;
+  }
+}
+
+/* Tablet Width */
+@media (min-width: 768px) and (max-width: 899px) {
+  .sprout-dashboard-mobile {
+    max-width: 430px;
+    margin: 0 auto;
+  }
+
+  .sprout-dashboard-mobile__fab {
+    right: calc(50% - 190px);
+  }
+}

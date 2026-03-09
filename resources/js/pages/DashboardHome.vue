@@ -1,303 +1,863 @@
-    <template>
-    <div class="min-h-screen w-full sprout-shell">
-        <div class="w-full max-w-[430px] md:max-w-[980px] mx-auto px-4 py-5">
+<template>
+  <!-- Dashboard Root -->
+  <div class="sprout-dashboard-mobile">
+    <!-- Top Bar -->
+    <header class="sprout-dashboard-mobile__topbar">
+      <button
+        type="button"
+        class="sprout-dashboard-mobile__filter"
+        @click="toggleFilterMenu"
+      >
+        {{ selectedFilter }}
+        <span class="sprout-dashboard-mobile__filter-caret">▼</span>
+      </button>
 
-        <!-- Top bar -->
-        <div class="flex items-center justify-between mb-3">
-            <button class="text-sm font-medium text-green-600 flex items-center gap-1">
-            Daily <span class="text-xs">▼</span>
-            </button>
-
-            <div class="flex items-center gap-3">
-            <button class="text-green-600 text-xl" @click="prevMonth">‹</button>
-            <div class="font-semibold">This Month</div>
-            <button class="text-green-600 text-xl" @click="nextMonth">›</button>
-            </div>
-
-            <div class="w-10"></div>
-        </div>
-
-        <!-- Calendar card -->
-        <div class="bg-white/70 rounded-2xl p-4 shadow-sm border border-black/5">
-            <div class="text-center font-semibold text-green-600 mb-2">
-            {{ monthName }}
-            </div>
-
-            <!-- Week headers -->
-            <div class="grid grid-cols-7 text-xs text-gray-400 mb-2">
-            <div v-for="d in weekDays" :key="d" class="text-center">{{ d }}</div>
-            </div>
-
-            <!-- Days grid -->
-            <div class="grid grid-cols-7 gap-2">
-            <div v-for="cell in calendarCells" :key="cell.key"
-                class="rounded-xl p-2 min-h-[52px] bg-black/[0.03] flex flex-col items-center justify-start">
-                <div class="text-sm font-medium text-gray-500" :class="cell.isCurrentMonth ? 'opacity-100' : 'opacity-30'">
-                {{ cell.day }}
-                </div>
-
-                <!-- amounts -->
-                <div v-if="cell.totals && cell.isCurrentMonth" class="mt-1 flex flex-col gap-0.5 text-[11px] leading-tight">
-                <div v-if="cell.totals.income > 0" class="text-green-600">₱{{ fmt(cell.totals.income) }}</div>
-                <div v-if="cell.totals.expense > 0" class="text-rose-400">₱{{ fmt(cell.totals.expense) }}</div>
-                <div v-if="cell.totals.savings > 0" class="text-amber-500">₱{{ fmt(cell.totals.savings) }}</div>
-                </div>
-            </div>
-            </div>
-
-            <!-- Summary -->
-            <div class="grid grid-cols-3 gap-3 mt-4 text-center">
-            <div>
-                <div class="text-xs text-gray-400">Income</div>
-                <div class="font-semibold text-green-600">₱{{ fmt(summary.income) }}</div>
-            </div>
-            <div>
-                <div class="text-xs text-gray-400">Expense</div>
-                <div class="font-semibold text-rose-400">₱{{ fmt(summary.expense) }}</div>
-            </div>
-            <div>
-                <div class="text-xs text-gray-400">Balance</div>
-                <div class="font-semibold text-gray-700">₱{{ fmt(summary.balance) }}</div>
-            </div>
-            </div>
-        </div>
-
-        <!-- Recent -->
-        <div class="mt-4 space-y-3">
-            <div class="bg-white/70 rounded-2xl border border-black/5 overflow-hidden">
-            <div class="px-4 py-3 text-sm font-semibold">Recent Transactions</div>
-            <div v-if="recent.length === 0" class="px-4 pb-4 text-sm text-gray-500">
-                No transactions yet. Tap + to add one.
-            </div>
-
-            <div v-for="t in recent" :key="t.id" class="px-4 py-3 border-t border-black/5 flex items-center justify-between">
-                <div class="flex flex-col">
-                <div class="text-sm font-medium">
-                    {{ t.category?.name || 'Uncategorized' }}
-                    <span class="text-xs text-gray-400">• {{ typeLabel(t.type) }}</span>
-                </div>
-                <div class="text-xs text-gray-400">
-                    {{ formatDateTime(t.occurred_at) }}
-                    <span v-if="t.description" class="ml-2">• {{ t.description }}</span>
-                </div>
-                </div>
-
-                <div class="text-sm font-semibold"
-                    :class="t.type === 'income' ? 'text-green-600' : (t.type === 'expense' ? 'text-rose-400' : 'text-amber-500')">
-                {{ t.type === 'expense' ? '-' : '+' }}₱{{ fmt(t.amount) }}
-                </div>
-            </div>
-            </div>
-        </div>
-
-        <!-- Floating button -->
-        <button @click="openModal"
-                class="fixed bottom-24 right-6 md:right-10 w-14 h-14 rounded-full bg-green-500 text-white text-3xl flex items-center justify-center shadow-lg">
-            +
+      <div class="sprout-dashboard-mobile__period">
+        <button
+          type="button"
+          class="sprout-dashboard-mobile__period-arrow"
+          @click="goPreviousPeriod"
+          aria-label="Previous period"
+        >
+          ‹
         </button>
 
-        <!-- Modal -->
-        <div v-if="show" class="fixed inset-0 bg-black/30 flex items-end md:items-center justify-center p-4">
-            <div class="w-full max-w-[520px] bg-white rounded-2xl p-4">
-            <div class="flex items-center justify-between mb-3">
-                <div class="font-semibold">Add Transaction</div>
-                <button class="text-gray-500" @click="show=false">✕</button>
-            </div>
+        <button
+          type="button"
+          class="sprout-dashboard-mobile__period-trigger"
+          @click="togglePeriodMenu"
+        >
+          {{ currentPeriodLabel }}
+        </button>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div>
-                <label class="text-xs text-gray-500">Type</label>
-                <select v-model="form.type" class="w-full h-11 rounded-xl border border-black/10 px-3">
-                    <option value="income">Income</option>
-                    <option value="expense">Expense</option>
-                    <option value="savings">Savings</option>
-                </select>
-                </div>
+        <button
+          type="button"
+          class="sprout-dashboard-mobile__period-arrow"
+          @click="goNextPeriod"
+          aria-label="Next period"
+        >
+          ›
+        </button>
+      </div>
 
-                <div>
-                <label class="text-xs text-gray-500">Amount</label>
-                <input v-model="form.amount" type="number" step="0.01" class="w-full h-11 rounded-xl border border-black/10 px-3" />
-                </div>
+      <div class="sprout-dashboard-mobile__topbar-space"></div>
+    </header>
 
-                <div>
-                <label class="text-xs text-gray-500">Date</label>
-                <input v-model="form.date" type="date" class="w-full h-11 rounded-xl border border-black/10 px-3" />
-                </div>
-
-                <div>
-                <label class="text-xs text-gray-500">Time</label>
-                <input v-model="form.time" type="time" class="w-full h-11 rounded-xl border border-black/10 px-3" />
-                </div>
-
-                <div>
-                <label class="text-xs text-gray-500">Category (type to create)</label>
-                <input v-model="form.category" type="text" class="w-full h-11 rounded-xl border border-black/10 px-3" placeholder="e.g. Salary" />
-                </div>
-
-                <div>
-                <label class="text-xs text-gray-500">Account (type to create)</label>
-                <input v-model="form.account" type="text" class="w-full h-11 rounded-xl border border-black/10 px-3" placeholder="e.g. Cash" />
-                </div>
-
-                <div class="md:col-span-2">
-                <label class="text-xs text-gray-500">Description</label>
-                <input v-model="form.description" type="text" class="w-full h-11 rounded-xl border border-black/10 px-3" placeholder="Optional notes..." />
-                </div>
-            </div>
-
-            <div v-if="error" class="text-sm text-red-600 mt-3">{{ error }}</div>
-
-            <div class="mt-4 flex gap-2 justify-end">
-                <button class="h-11 px-4 rounded-xl border border-black/10" @click="show=false">Cancel</button>
-                <button class="h-11 px-4 rounded-xl bg-green-500 text-white font-semibold" @click="save">Save</button>
-            </div>
-            </div>
-        </div>
-
-        </div>
+    <!-- Filter Dropdown -->
+    <div
+      v-if="isFilterMenuVisible"
+      class="sprout-dashboard-mobile__dropdown sprout-dashboard-mobile__dropdown--filter"
+    >
+      <button
+        v-for="filterOption in filterOptions"
+        :key="filterOption"
+        type="button"
+        class="sprout-dashboard-mobile__dropdown-item"
+        :class="{
+          'sprout-dashboard-mobile__dropdown-item--active': selectedFilter === filterOption
+        }"
+        @click="selectFilter(filterOption)"
+      >
+        {{ filterOption }}
+      </button>
     </div>
-    </template>
 
-    <script setup>
-    import { computed, onMounted, reactive, ref } from 'vue'
+    <!-- Period Panel -->
+    <section
+      v-if="isPeriodMenuVisible"
+      class="sprout-dashboard-mobile__period-panel"
+    >
+      <!-- Period Tabs -->
+      <div class="sprout-dashboard-mobile__period-tabs">
+        <button
+          type="button"
+          class="sprout-dashboard-mobile__period-tab"
+          :class="{
+            'sprout-dashboard-mobile__period-tab--active': selectedPeriodView === 'week'
+          }"
+          @click="setPeriodView('week')"
+        >
+          Week
+        </button>
 
-    const weekDays = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']
+        <button
+          type="button"
+          class="sprout-dashboard-mobile__period-tab"
+          :class="{
+            'sprout-dashboard-mobile__period-tab--active': selectedPeriodView === 'month'
+          }"
+          @click="setPeriodView('month')"
+        >
+          Month
+        </button>
 
-    const month = ref(new Date()) // current month base
-    const summary = reactive({ income: 0, expense: 0, savings: 0, balance: 0 })
-    const calendarMap = ref({})
-    const recent = ref([])
+        <button
+          type="button"
+          class="sprout-dashboard-mobile__period-tab"
+          :class="{
+            'sprout-dashboard-mobile__period-tab--active': selectedPeriodView === 'year'
+          }"
+          @click="setPeriodView('year')"
+        >
+          Year
+        </button>
+      </div>
 
-    const show = ref(false)
-    const error = ref('')
-    const form = reactive({
-    type: 'expense',
-    amount: '',
-    date: '',
-    time: '',
-    category: '',
-    account: '',
-    description: '',
+      <!-- Week Options -->
+      <div
+        v-if="selectedPeriodView === 'week'"
+        class="sprout-dashboard-mobile__week-panel"
+      >
+        <div class="sprout-dashboard-mobile__week-strip">
+          <button
+            v-for="weekCell in weekCalendarCells"
+            :key="weekCell.key"
+            type="button"
+            class="sprout-dashboard-mobile__week-option"
+            :class="{
+              'sprout-dashboard-mobile__week-option--active': weekCell.isSelected
+            }"
+            @click="selectDate(weekCell.date)"
+          >
+            <span class="sprout-dashboard-mobile__week-option-label">
+              {{ weekCell.weekdayShort }}
+            </span>
+
+            <span class="sprout-dashboard-mobile__week-option-number">
+              {{ weekCell.day }}
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Month Options -->
+      <div
+        v-if="selectedPeriodView === 'month'"
+        class="sprout-dashboard-mobile__month-panel"
+      >
+        <div class="sprout-dashboard-mobile__month-selector">
+          <button
+            v-for="monthOption in monthOptions"
+            :key="monthOption.value"
+            type="button"
+            class="sprout-dashboard-mobile__month-option"
+            :class="{
+              'sprout-dashboard-mobile__month-option--active':
+                monthOption.value === currentDisplayDate.getMonth()
+            }"
+            @click="selectMonth(monthOption.value)"
+          >
+            {{ monthOption.label }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Year Options -->
+      <div
+        v-if="selectedPeriodView === 'year'"
+        class="sprout-dashboard-mobile__year-panel"
+      >
+        <div class="sprout-dashboard-mobile__year-switcher">
+          <button
+            type="button"
+            class="sprout-dashboard-mobile__year-arrow"
+            @click="displayYear -= 1"
+            aria-label="Previous year"
+          >
+            ‹
+          </button>
+
+          <div class="sprout-dashboard-mobile__year-value">
+            {{ displayYear }}
+          </div>
+
+          <button
+            type="button"
+            class="sprout-dashboard-mobile__year-arrow"
+            @click="displayYear += 1"
+            aria-label="Next year"
+          >
+            ›
+          </button>
+        </div>
+
+        <div class="sprout-dashboard-mobile__year-months">
+          <button
+            v-for="monthOption in monthOptions"
+            :key="monthOption.value"
+            type="button"
+            class="sprout-dashboard-mobile__year-month"
+            :class="{
+              'sprout-dashboard-mobile__year-month--active':
+                monthOption.value === currentDisplayDate.getMonth()
+            }"
+            @click="selectMonthFromYear(monthOption.value)"
+          >
+            {{ monthOption.label }}
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Calendar Card -->
+    <section class="sprout-dashboard-mobile__calendar-card">
+      <!-- Calendar Heading -->
+      <div class="sprout-dashboard-mobile__calendar-heading">
+        {{ calendarHeading }}
+      </div>
+
+      <!-- Weekday Labels -->
+      <div
+        v-if="selectedPeriodView !== 'year'"
+        class="sprout-dashboard-mobile__weekday-row"
+      >
+        <span
+          v-for="weekdayLabel in weekdayLabels"
+          :key="weekdayLabel"
+          class="sprout-dashboard-mobile__weekday"
+        >
+          {{ weekdayLabel }}
+        </span>
+      </div>
+
+      <!-- Month View -->
+      <div
+        v-if="selectedPeriodView === 'month'"
+        class="sprout-dashboard-mobile__month-grid"
+      >
+        <button
+          v-for="calendarCell in monthCalendarCells"
+          :key="calendarCell.key"
+          type="button"
+          class="sprout-dashboard-mobile__day-cell"
+          :class="{
+            'sprout-dashboard-mobile__day-cell--muted': !calendarCell.isCurrentMonth,
+            'sprout-dashboard-mobile__day-cell--selected': calendarCell.isSelected
+          }"
+          @click="selectDate(calendarCell.date)"
+        >
+          <span class="sprout-dashboard-mobile__day-number">
+            {{ calendarCell.day }}
+          </span>
+
+          <div
+            v-if="calendarCell.isSelected && (calendarCell.dailyIncome > 0 || calendarCell.dailyExpense > 0)"
+            class="sprout-dashboard-mobile__day-legends"
+          >
+            <span
+              v-if="calendarCell.dailyIncome > 0"
+              class="sprout-dashboard-mobile__day-amount sprout-dashboard-mobile__day-amount--income"
+            >
+              ₱{{ formatCompactAmount(calendarCell.dailyIncome) }}
+            </span>
+
+            <span
+              v-if="calendarCell.dailyExpense > 0"
+              class="sprout-dashboard-mobile__day-amount sprout-dashboard-mobile__day-amount--expense"
+            >
+              ₱{{ formatCompactAmount(calendarCell.dailyExpense) }}
+            </span>
+          </div>
+        </button>
+      </div>
+
+      <!-- Week View -->
+      <div
+        v-else-if="selectedPeriodView === 'week'"
+        class="sprout-dashboard-mobile__week-grid"
+      >
+        <button
+          v-for="weekCell in weekCalendarCells"
+          :key="weekCell.key"
+          type="button"
+          class="sprout-dashboard-mobile__day-cell sprout-dashboard-mobile__day-cell--week"
+          :class="{
+            'sprout-dashboard-mobile__day-cell--selected': weekCell.isSelected
+          }"
+          @click="selectDate(weekCell.date)"
+        >
+          <span class="sprout-dashboard-mobile__week-cell-label">
+            {{ weekCell.weekdayShort }}
+          </span>
+
+          <span class="sprout-dashboard-mobile__day-number">
+            {{ weekCell.day }}
+          </span>
+
+          <div
+            v-if="weekCell.dailyIncome > 0 || weekCell.dailyExpense > 0"
+            class="sprout-dashboard-mobile__day-legends"
+          >
+            <span
+              v-if="weekCell.dailyIncome > 0"
+              class="sprout-dashboard-mobile__day-amount sprout-dashboard-mobile__day-amount--income"
+            >
+              ₱{{ formatCompactAmount(weekCell.dailyIncome) }}
+            </span>
+
+            <span
+              v-if="weekCell.dailyExpense > 0"
+              class="sprout-dashboard-mobile__day-amount sprout-dashboard-mobile__day-amount--expense"
+            >
+              ₱{{ formatCompactAmount(weekCell.dailyExpense) }}
+            </span>
+          </div>
+        </button>
+      </div>
+
+      <!-- Year View -->
+      <div
+        v-else
+        class="sprout-dashboard-mobile__year-summary-grid"
+      >
+        <button
+          v-for="yearSummaryItem in yearMonthSummaries"
+          :key="yearSummaryItem.monthIndex"
+          type="button"
+          class="sprout-dashboard-mobile__year-summary-item"
+          :class="{
+            'sprout-dashboard-mobile__year-summary-item--active':
+              yearSummaryItem.monthIndex === currentDisplayDate.getMonth()
+          }"
+          @click="selectMonthFromYear(yearSummaryItem.monthIndex)"
+        >
+          <span class="sprout-dashboard-mobile__year-summary-label">
+            {{ yearSummaryItem.label }}
+          </span>
+
+          <span
+            v-if="yearSummaryItem.income > 0"
+            class="sprout-dashboard-mobile__year-summary-income"
+          >
+            ₱{{ formatCompactAmount(yearSummaryItem.income) }}
+          </span>
+
+          <span
+            v-if="yearSummaryItem.expense > 0"
+            class="sprout-dashboard-mobile__year-summary-expense"
+          >
+            ₱{{ formatCompactAmount(yearSummaryItem.expense) }}
+          </span>
+        </button>
+      </div>
+
+      <!-- Summary Row -->
+      <div class="sprout-dashboard-mobile__summary-row">
+        <div class="sprout-dashboard-mobile__summary-item sprout-dashboard-mobile__summary-item--left">
+          <div class="sprout-dashboard-mobile__summary-label">Income</div>
+          <div class="sprout-dashboard-mobile__summary-value sprout-dashboard-mobile__summary-value--income">
+            ₱{{ formatMoney(periodSummary.income) }}
+          </div>
+        </div>
+
+        <div class="sprout-dashboard-mobile__summary-item sprout-dashboard-mobile__summary-item--center">
+          <div class="sprout-dashboard-mobile__summary-label">Expense</div>
+          <div class="sprout-dashboard-mobile__summary-value sprout-dashboard-mobile__summary-value--expense">
+            ₱{{ formatMoney(periodSummary.expense) }}
+          </div>
+        </div>
+
+        <div class="sprout-dashboard-mobile__summary-item sprout-dashboard-mobile__summary-item--right">
+          <div class="sprout-dashboard-mobile__summary-label">Balance</div>
+          <div class="sprout-dashboard-mobile__summary-value sprout-dashboard-mobile__summary-value--balance">
+            ₱{{ formatMoney(periodSummary.balance) }}
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Transaction History -->
+    <section class="sprout-dashboard-mobile__history-list">
+      <article
+        v-for="transactionGroup in filteredTransactionGroups"
+        :key="transactionGroup.dateKey"
+        class="sprout-dashboard-mobile__history-card"
+      >
+        <!-- Group Header -->
+        <div class="sprout-dashboard-mobile__history-header">
+          <div class="sprout-dashboard-mobile__history-date">
+            {{ transactionGroup.dateLabel }}
+          </div>
+
+          <div class="sprout-dashboard-mobile__history-totals">
+            <span
+              v-if="transactionGroup.income > 0"
+              class="sprout-dashboard-mobile__history-total sprout-dashboard-mobile__history-total--income"
+            >
+              IN ₱{{ formatMoney(transactionGroup.income) }}
+            </span>
+
+            <span
+              v-if="transactionGroup.expense > 0"
+              class="sprout-dashboard-mobile__history-total sprout-dashboard-mobile__history-total--expense"
+            >
+              OUT ₱{{ formatMoney(transactionGroup.expense) }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Group Transactions -->
+        <div
+          v-for="transactionItem in transactionGroup.transactions"
+          :key="transactionItem.id"
+          class="sprout-dashboard-mobile__transaction-row"
+        >
+          <div class="sprout-dashboard-mobile__transaction-left">
+            <!-- Transaction Icon -->
+            <div
+              class="sprout-dashboard-mobile__transaction-icon"
+              :class="transactionIconClass(transactionItem.iconColor)"
+            >
+              <img
+                :src="transactionItem.iconPath"
+                :alt="transactionItem.category"
+                class="sprout-dashboard-mobile__transaction-icon-image"
+              >
+            </div>
+
+            <div class="sprout-dashboard-mobile__transaction-text">
+              <div class="sprout-dashboard-mobile__transaction-category">
+                {{ transactionItem.category }}
+              </div>
+
+              <div
+                v-if="transactionItem.description"
+                class="sprout-dashboard-mobile__transaction-description"
+              >
+                Desc: {{ transactionItem.description }}
+              </div>
+            </div>
+          </div>
+
+          <div class="sprout-dashboard-mobile__transaction-right">
+            <div
+              class="sprout-dashboard-mobile__transaction-amount"
+              :class="transactionAmountClass(transactionItem.type)"
+            >
+              {{ transactionItem.type === 'expense' ? '-' : '+' }}₱{{ formatMoney(transactionItem.amount) }}
+            </div>
+
+            <div class="sprout-dashboard-mobile__transaction-time">
+              {{ transactionItem.time }}
+            </div>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <!-- Floating Action Button -->
+    <a
+      href="/transactions/create"
+      class="sprout-dashboard-mobile__fab"
+      aria-label="Add transaction"
+    >
+      +
+    </a>
+  </div>
+</template>
+
+<script setup>
+/* Vue Imports */
+import { computed, ref } from 'vue'
+
+/* Filter Options */
+const filterOptions = ['All', 'Income', 'Expense', 'Savings']
+
+/* Weekday Labels */
+const weekdayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+
+/* Month Options */
+const monthOptions = [
+  { value: 0, label: 'Jan' },
+  { value: 1, label: 'Feb' },
+  { value: 2, label: 'Mar' },
+  { value: 3, label: 'Apr' },
+  { value: 4, label: 'May' },
+  { value: 5, label: 'Jun' },
+  { value: 6, label: 'Jul' },
+  { value: 7, label: 'Aug' },
+  { value: 8, label: 'Sep' },
+  { value: 9, label: 'Oct' },
+  { value: 10, label: 'Nov' },
+  { value: 11, label: 'Dec' }
+]
+
+/* Display State */
+const selectedFilter = ref('All')
+const selectedPeriodView = ref('month')
+const isFilterMenuVisible = ref(false)
+const isPeriodMenuVisible = ref(false)
+const currentDisplayDate = ref(new Date(2026, 2, 3))
+const selectedDate = ref(new Date(2026, 2, 3))
+const displayYear = ref(2026)
+
+/* Mock Transaction Data */
+const transactionGroups = ref([
+  {
+    dateKey: '2026-03-03',
+    dateLabel: 'Tue, March 03',
+    income: 2500,
+    expense: 2000,
+    transactions: [
+      {
+        id: 1,
+        type: 'expense',
+        category: 'Shopping',
+        amount: 1500,
+        time: '12:30pm',
+        description: '',
+        iconPath: '/projectassets/icons/shopping.svg',
+        iconColor: 'coral'
+      },
+      {
+        id: 2,
+        type: 'income',
+        category: 'Salary',
+        amount: 2500,
+        time: '5:00pm',
+        description: '',
+        iconPath: '/projectassets/icons/salary.svg',
+        iconColor: 'green'
+      },
+      {
+        id: 3,
+        type: 'expense',
+        category: 'Transport',
+        amount: 500,
+        time: '8:30am',
+        description: 'With my Friends',
+        iconPath: '/projectassets/icons/transport.svg',
+        iconColor: 'blue'
+      }
+    ]
+  },
+  {
+    dateKey: '2026-03-02',
+    dateLabel: 'Mon, March 02',
+    income: 0,
+    expense: 1500,
+    transactions: [
+      {
+        id: 4,
+        type: 'expense',
+        category: 'Shopping',
+        amount: 1500,
+        time: '1:30pm',
+        description: '',
+        iconPath: '/projectassets/icons/shopping.svg',
+        iconColor: 'coral'
+      }
+    ]
+  }
+])
+
+/* Current Period Label */
+const currentPeriodLabel = computed(() => {
+  if (selectedPeriodView.value === 'week') {
+    return 'This Week'
+  }
+
+  if (selectedPeriodView.value === 'year') {
+    return 'This Year'
+  }
+
+  return 'This Month'
+})
+
+/* Calendar Heading */
+const calendarHeading = computed(() => {
+  if (selectedPeriodView.value === 'year') {
+    return String(displayYear.value)
+  }
+
+  return currentDisplayDate.value.toLocaleDateString('en-US', {
+    month: 'long'
+  })
+})
+
+/* Transaction Summary By Date */
+const transactionSummaryByDate = computed(() => {
+  const summaryMap = {}
+
+  transactionGroups.value.forEach((transactionGroup) => {
+    summaryMap[transactionGroup.dateKey] = {
+      income: transactionGroup.income,
+      expense: transactionGroup.expense
+    }
+  })
+
+  return summaryMap
+})
+
+/* Filtered Transaction Groups */
+const filteredTransactionGroups = computed(() => {
+  if (selectedFilter.value === 'All') {
+    return transactionGroups.value
+  }
+
+  const targetType = selectedFilter.value.toLowerCase()
+
+  return transactionGroups.value
+    .map((transactionGroup) => {
+      const filteredTransactions = transactionGroup.transactions.filter((transactionItem) => {
+        return transactionItem.type === targetType
+      })
+
+      const recalculatedIncome = filteredTransactions
+        .filter((transactionItem) => transactionItem.type === 'income')
+        .reduce((totalAmount, transactionItem) => totalAmount + Number(transactionItem.amount), 0)
+
+      const recalculatedExpense = filteredTransactions
+        .filter((transactionItem) => transactionItem.type === 'expense')
+        .reduce((totalAmount, transactionItem) => totalAmount + Number(transactionItem.amount), 0)
+
+      return {
+        ...transactionGroup,
+        transactions: filteredTransactions,
+        income: recalculatedIncome,
+        expense: recalculatedExpense
+      }
+    })
+    .filter((transactionGroup) => transactionGroup.transactions.length > 0)
+})
+
+/* Period Summary */
+const periodSummary = computed(() => {
+  let totalIncome = 0
+  let totalExpense = 0
+
+  filteredTransactionGroups.value.forEach((transactionGroup) => {
+    totalIncome += Number(transactionGroup.income)
+    totalExpense += Number(transactionGroup.expense)
+  })
+
+  const rawBalance = totalIncome - totalExpense
+
+  return {
+    income: totalIncome,
+    expense: totalExpense,
+    balance: rawBalance < 0 ? 0 : rawBalance
+  }
+})
+
+/* Month Calendar Cells */
+const monthCalendarCells = computed(() => {
+  const year = currentDisplayDate.value.getFullYear()
+  const month = currentDisplayDate.value.getMonth()
+
+  const firstDayOfMonth = new Date(year, month, 1)
+  const startIndex = (firstDayOfMonth.getDay() + 6) % 7
+  const firstVisibleDate = new Date(year, month, 1 - startIndex)
+
+  return Array.from({ length: 42 }, (_, index) => {
+    const cellDate = new Date(firstVisibleDate)
+    cellDate.setDate(firstVisibleDate.getDate() + index)
+
+    const dateKey = formatDateKey(cellDate)
+    const daySummary = transactionSummaryByDate.value[dateKey] ?? { income: 0, expense: 0 }
+
+    return {
+      key: `${dateKey}-${index}`,
+      date: cellDate,
+      day: cellDate.getDate(),
+      isCurrentMonth: cellDate.getMonth() === month,
+      isSelected: isSameDate(cellDate, selectedDate.value),
+      dailyIncome: daySummary.income,
+      dailyExpense: daySummary.expense
+    }
+  })
+})
+
+/* Week Calendar Cells */
+const weekCalendarCells = computed(() => {
+  const focusedDate = new Date(selectedDate.value)
+  const startIndex = (focusedDate.getDay() + 6) % 7
+  const firstDateOfWeek = new Date(focusedDate)
+  firstDateOfWeek.setDate(focusedDate.getDate() - startIndex)
+
+  return Array.from({ length: 7 }, (_, index) => {
+    const cellDate = new Date(firstDateOfWeek)
+    cellDate.setDate(firstDateOfWeek.getDate() + index)
+
+    const dateKey = formatDateKey(cellDate)
+    const daySummary = transactionSummaryByDate.value[dateKey] ?? { income: 0, expense: 0 }
+
+    return {
+      key: `${dateKey}-${index}`,
+      date: cellDate,
+      day: cellDate.getDate(),
+      weekdayShort: cellDate.toLocaleDateString('en-US', { weekday: 'short' }),
+      isSelected: isSameDate(cellDate, selectedDate.value),
+      dailyIncome: daySummary.income,
+      dailyExpense: daySummary.expense
+    }
+  })
+})
+
+/* Year Month Summaries */
+const yearMonthSummaries = computed(() => {
+  return monthOptions.map((monthOption) => {
+    let totalIncome = 0
+    let totalExpense = 0
+
+    filteredTransactionGroups.value.forEach((transactionGroup) => {
+      const groupDate = new Date(transactionGroup.dateKey)
+
+      if (
+        groupDate.getFullYear() === displayYear.value &&
+        groupDate.getMonth() === monthOption.value
+      ) {
+        totalIncome += Number(transactionGroup.income)
+        totalExpense += Number(transactionGroup.expense)
+      }
     })
 
-    const monthName = computed(() => month.value.toLocaleString(undefined, { month: 'long' }))
-
-    function fmt(n) {
-    const num = typeof n === 'string' ? Number(n) : Number(n || 0)
-    return num.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })
+    return {
+      monthIndex: monthOption.value,
+      label: monthOption.label,
+      income: totalIncome,
+      expense: totalExpense
     }
+  })
+})
 
-    function typeLabel(t) {
-    if (t === 'income') return 'IN'
-    if (t === 'expense') return 'OUT'
-    return 'SAV'
-    }
+/* Toggle Filter Menu */
+const toggleFilterMenu = () => {
+  isFilterMenuVisible.value = !isFilterMenuVisible.value
+  isPeriodMenuVisible.value = false
+}
 
-    function formatDateTime(iso) {
-    const d = new Date(iso)
-    return d.toLocaleString(undefined, { weekday: 'short', month: 'short', day: '2-digit' }) + ' • ' +
-        d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
-    }
+/* Toggle Period Menu */
+const togglePeriodMenu = () => {
+  isPeriodMenuVisible.value = !isPeriodMenuVisible.value
+  isFilterMenuVisible.value = false
+}
 
-    function yyyymm(d) {
-    const y = d.getFullYear()
-    const m = String(d.getMonth() + 1).padStart(2, '0')
-    return `${y}-${m}`
-    }
+/* Select Filter */
+const selectFilter = (filterOption) => {
+  selectedFilter.value = filterOption
+  isFilterMenuVisible.value = false
+}
 
-    const calendarCells = computed(() => {
-    const base = new Date(month.value.getFullYear(), month.value.getMonth(), 1)
-    const startDay = (base.getDay() + 6) % 7 // convert Sun(0) → 6, Mon(1) → 0
-    const daysInMonth = new Date(month.value.getFullYear(), month.value.getMonth() + 1, 0).getDate()
+/* Set Period View */
+const setPeriodView = (periodView) => {
+  selectedPeriodView.value = periodView
+}
 
-    const cells = []
-    const totalCells = 42
+/* Select Date */
+const selectDate = (date) => {
+  selectedDate.value = new Date(date)
+  currentDisplayDate.value = new Date(date)
+}
 
-    for (let i = 0; i < totalCells; i++) {
-        const dayNum = i - startDay + 1
-        const date = new Date(month.value.getFullYear(), month.value.getMonth(), dayNum)
-        const isCurrentMonth = dayNum >= 1 && dayNum <= daysInMonth
-        const key = date.toISOString().slice(0, 10)
-        const totals = calendarMap.value[key] || null
+/* Select Month */
+const selectMonth = (monthIndex) => {
+  currentDisplayDate.value = new Date(
+    currentDisplayDate.value.getFullYear(),
+    monthIndex,
+    1
+  )
 
-        cells.push({
-        key,
-        day: date.getDate(),
-        isCurrentMonth,
-        totals,
-        })
-    }
-    return cells
-    })
+  selectedDate.value = new Date(
+    currentDisplayDate.value.getFullYear(),
+    monthIndex,
+    1
+  )
 
-    async function fetchDashboard() {
-    error.value = ''
-    const res = await fetch(`/api/dashboard?month=${yyyymm(month.value)}`, {
-        headers: { 'Accept': 'application/json' },
-        credentials: 'same-origin',
-    })
+  isPeriodMenuVisible.value = false
+}
 
-    if (!res.ok) {
-        error.value = 'Failed to load dashboard data.'
-        return
-    }
+/* Select Month From Year */
+const selectMonthFromYear = (monthIndex) => {
+  currentDisplayDate.value = new Date(displayYear.value, monthIndex, 1)
+  selectedDate.value = new Date(displayYear.value, monthIndex, 1)
+  selectedPeriodView.value = 'month'
+  isPeriodMenuVisible.value = false
+}
 
-    const data = await res.json()
-    summary.income = data.summary.income
-    summary.expense = data.summary.expense
-    summary.savings = data.summary.savings
-    summary.balance = data.summary.balance
-    calendarMap.value = data.calendar || {}
-    recent.value = data.recent || []
-    }
+/* Go Previous Period */
+const goPreviousPeriod = () => {
+  if (selectedPeriodView.value === 'week') {
+    const previousWeekDate = new Date(selectedDate.value)
+    previousWeekDate.setDate(previousWeekDate.getDate() - 7)
+    selectedDate.value = previousWeekDate
+    currentDisplayDate.value = new Date(previousWeekDate)
+    return
+  }
 
-    function prevMonth() {
-    month.value = new Date(month.value.getFullYear(), month.value.getMonth() - 1, 1)
-    fetchDashboard()
-    }
-    function nextMonth() {
-    month.value = new Date(month.value.getFullYear(), month.value.getMonth() + 1, 1)
-    fetchDashboard()
-    }
+  if (selectedPeriodView.value === 'year') {
+    displayYear.value -= 1
+    return
+  }
 
-    function openModal() {
-    const now = new Date()
-    form.date = now.toISOString().slice(0, 10)
-    form.time = now.toTimeString().slice(0, 5)
-    form.amount = ''
-    form.category = ''
-    form.account = ''
-    form.description = ''
-    form.type = 'expense'
-    error.value = ''
-    show.value = true
-    }
+  const previousMonthDate = new Date(currentDisplayDate.value)
+  previousMonthDate.setMonth(previousMonthDate.getMonth() - 1)
+  currentDisplayDate.value = previousMonthDate
+  selectedDate.value = new Date(previousMonthDate)
+}
 
-    async function save() {
-    error.value = ''
-    const payload = { ...form }
+/* Go Next Period */
+const goNextPeriod = () => {
+  if (selectedPeriodView.value === 'week') {
+    const nextWeekDate = new Date(selectedDate.value)
+    nextWeekDate.setDate(nextWeekDate.getDate() + 7)
+    selectedDate.value = nextWeekDate
+    currentDisplayDate.value = new Date(nextWeekDate)
+    return
+  }
 
-    const res = await fetch('/api/transactions', {
-        method: 'POST',
-        headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest',
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
-        },
-        credentials: 'same-origin',
-        body: JSON.stringify(payload),
-    })
+  if (selectedPeriodView.value === 'year') {
+    displayYear.value += 1
+    return
+  }
 
-    if (!res.ok) {
-        const data = await res.json().catch(() => null)
-        error.value = data?.message || 'Failed to save transaction.'
-        return
-    }
+  const nextMonthDate = new Date(currentDisplayDate.value)
+  nextMonthDate.setMonth(nextMonthDate.getMonth() + 1)
+  currentDisplayDate.value = nextMonthDate
+  selectedDate.value = new Date(nextMonthDate)
+}
 
-    show.value = false
-    await fetchDashboard()
-    }
+/* Format Date Key */
+const formatDateKey = (date) => {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
 
-    onMounted(fetchDashboard)
-    </script>
+  return `${year}-${month}-${day}`
+}
+
+/* Same Date Check */
+const isSameDate = (firstDate, secondDate) => {
+  return firstDate.getFullYear() === secondDate.getFullYear()
+    && firstDate.getMonth() === secondDate.getMonth()
+    && firstDate.getDate() === secondDate.getDate()
+}
+
+/* Format Money */
+const formatMoney = (amount) => {
+  return Number(amount || 0).toLocaleString('en-PH')
+}
+
+/* Format Compact Amount */
+const formatCompactAmount = (amount) => {
+  return Number(amount || 0).toLocaleString('en-PH')
+}
+
+/* Transaction Icon Class */
+const transactionIconClass = (iconColor) => {
+  return {
+    'sprout-dashboard-mobile__transaction-icon--coral': iconColor === 'coral',
+    'sprout-dashboard-mobile__transaction-icon--green': iconColor === 'green',
+    'sprout-dashboard-mobile__transaction-icon--blue': iconColor === 'blue'
+  }
+}
+
+/* Transaction Amount Class */
+const transactionAmountClass = (transactionType) => {
+  return {
+    'sprout-dashboard-mobile__transaction-amount--income': transactionType === 'income',
+    'sprout-dashboard-mobile__transaction-amount--expense': transactionType === 'expense',
+    'sprout-dashboard-mobile__transaction-amount--savings': transactionType === 'savings'
+  }
+}
+</script>
