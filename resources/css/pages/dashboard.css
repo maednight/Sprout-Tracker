@@ -1,3 +1,4 @@
+/* Dashboard Variables */
 :root {
   --sprout-dashboard-green: #00f36b;
   --sprout-dashboard-green-dark: #00c957;
@@ -9,6 +10,7 @@
   --sprout-dashboard-text-light: #8d8d8d;
   --sprout-dashboard-income: #00d95f;
   --sprout-dashboard-expense: #ff6f5d;
+  --sprout-dashboard-savings: #2d9af0;
   --sprout-dashboard-balance: #5e5e5e;
   --sprout-dashboard-soft-cell: #eef8ee;
   --sprout-dashboard-soft-muted: #f5faf5;
@@ -31,22 +33,12 @@
   position: relative;
 }
 
-/* Dashboard Mobile Width Wrapper */
-.sprout-phone.sprout-app--mobile {
-  width: 100%;
-  max-width: 414px;
-  min-height: 100vh;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Dashboard Floating Backdrop */
+/* Dashboard Backdrop */
 .sprout-dashboard-mobile__backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.28);
-  backdrop-filter: blur(6px);
+  background: rgba(0, 0, 0, 0.16);
+  backdrop-filter: blur(0.5px);
   z-index: 15;
 }
 
@@ -160,13 +152,7 @@
   box-shadow: 0 18px 36px rgba(0, 0, 0, 0.1);
   border: 1px solid var(--sprout-dashboard-border);
   padding: 12px 14px 14px;
-  z-index: 20;
-}
-
-/* Dashboard Floating Panels Layer */
-.sprout-dashboard-mobile__dropdown,
-.sprout-dashboard-mobile__period-panel {
-  pointer-events: auto;
+  z-index: 19;
 }
 
 /* Dashboard Period Tabs */
@@ -272,7 +258,6 @@
   margin-top: 14px;
 }
 
-/* Dashboard Year Switcher */
 .sprout-dashboard-mobile__year-switcher {
   display: flex;
   align-items: center;
@@ -281,7 +266,6 @@
   margin-bottom: 12px;
 }
 
-/* Dashboard Year Arrow */
 .sprout-dashboard-mobile__year-arrow {
   width: 24px;
   height: 24px;
@@ -297,7 +281,6 @@
   justify-content: center;
 }
 
-/* Dashboard Year Value */
 .sprout-dashboard-mobile__year-value {
   color: var(--sprout-dashboard-green-dark);
   font-family: 'Inter', sans-serif;
@@ -306,14 +289,12 @@
   line-height: 1;
 }
 
-/* Dashboard Year Month Grid */
 .sprout-dashboard-mobile__year-months {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
 }
 
-/* Dashboard Year Month Button */
 .sprout-dashboard-mobile__year-month {
   height: 32px;
   border: none;
@@ -327,7 +308,6 @@
   padding: 0;
 }
 
-/* Dashboard Active Year Month Button */
 .sprout-dashboard-mobile__year-month--active {
   background: var(--sprout-dashboard-green);
   color: #ffffff;
@@ -342,7 +322,6 @@
   margin-bottom: 18px;
 }
 
-/* Dashboard Calendar Heading */
 .sprout-dashboard-mobile__calendar-heading {
   text-align: center;
   color: var(--sprout-dashboard-green-dark);
@@ -352,7 +331,6 @@
   margin-bottom: 14px;
 }
 
-/* Dashboard Weekday Row */
 .sprout-dashboard-mobile__weekday-row {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -368,7 +346,6 @@
   text-align: center;
 }
 
-/* Dashboard Month Grid */
 .sprout-dashboard-mobile__month-grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -376,7 +353,6 @@
   margin-bottom: 20px;
 }
 
-/* Dashboard Week Grid */
 .sprout-dashboard-mobile__week-grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -384,14 +360,13 @@
   margin-bottom: 20px;
 }
 
-/* Dashboard Day Cell */
 .sprout-dashboard-mobile__day-cell {
   width: 100%;
   aspect-ratio: 1 / 1;
   border: none;
   border-radius: 10px;
   background: var(--sprout-dashboard-soft-cell);
-  padding: 4px 2px;
+  padding: 4px 2px 3px;
   color: #888888;
   font-family: 'Inter', sans-serif;
   display: flex;
@@ -417,7 +392,6 @@
   color: #ffffff;
 }
 
-/* Dashboard Week Cell Label */
 .sprout-dashboard-mobile__week-cell-label {
   font-size: 10px;
   font-weight: 600;
@@ -425,33 +399,31 @@
   margin-top: 2px;
 }
 
-/* Dashboard Day Number */
 .sprout-dashboard-mobile__day-number {
   font-size: clamp(13px, 3.5vw, 16px);
   font-weight: 500;
-  line-height: 1.1;
-  margin-top: 2px;
+  line-height: 1;
+  margin-top: 1px;
 }
 
-/* Dashboard Day Legends */
 .sprout-dashboard-mobile__day-legends {
-  margin-top: 3px;
+  margin-top: 2px;
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 0;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   width: 100%;
 }
 
 .sprout-dashboard-mobile__day-amount {
-  font-size: clamp(7px, 1.9vw, 9px);
+  font-size: 6px;
   font-weight: 700;
   line-height: 1;
   white-space: nowrap;
+  letter-spacing: -0.1px;
 }
 
-/* Dashboard Calendar Legend Colors */
 .sprout-dashboard-mobile__day-amount--income {
   color: var(--sprout-dashboard-income);
 }
@@ -460,12 +432,20 @@
   color: var(--sprout-dashboard-expense);
 }
 
+.sprout-dashboard-mobile__day-amount--savings {
+  color: var(--sprout-dashboard-savings);
+}
+
 .sprout-dashboard-mobile__day-cell--selected .sprout-dashboard-mobile__day-amount--income {
   color: #d8ffe7;
 }
 
 .sprout-dashboard-mobile__day-cell--selected .sprout-dashboard-mobile__day-amount--expense {
   color: #ffb3a8;
+}
+
+.sprout-dashboard-mobile__day-cell--selected .sprout-dashboard-mobile__day-amount--savings {
+  color: #cfe9ff;
 }
 
 /* Dashboard Year Summary Grid */
@@ -478,7 +458,6 @@
   margin-bottom: 20px;
 }
 
-/* Dashboard Year Summary Item */
 .sprout-dashboard-mobile__year-summary-item {
   width: var(--sprout-dashboard-day-cell-size);
   aspect-ratio: 1 / 1;
@@ -500,13 +479,11 @@
   flex: 0 0 var(--sprout-dashboard-day-cell-size);
 }
 
-/* Dashboard Active Year Summary Item */
 .sprout-dashboard-mobile__year-summary-item--active {
   background: var(--sprout-dashboard-green);
   outline: none;
 }
 
-/* Dashboard Year Summary Label */
 .sprout-dashboard-mobile__year-summary-label {
   font-size: 12px;
   font-weight: 600;
@@ -514,12 +491,10 @@
   text-align: center;
 }
 
-/* Dashboard Active Year Summary Label */
 .sprout-dashboard-mobile__year-summary-item--active .sprout-dashboard-mobile__year-summary-label {
   color: #ffffff;
 }
 
-/* Dashboard Year Summary Legend Base */
 .sprout-dashboard-mobile__year-summary-amount {
   font-size: 8px;
   font-weight: 700;
@@ -528,31 +503,38 @@
   text-align: center;
 }
 
-/* Dashboard Year Summary Income */
 .sprout-dashboard-mobile__year-summary-amount--income {
   color: var(--sprout-dashboard-income);
 }
 
-/* Dashboard Year Summary Expense */
 .sprout-dashboard-mobile__year-summary-amount--expense {
   color: var(--sprout-dashboard-expense);
 }
 
-/* Dashboard Active Year Summary Income */
+.sprout-dashboard-mobile__year-summary-amount--savings {
+  color: var(--sprout-dashboard-savings);
+}
+
 .sprout-dashboard-mobile__year-summary-item--active .sprout-dashboard-mobile__year-summary-amount--income {
   color: #d8ffe7;
 }
 
-/* Dashboard Active Year Summary Expense */
 .sprout-dashboard-mobile__year-summary-item--active .sprout-dashboard-mobile__year-summary-amount--expense {
   color: #ffb3a8;
+}
+
+.sprout-dashboard-mobile__year-summary-item--active .sprout-dashboard-mobile__year-summary-amount--savings {
+  color: #cfe9ff;
 }
 
 /* Dashboard Summary Row */
 .sprout-dashboard-mobile__summary-row {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
+}
+
+.sprout-dashboard-mobile__summary-row--four {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .sprout-dashboard-mobile__summary-item--left {
@@ -589,6 +571,10 @@
   color: var(--sprout-dashboard-expense);
 }
 
+.sprout-dashboard-mobile__summary-value--savings {
+  color: var(--sprout-dashboard-savings);
+}
+
 .sprout-dashboard-mobile__summary-value--balance {
   color: var(--sprout-dashboard-balance);
 }
@@ -600,7 +586,6 @@
   gap: 18px;
 }
 
-/* Dashboard History Card */
 .sprout-dashboard-mobile__history-card {
   background: var(--sprout-dashboard-card);
   border-radius: 24px;
@@ -608,7 +593,6 @@
   overflow: hidden;
 }
 
-/* Dashboard History Header */
 .sprout-dashboard-mobile__history-header {
   display: flex;
   align-items: center;
@@ -635,7 +619,7 @@
 
 .sprout-dashboard-mobile__history-total {
   font-family: 'Inter', sans-serif;
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 600;
 }
 
@@ -647,6 +631,10 @@
   color: var(--sprout-dashboard-expense);
 }
 
+.sprout-dashboard-mobile__history-total--savings {
+  color: var(--sprout-dashboard-savings);
+}
+
 /* Dashboard Transaction Row */
 .sprout-dashboard-mobile__transaction-row {
   display: flex;
@@ -655,6 +643,14 @@
   gap: 14px;
   padding: 14px 18px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.sprout-dashboard-mobile__transaction-row--button {
+  width: 100%;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
 }
 
 .sprout-dashboard-mobile__transaction-row:last-child {
@@ -669,7 +665,10 @@
   flex: 1;
 }
 
-/* Dashboard Transaction Icon */
+.sprout-dashboard-mobile__transaction-text--no-icon {
+  padding-left: 0;
+}
+
 .sprout-dashboard-mobile__transaction-icon {
   width: 48px;
   height: 48px;
@@ -692,7 +691,6 @@
   background: #2d9af0;
 }
 
-/* Dashboard Transaction Icon Image */
 .sprout-dashboard-mobile__transaction-icon-image {
   width: 24px;
   height: 24px;
@@ -701,9 +699,9 @@
   filter: brightness(0) saturate(100%) invert(100%);
 }
 
-/* Dashboard Transaction Text */
 .sprout-dashboard-mobile__transaction-text {
   min-width: 0;
+  flex: 1;
 }
 
 .sprout-dashboard-mobile__transaction-category {
@@ -722,10 +720,10 @@
   margin-top: 3px;
 }
 
-/* Dashboard Transaction Right Side */
 .sprout-dashboard-mobile__transaction-right {
   text-align: right;
   flex-shrink: 0;
+  min-width: 88px;
 }
 
 .sprout-dashboard-mobile__transaction-amount {
@@ -744,7 +742,7 @@
 }
 
 .sprout-dashboard-mobile__transaction-amount--savings {
-  color: #ffb54c;
+  color: var(--sprout-dashboard-savings);
 }
 
 .sprout-dashboard-mobile__transaction-time {
@@ -752,6 +750,76 @@
   font-family: 'Inter', sans-serif;
   font-size: 12px;
   margin-top: 4px;
+}
+
+/* Dashboard Action Modal */
+.sprout-dashboard-mobile__action-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.sprout-dashboard-mobile__action-backdrop {
+  position: absolute;
+  inset: 0;
+  border: none;
+  background: rgba(0, 0, 0, 0.16);
+  backdrop-filter: blur(0.5px);
+}
+
+.sprout-dashboard-mobile__action-sheet {
+  position: relative;
+  width: 100%;
+  max-width: 414px;
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: 24px 24px 0 0;
+  padding: 22px 20px 28px;
+  box-shadow: 0 -10px 28px rgba(0, 0, 0, 0.08);
+}
+
+.sprout-dashboard-mobile__action-title {
+  color: var(--sprout-dashboard-text);
+  font-family: 'Inter', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.sprout-dashboard-mobile__action-subtitle {
+  color: var(--sprout-dashboard-text-light);
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  text-align: center;
+  margin-top: 6px;
+  margin-bottom: 18px;
+}
+
+.sprout-dashboard-mobile__action-button {
+  width: 100%;
+  min-height: 46px;
+  border: none;
+  border-radius: 14px;
+  background: #f3f6f3;
+  color: var(--sprout-dashboard-text);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.sprout-dashboard-mobile__action-button--delete {
+  background: #fff1ef;
+  color: var(--sprout-dashboard-expense);
+}
+
+.sprout-dashboard-mobile__action-button--cancel {
+  background: transparent;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  color: var(--sprout-dashboard-text-light);
 }
 
 /* Dashboard Floating Action Button */
@@ -775,7 +843,17 @@
   padding: 0;
   margin: 0;
   box-shadow: 0 12px 26px rgba(0, 243, 107, 0.32);
-  z-index: 1001;
+  z-index: 30;
+}
+
+/* Dashboard Mobile Width Wrapper */
+.sprout-phone.sprout-app--mobile {
+  width: 100%;
+  max-width: 414px;
+  min-height: 100vh;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Dashboard Small Phones */
@@ -797,7 +875,7 @@
 
   .sprout-dashboard-mobile__day-cell {
     border-radius: 8px;
-    padding: 3px 1px;
+    padding: 3px 1px 2px;
   }
 
   .sprout-dashboard-mobile__day-number {
@@ -805,11 +883,16 @@
   }
 
   .sprout-dashboard-mobile__day-amount {
-    font-size: 7px;
+    font-size: 5px;
+  }
+
+  .sprout-dashboard-mobile__summary-row--four {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: 14px;
   }
 
   .sprout-dashboard-mobile__summary-value {
-    font-size: 15px;
+    font-size: 12px;
   }
 }
 
@@ -818,11 +901,6 @@
   .sprout-dashboard-mobile {
     max-width: 430px;
     margin: 0 auto;
-  }
-
-  .sprout-dashboard-mobile__period-panel {
-    left: calc(50% - 199px);
-    right: calc(50% - 199px);
   }
 
   .sprout-dashboard-mobile__fab {

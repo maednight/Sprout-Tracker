@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\SproutAuthController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\TransactionController;
 use Illuminate\Support\Facades\Route;
 
@@ -19,7 +20,7 @@ Route::middleware('guest')->group(function () {
 /* Authenticated Routes */
 Route::middleware('auth')->group(function () {
     Route::get('/home', [SproutAuthController::class, 'home'])->name('home');
-    Route::get('/dashboard', fn () => view('public.dashboard'))->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/transactions', fn () => 'Transactions page')->name('transaction.index');
     Route::get('/budget', fn () => 'Budget page')->name('budget.index');
@@ -28,4 +29,8 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/transactions/create', [TransactionController::class, 'create'])->name('transaction.create');
     Route::post('/transactions', [TransactionController::class, 'store'])->name('transaction.store');
+
+    Route::get('/transactions/{transaction}/edit', [TransactionController::class, 'edit'])->name('transaction.edit');
+    Route::put('/transactions/{transaction}', [TransactionController::class, 'update'])->name('transaction.update');
+    Route::delete('/transactions/{transaction}', [TransactionController::class, 'destroy'])->name('transaction.destroy');
 });

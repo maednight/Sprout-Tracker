@@ -3,59 +3,192 @@
 namespace App\Http\Controllers;
 
 use App\Models\Transaction;
-use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
+use Carbon\Carbon;
+use Illuminate\Contracts\View\View;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(): View
     {
-        return view('public.dashboard'); // Vue mounts here
-    }
+        $user = auth()->user();
 
-    public function data(Request $request)
-    {
-        $user = $request->user();
-        if (!$user) {
-            abort(401);
-        }
-
-        $month = $request->query('month'); // YYYY-MM
-        $base = $month ? Carbon::createFromFormat('Y-m', $month)->startOfMonth() : now()->startOfMonth();
-        $start = $base->copy()->startOfMonth();
-        $end = $base->copy()->endOfMonth();
-
-        $tx = Transaction::query()
-            ->with(['category:id,name', 'account:id,name'])
+        $transactions = Transaction::query()
+            ->with(['category', 'account'])
             ->where('user_id', $user->id)
-            ->whereBetween('occurred_at', [$start, $end])
-            ->orderBy('occurred_at', 'desc')
+            ->orderByDesc('occurred_at')
+            ->orderByDesc('id')
             ->get();
 
-        // Totals per type
-        $income = (float) $tx->where('type', 'income')->sum('amount');
-        $expense = (float) $tx->where('type', 'expense')->sum('amount');
-        $savings = (float) $tx->where('type', 'savings')->sum('amount');
-        $balance = $income - $expense - $savings;
+        $transactionGroups = $this->buildTransactionGroups($transactions);
 
-        // Totals per day for calendar
-        $byDay = [];
-        foreach ($tx as $t) {
-            $d = $t->occurred_at->format('Y-m-d');
-            $byDay[$d] ??= ['income' => 0, 'expense' => 0, 'savings' => 0];
-            $byDay[$d][$t->type] += (float) $t->amount;
+        $initialDisplayDate = $transactions->isNotEmpty()
+            ? $transactions->first()->occurred_at->format('Y-m-d')
+            : now()->format('Y-m-d');
+
+        return view('public.dashboard', [
+            'dashboardPayload' => [
+                'transactionGroups' => $transactionGroups,
+                'initialDisplayDate' => $initialDisplayDate,
+            ],
+        ]);
+    }
+
+    /* Build transaction groups */
+    private function buildTransactionGroups(Collection $transactions): array
+    {
+        return $transactions
+            ->groupBy(fn (Transaction $transaction) => $transaction->occurred_at->format('Y-m-d'))
+            ->map(function (Collection $groupedTransactions, string $dateKey) {
+                $groupDate = Carbon::createFromFormat('Y-m-d', $dateKey);
+
+                $incomeTotal = $groupedTransactions
+                    ->where('type', 'income')
+                    ->sum('amount');
+
+                $expenseTotal = $groupedTransactions
+                    ->where('type', 'expense')
+                    ->sum('amount');
+
+                $savingsTotal = $groupedTransactions
+                    ->where('type', 'savings')
+                    ->sum('amount');
+
+                return [
+                    'dateKey' => $dateKey,
+                    'dateLabel' => $groupDate->format('D, F d'),
+                    'income' => (float) $incomeTotal,
+                    'expense' => (float) $expenseTotal,
+                    'savings' => (float) $savingsTotal,
+                    'transactions' => $groupedTransactions
+                        ->map(function (Transaction $transaction) {
+                            $categoryName = $transaction->category?->name
+                                ?? Str::headline($transaction->type);
+
+                            $accountName = $transaction->account?->name ?? '';
+
+                            return [
+                                'id' => $transaction->id,
+                                'type' => $transaction->type,
+                                'category' => $categoryName,
+                                'account' => $accountName,
+                                'amount' => (float) $transaction->amount,
+                                'time' => $transaction->occurred_at->format('g:ia'),
+                                'description' => $transaction->description ?? '',
+                                'iconPath' => $this->resolveTransactionIconPath(
+                                    $categoryName,
+                                    $accountName
+                                ),
+                                'iconColor' => $this->resolveTransactionIconColor($transaction->type),
+                            ];
+                        })
+                        ->values()
+                        ->all(),
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
+    /* Resolve transaction icon path */
+    private function resolveTransactionIconPath(string $categoryName, string $accountName = ''): string
+    {
+        $normalizedCategory = Str::of($categoryName)
+            ->lower()
+            ->trim()
+            ->replace('&', 'and')
+            ->replace('/', '')
+            ->replace('-', '')
+            ->replace(' ', '')
+            ->value();
+
+        $normalizedAccount = Str::of($accountName)
+            ->lower()
+            ->trim()
+            ->replace('&', 'and')
+            ->replace('/', '')
+            ->replace('-', '')
+            ->replace(' ', '')
+            ->value();
+
+        $defaultCategoryIcons = [
+            'salary' => '/projectassets/icons/salary.svg',
+            'allowance' => '/projectassets/icons/salary.svg',
+            'bonus' => '/projectassets/icons/salary.svg',
+            'pettycash' => '/projectassets/icons/salary.svg',
+
+            'shopping' => '/projectassets/icons/shopping.svg',
+            'apparel' => '/projectassets/icons/shopping.svg',
+            'beauty' => '/projectassets/icons/shopping.svg',
+            'gift' => '/projectassets/icons/shopping.svg',
+
+            'transport' => '/projectassets/icons/transport.svg',
+            'transportation' => '/projectassets/icons/transport.svg',
+
+            'food' => '/projectassets/icons/food&drinks.svg',
+            'fooddrinks' => '/projectassets/icons/food&drinks.svg',
+            'foodanddrinks' => '/projectassets/icons/food&drinks.svg',
+
+            'health' => '/projectassets/icons/health.svg',
+            'education' => '/projectassets/icons/education.svg',
+            'work' => '/projectassets/icons/work.svg',
+            'pets' => '/projectassets/icons/pets.svg',
+
+            'emergency' => '/projectassets/icons/savings.svg',
+            'retirement' => '/projectassets/icons/savings.svg',
+            'travel' => '/projectassets/icons/savings.svg',
+            'investment' => '/projectassets/icons/savings.svg',
+            'insurance' => '/projectassets/icons/savings.svg',
+            'family' => '/projectassets/icons/savings.svg',
+            'goal' => '/projectassets/icons/savings.svg',
+            'house' => '/projectassets/icons/savings.svg',
+            'gadget' => '/projectassets/icons/savings.svg',
+            'car' => '/projectassets/icons/savings.svg',
+
+            'others' => '/projectassets/icons/others.svg',
+        ];
+
+        if (array_key_exists($normalizedCategory, $defaultCategoryIcons)) {
+            return $defaultCategoryIcons[$normalizedCategory];
         }
 
-        return response()->json([
-            'month' => $start->format('Y-m'),
-            'summary' => [
-                'income' => $income,
-                'expense' => $expense,
-                'savings' => $savings,
-                'balance' => $balance,
-            ],
-            'calendar' => $byDay,
-            'recent' => $tx->take(20)->values(),
-        ]);
+        if ($normalizedCategory !== '') {
+            return '/projectassets/icons/others.svg';
+        }
+
+        $defaultAccountIcons = [
+            'cash' => '/projectassets/icons/cash.svg',
+            'wallet' => '/projectassets/icons/cash.svg',
+            'pettycash' => '/projectassets/icons/cash.svg',
+
+            'bank' => '/projectassets/icons/bank.svg',
+            'unionbank' => '/projectassets/icons/bank.svg',
+            'bpi' => '/projectassets/icons/bank.svg',
+            'bdo' => '/projectassets/icons/bank.svg',
+            'metrobank' => '/projectassets/icons/bank.svg',
+            'landbank' => '/projectassets/icons/bank.svg',
+
+            'card' => '/projectassets/icons/cards.svg',
+            'cards' => '/projectassets/icons/cards.svg',
+            'creditcard' => '/projectassets/icons/cards.svg',
+            'debitcard' => '/projectassets/icons/cards.svg',
+        ];
+
+        if (array_key_exists($normalizedAccount, $defaultAccountIcons)) {
+            return $defaultAccountIcons[$normalizedAccount];
+        }
+
+        return '/projectassets/icons/others.svg';
+    }
+
+    /* Resolve transaction icon color */
+    private function resolveTransactionIconColor(string $transactionType): string
+    {
+        return match ($transactionType) {
+            'income' => 'green',
+            'savings' => 'blue',
+            default => 'coral',
+        };
     }
 }

@@ -1,10 +1,26 @@
+@php
+    $isEditMode = isset($transaction) && $transaction;
+
+    $pageTitle = $isEditMode ? 'Edit Transaction - Sprout' : 'Add Transaction - Sprout';
+    $formAction = $isEditMode ? route('transaction.update', $transaction) : route('transaction.store');
+
+    $transactionTypeValue = old('transaction_type', $transaction->type ?? 'expense');
+    $transactionDateValue = old('transaction_date', $isEditMode ? $transaction->occurred_at->format('m/d/Y') : '');
+    $amountValue = old('amount', $isEditMode ? number_format((float) $transaction->amount, 2, '.', ',') : '');
+    $categoryValue = old('category', $isEditMode ? $transaction->category?->name : '');
+    $accountValue = old('account', $isEditMode ? $transaction->account?->name : '');
+    $descriptionValue = old('description', $isEditMode ? $transaction->description : '');
+
+    $pageHeaderTitle = ucfirst($transactionTypeValue);
+@endphp
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>Add Transaction - Sprout</title>
+    <title>{{ $pageTitle }}</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,15 +33,12 @@
 </head>
 <body class="sprout-font">
 
-    <!-- Page Shell -->
     <div class="sprout-shell">
         <div class="sprout-phone sprout-transaction">
 
-            <!-- Main Page -->
             <main class="sprout-transaction__page">
                 <div class="sprout-transaction__content">
 
-                    <!-- Header -->
                     <header class="sprout-transaction__header">
                         <div class="sprout-transaction__header-side sprout-transaction__header-side--left">
                             <a href="{{ route('dashboard') }}" class="sprout-transaction__back">
@@ -35,14 +48,13 @@
 
                         <div class="sprout-transaction__header-center">
                             <h1 class="sprout-transaction__title" data-transaction-title>
-                                Expense
+                                {{ $pageHeaderTitle }}
                             </h1>
                         </div>
 
                         <div class="sprout-transaction__header-side sprout-transaction__header-side--right"></div>
                     </header>
 
-                    <!-- Validation Errors -->
                     @if ($errors->any())
                         <div style="margin-bottom: 16px; padding: 12px 14px; border-radius: 12px; background: #FFECEC; color: #D12C2C; font-size: 13px;">
                             @foreach ($errors->all() as $error)
@@ -51,18 +63,16 @@
                         </div>
                     @endif
 
-                    <!-- Success Message -->
                     @if (session('success'))
                         <div style="margin-bottom: 16px; padding: 12px 14px; border-radius: 12px; background: #EFFFF2; color: #00B050; font-size: 13px;">
                             {{ session('success') }}
                         </div>
                     @endif
 
-                    <!-- Transaction Tabs -->
                     <div class="sprout-transaction__tabs">
                         <button
                             type="button"
-                            class="sprout-transaction__tab"
+                            class="sprout-transaction__tab {{ $transactionTypeValue === 'income' ? 'sprout-transaction__tab--active' : '' }}"
                             data-transaction-tab
                             data-transaction-type="income"
                             data-transaction-title="Income"
@@ -72,7 +82,7 @@
 
                         <button
                             type="button"
-                            class="sprout-transaction__tab sprout-transaction__tab--active"
+                            class="sprout-transaction__tab {{ $transactionTypeValue === 'expense' ? 'sprout-transaction__tab--active' : '' }}"
                             data-transaction-tab
                             data-transaction-type="expense"
                             data-transaction-title="Expense"
@@ -82,7 +92,7 @@
 
                         <button
                             type="button"
-                            class="sprout-transaction__tab"
+                            class="sprout-transaction__tab {{ $transactionTypeValue === 'savings' ? 'sprout-transaction__tab--active' : '' }}"
                             data-transaction-tab
                             data-transaction-type="savings"
                             data-transaction-title="Savings"
@@ -91,22 +101,20 @@
                         </button>
                     </div>
 
-                    <!-- Transaction Form -->
-                    <form class="sprout-transaction__form" method="POST" action="{{ route('transaction.store') }}">
+                    <form class="sprout-transaction__form" method="POST" action="{{ $formAction }}">
                         @csrf
+                        @if ($isEditMode)
+                            @method('PUT')
+                        @endif
 
-                        <!-- Hidden Transaction Type -->
                         <input
                             type="hidden"
                             name="transaction_type"
-                            value="expense"
+                            value="{{ $transactionTypeValue }}"
                             data-transaction-type-input
                         >
 
-                        <!-- Details Card -->
                         <section class="sprout-transaction__card">
-
-                            <!-- Date Picker Row -->
                             <div
                                 class="sprout-transaction__field sprout-transaction__field--picker"
                                 data-date-trigger
@@ -122,14 +130,13 @@
                                     name="transaction_date"
                                     type="text"
                                     class="sprout-transaction__input sprout-transaction__input--picker"
-                                    value="{{ old('transaction_date') }}"
+                                    value="{{ $transactionDateValue }}"
                                     placeholder="MM/DD/YYYY"
                                     readonly
                                     autocomplete="off"
                                 >
                             </div>
 
-                            <!-- Amount Field -->
                             <div class="sprout-transaction__field">
                                 <label for="amount" class="sprout-transaction__label">Amount</label>
                                 <input
@@ -137,11 +144,10 @@
                                     name="amount"
                                     type="text"
                                     class="sprout-transaction__input"
-                                    value="{{ old('amount') }}"
+                                    value="{{ $amountValue }}"
                                 >
                             </div>
 
-                            <!-- Category Picker -->
                             <div
                                 class="sprout-transaction__field sprout-transaction__field--picker"
                                 data-category-trigger
@@ -154,21 +160,20 @@
 
                                 <div class="sprout-transaction__picker-trigger">
                                     <span
-                                        class="sprout-transaction__picker-text sprout-transaction__picker-text--empty"
+                                        class="sprout-transaction__picker-text {{ $categoryValue ? '' : 'sprout-transaction__picker-text--empty' }}"
                                         data-category-selected-text
-                                    ></span>
+                                    >{{ $categoryValue }}</span>
                                 </div>
 
                                 <input
                                     id="category"
                                     name="category"
                                     type="hidden"
-                                    value="{{ old('category', '') }}"
+                                    value="{{ $categoryValue }}"
                                     data-category-input
                                 >
                             </div>
 
-                            <!-- Account Picker -->
                             <div
                                 class="sprout-transaction__field sprout-transaction__field--picker sprout-transaction__field--last"
                                 data-account-trigger
@@ -181,23 +186,21 @@
 
                                 <div class="sprout-transaction__picker-trigger">
                                     <span
-                                        class="sprout-transaction__picker-text sprout-transaction__picker-text--empty"
+                                        class="sprout-transaction__picker-text {{ $accountValue ? '' : 'sprout-transaction__picker-text--empty' }}"
                                         data-account-selected-text
-                                    ></span>
+                                    >{{ $accountValue }}</span>
                                 </div>
 
                                 <input
                                     id="account"
                                     name="account"
                                     type="hidden"
-                                    value="{{ old('account', '') }}"
+                                    value="{{ $accountValue }}"
                                     data-account-input
                                 >
                             </div>
-
                         </section>
 
-                        <!-- Description Card -->
                         <section class="sprout-transaction__card sprout-transaction__card--description">
                             <div class="sprout-transaction__description-head">
                                 <label for="description" class="sprout-transaction__label">Description</label>
@@ -219,13 +222,12 @@
                                 id="description"
                                 name="description"
                                 class="sprout-transaction__textarea"
-                            >{{ old('description') }}</textarea>
+                            >{{ $descriptionValue }}</textarea>
                         </section>
 
-                        <!-- Action Buttons -->
                         <div class="sprout-transaction__actions">
                             <button type="submit" class="sprout-transaction__button sprout-transaction__button--primary">
-                                Save
+                                {{ $isEditMode ? 'Update' : 'Save' }}
                             </button>
 
                             <button type="button" class="sprout-transaction__button sprout-transaction__button--secondary">
@@ -237,12 +239,10 @@
                 </div>
             </main>
 
-            <!-- Mobile Navigation -->
             @include('public.partials.nav-mobile')
         </div>
     </div>
 
-    <!-- Date Modal -->
     <div
         class="sprout-date-modal sprout-date-modal--hidden"
         data-date-modal
@@ -261,7 +261,6 @@
             aria-modal="true"
             aria-labelledby="sproutDateModalTitle"
         >
-            <!-- Date Modal Header -->
             <div class="sprout-date-modal__header">
                 <h2
                     id="sproutDateModalTitle"
@@ -280,7 +279,6 @@
                 </button>
             </div>
 
-            <!-- Top Actions -->
             <div class="sprout-date-modal__topbar">
                 <div
                     class="sprout-date-modal__indicator"
@@ -298,7 +296,6 @@
                 </button>
             </div>
 
-            <!-- Date Modal Navigation -->
             <div class="sprout-date-modal__nav">
                 <button
                     type="button"
@@ -346,7 +343,6 @@
                 </button>
             </div>
 
-            <!-- Weekday Header -->
             <div class="sprout-date-modal__weekdays">
                 <span>Sun</span>
                 <span>Mon</span>
@@ -357,117 +353,10 @@
                 <span>Sat</span>
             </div>
 
-            <!-- Calendar Grid -->
             <div class="sprout-date-modal__grid" data-date-grid></div>
         </div>
     </div>
 
-                        <!-- Date Modal Navigation -->
-            <div class="sprout-date-modal__nav">
-                <button
-                    type="button"
-                    class="sprout-date-modal__nav-button"
-                    data-date-prev
-                    aria-label="Previous month"
-                >
-                    ‹
-                </button>
-
-                <div class="sprout-date-modal__controls">
-                    <select
-                        class="sprout-date-modal__select"
-                        data-date-month-select
-                        aria-label="Select month"
-                    >
-                        <option value="0">January</option>
-                        <option value="1">February</option>
-                        <option value="2">March</option>
-                        <option value="3">April</option>
-                        <option value="4">May</option>
-                        <option value="5">June</option>
-                        <option value="6">July</option>
-                        <option value="7">August</option>
-                        <option value="8">September</option>
-                        <option value="9">October</option>
-                        <option value="10">November</option>
-                        <option value="11">December</option>
-                    </select>
-
-                    <select
-                        class="sprout-date-modal__select"
-                        data-date-year-select
-                        aria-label="Select year"
-                    ></select>
-                </div>
-
-                <button
-                    type="button"
-                    class="sprout-date-modal__nav-button"
-                    data-date-next
-                    aria-label="Next month"
-                >
-                    ›
-                </button>
-            </div>
-
-            <!-- Visible Month Indicator -->
-            <div class="sprout-date-modal__indicator" data-date-indicator>
-                November 2026
-            </div>
-
-            <!-- Weekday Header -->
-            <div class="sprout-date-modal__weekdays">
-                <span>Sun</span>
-                <span>Mon</span>
-                <span>Tue</span>
-                <span>Wed</span>
-                <span>Thu</span>
-                <span>Fri</span>
-                <span>Sat</span>
-            </div>
-
-            <!-- Calendar Grid -->
-            <div class="sprout-date-modal__grid" data-date-grid></div>
-
-            <!-- Date Modal Footer -->
-            <div class="sprout-date-modal__footer">
-                <button
-                    type="button"
-                    class="sprout-date-modal__today"
-                    data-date-today
-                >
-                    Today
-                </button>
-            </div>
-
-            <!-- Weekday Header -->
-            <div class="sprout-date-modal__weekdays">
-                <span>Sun</span>
-                <span>Mon</span>
-                <span>Tue</span>
-                <span>Wed</span>
-                <span>Thu</span>
-                <span>Fri</span>
-                <span>Sat</span>
-            </div>
-
-            <!-- Calendar Grid -->
-            <div class="sprout-date-modal__grid" data-date-grid></div>
-
-            <!-- Date Modal Footer -->
-            <div class="sprout-date-modal__footer">
-                <button
-                    type="button"
-                    class="sprout-date-modal__today"
-                    data-date-today
-                >
-                    Today
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Category Modal -->
     <div
         class="sprout-category-modal sprout-category-modal--hidden"
         data-category-modal
@@ -486,7 +375,6 @@
             aria-modal="true"
             aria-labelledby="sproutCategoryModalTitle"
         >
-            <!-- Category Modal Header -->
             <div class="sprout-category-modal__header">
                 <h2
                     id="sproutCategoryModalTitle"
@@ -505,7 +393,6 @@
                 </button>
             </div>
 
-            <!-- Category Modal Body -->
             <div class="sprout-category-modal__body">
                 <div class="sprout-category-modal__grid" data-category-grid>
                     <button type="button" class="sprout-category-modal__item" data-category-item data-category-name="Food">Food</button>
@@ -522,7 +409,6 @@
                     <button type="button" class="sprout-category-modal__item" data-category-item data-category-name="Others">Others</button>
                 </div>
 
-                <!-- Category Modal Actions -->
                 <div class="sprout-category-modal__actions">
                     <button
                         type="button"
@@ -535,7 +421,6 @@
         </div>
     </div>
 
-    <!-- Account Modal -->
     <div
         class="sprout-account-modal sprout-account-modal--hidden"
         data-account-modal
@@ -554,7 +439,6 @@
             aria-modal="true"
             aria-labelledby="sproutAccountModalTitle"
         >
-            <!-- Account Modal Header -->
             <div class="sprout-account-modal__header">
                 <h2
                     id="sproutAccountModalTitle"
@@ -573,7 +457,6 @@
                 </button>
             </div>
 
-            <!-- Account Modal Body -->
             <div class="sprout-account-modal__body">
                 <div class="sprout-account-modal__grid">
                     <button type="button" class="sprout-account-modal__item" data-account-item data-account-name="Cash">Cash</button>
@@ -581,7 +464,6 @@
                     <button type="button" class="sprout-account-modal__item" data-account-item data-account-name="Card">Card</button>
                 </div>
 
-                <!-- Account Modal Actions -->
                 <div class="sprout-account-modal__actions">
                     <button
                         type="button"
@@ -594,7 +476,6 @@
         </div>
     </div>
 
-    <!-- Add Category Overlay -->
     <div
         class="sprout-add-option-overlay sprout-add-option-overlay--hidden"
         data-add-category-overlay
@@ -612,7 +493,6 @@
             aria-modal="true"
             aria-labelledby="sproutAddCategoryTitle"
         >
-            <!-- Add Category Overlay Header -->
             <div class="sprout-add-option-overlay__header">
                 <button
                     type="button"
@@ -634,7 +514,6 @@
                 <div class="sprout-add-option-overlay__spacer" aria-hidden="true"></div>
             </div>
 
-            <!-- Add Category Overlay Body -->
             <div class="sprout-add-option-overlay__body">
                 <div class="sprout-add-option-overlay__field">
                     <label for="custom_category_name" class="sprout-add-option-overlay__label">
@@ -660,7 +539,6 @@
         </div>
     </div>
 
-    <!-- Add Account Overlay -->
     <div
         class="sprout-add-option-overlay sprout-add-option-overlay--hidden"
         data-add-account-overlay
@@ -678,7 +556,6 @@
             aria-modal="true"
             aria-labelledby="sproutAddAccountTitle"
         >
-            <!-- Add Account Overlay Header -->
             <div class="sprout-add-option-overlay__header">
                 <button
                     type="button"
@@ -699,7 +576,6 @@
                 <div class="sprout-add-option-overlay__spacer" aria-hidden="true"></div>
             </div>
 
-            <!-- Add Account Overlay Body -->
             <div class="sprout-add-option-overlay__body">
                 <div class="sprout-add-option-overlay__field">
                     <label for="custom_account_name" class="sprout-add-option-overlay__label">

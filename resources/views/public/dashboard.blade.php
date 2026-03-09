@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- Dashboard Page Meta -->
+    <!-- Dashboard Head -->
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sprout Dashboard</title>
 
-    <!-- Dashboard CSRF Token -->
+    <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <!-- Dashboard Fonts -->
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -17,7 +17,7 @@
         rel="stylesheet"
     >
 
-    <!-- Dashboard Vite Assets -->
+    <!-- Vite Assets -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
@@ -25,12 +25,19 @@
     <!-- Dashboard App Shell -->
     <div class="sprout-appshell">
 
-        <!-- Dashboard Mobile View -->
+        <!-- Mobile Dashboard -->
         <div class="sprout-view sprout-view--mobile">
-            @include('public.mobile.dashboard')
+            <div class="sprout-phone sprout-app sprout-app--mobile">
+                <div
+                    id="app"
+                    data-dashboard='{{ json_encode($dashboardPayload ?? ["transactionGroups" => [], "initialDisplayDate" => now()->format("Y-m-d")]) }}'
+                ></div>
+
+                @include('public.partials.nav-mobile')
+            </div>
         </div>
 
-        <!-- Dashboard Desktop View -->
+        <!-- Desktop Dashboard -->
         <div class="sprout-view sprout-view--desktop">
             @include('public.desktop.dashboard')
         </div>
