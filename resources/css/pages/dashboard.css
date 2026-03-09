@@ -18,7 +18,8 @@
 
 /* Dashboard Root */
 .sprout-dashboard-mobile {
-  min-height: 100vh;
+  flex: 1;
+  min-height: 100%;
   padding: 20px 16px 110px;
   box-sizing: border-box;
   background: linear-gradient(
@@ -417,12 +418,21 @@
   white-space: nowrap;
 }
 
+/* Dashboard Calendar Legend Colors */
 .sprout-dashboard-mobile__day-amount--income {
-  color: #d8ffe7;
+  color: var(--sprout-dashboard-income);
 }
 
 .sprout-dashboard-mobile__day-amount--expense {
-  color: #ff6f5d;
+  color: var(--sprout-dashboard-expense);
+}
+
+.sprout-dashboard-mobile__day-cell--selected .sprout-dashboard-mobile__day-amount--income {
+  color: #d8ffe7;
+}
+
+.sprout-dashboard-mobile__day-cell--selected .sprout-dashboard-mobile__day-amount--expense {
+  color: #ffb3a8;
 }
 
 /* Year Summary Grid */
@@ -471,27 +481,26 @@
   color: #ffffff;
 }
 
-/* Year Summary Income */
-.sprout-dashboard-mobile__year-summary-income {
-  color: var(--sprout-dashboard-income);
+/* Dashboard Year Summary Legend Base */
+.sprout-dashboard-mobile__year-summary-amount {
   font-size: 8px;
   font-weight: 700;
   line-height: 1;
 }
 
-.sprout-dashboard-mobile__year-summary-item--active .sprout-dashboard-mobile__year-summary-income {
+.sprout-dashboard-mobile__year-summary-amount--income {
+  color: var(--sprout-dashboard-income);
+}
+
+.sprout-dashboard-mobile__year-summary-amount--expense {
+  color: var(--sprout-dashboard-expense);
+}
+
+.sprout-dashboard-mobile__year-summary-item--active .sprout-dashboard-mobile__year-summary-amount--income {
   color: #d8ffe7;
 }
 
-/* Year Summary Expense */
-.sprout-dashboard-mobile__year-summary-expense {
-  color: var(--sprout-dashboard-expense);
-  font-size: 8px;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.sprout-dashboard-mobile__year-summary-item--active .sprout-dashboard-mobile__year-summary-expense {
+.sprout-dashboard-mobile__year-summary-item--active .sprout-dashboard-mobile__year-summary-amount--expense {
   color: #ffb3a8;
 }
 
@@ -758,6 +767,16 @@
   .sprout-dashboard-mobile__summary-value {
     font-size: 15px;
   }
+}
+
+/* Dashboard Mobile Width Wrapper */
+.sprout-phone.sprout-app--mobile {
+  width: 100%;
+  max-width: 414px;
+  min-height: 100vh;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Tablet Width */

@@ -240,8 +240,9 @@
             {{ calendarCell.day }}
           </span>
 
+          <!-- Dashboard Calendar Cell Legends -->
           <div
-            v-if="calendarCell.isSelected && (calendarCell.dailyIncome > 0 || calendarCell.dailyExpense > 0)"
+            v-if="calendarCell.dailyIncome > 0 || calendarCell.dailyExpense > 0"
             class="sprout-dashboard-mobile__day-legends"
           >
             <span
@@ -325,19 +326,20 @@
             {{ yearSummaryItem.label }}
           </span>
 
-          <span
-            v-if="yearSummaryItem.income > 0"
-            class="sprout-dashboard-mobile__year-summary-income"
-          >
-            ₱{{ formatCompactAmount(yearSummaryItem.income) }}
-          </span>
+          <!-- Dashboard Year Summary Legends -->
+            <span
+              v-if="yearSummaryItem.income > 0"
+              class="sprout-dashboard-mobile__year-summary-amount sprout-dashboard-mobile__year-summary-amount--income"
+            >
+              ₱{{ formatCompactAmount(yearSummaryItem.income) }}
+            </span>
 
-          <span
-            v-if="yearSummaryItem.expense > 0"
-            class="sprout-dashboard-mobile__year-summary-expense"
-          >
-            ₱{{ formatCompactAmount(yearSummaryItem.expense) }}
-          </span>
+            <span
+              v-if="yearSummaryItem.expense > 0"
+              class="sprout-dashboard-mobile__year-summary-amount sprout-dashboard-mobile__year-summary-amount--expense"
+            >
+              ₱{{ formatCompactAmount(yearSummaryItem.expense) }}
+            </span>
         </button>
       </div>
 
