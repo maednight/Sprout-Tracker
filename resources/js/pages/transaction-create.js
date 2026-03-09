@@ -1,3 +1,4 @@
+/* Selectors */
 const transactionSelectors = {
     tabs: '[data-transaction-tab]',
     transactionTitle: '[data-transaction-title]',
@@ -7,11 +8,13 @@ const transactionSelectors = {
     dateInput: '#transaction_date',
     dateModal: '[data-date-modal]',
     dateCloseButtons: '[data-date-close]',
-    dateMonthLabel: '[data-date-month-label]',
     datePrevButton: '[data-date-prev]',
     dateNextButton: '[data-date-next]',
     dateGrid: '[data-date-grid]',
     dateTodayButton: '[data-date-today]',
+    dateMonthSelect: '[data-date-month-select]',
+    dateYearSelect: '[data-date-year-select]',
+    dateIndicator: '[data-date-indicator]',
 
     amountInput: '#amount',
 
@@ -45,6 +48,7 @@ const transactionSelectors = {
     addAccountSave: '[data-add-account-save]'
 }
 
+/* CSS Classes */
 const transactionClasses = {
     activeTab: 'sprout-transaction__tab--active',
     hiddenDateModal: 'sprout-date-modal--hidden',
@@ -175,8 +179,8 @@ const parseInputDate = (value) => {
     return parsedDate
 }
 
-/* Format Month Label */
-const formatMonthLabel = (date) => {
+/* Format Visible Date Indicator */
+const formatDateIndicator = (date) => {
     return date.toLocaleDateString('en-US', {
         month: 'long',
         year: 'numeric'
@@ -188,6 +192,41 @@ const isSameDate = (firstDate, secondDate) => {
     return firstDate.getFullYear() === secondDate.getFullYear()
         && firstDate.getMonth() === secondDate.getMonth()
         && firstDate.getDate() === secondDate.getDate()
+}
+
+/* Populate Year Select */
+const populateYearSelect = (yearSelectElement, selectedYear) => {
+    if (!yearSelectElement) {
+        return
+    }
+
+    const currentYear = new Date().getFullYear()
+    const startYear = currentYear - 20
+    const endYear = currentYear + 20
+
+    yearSelectElement.innerHTML = ''
+
+    for (let year = endYear; year >= startYear; year -= 1) {
+        const optionElement = document.createElement('option')
+
+        optionElement.value = String(year)
+        optionElement.textContent = String(year)
+
+        if (year === selectedYear) {
+            optionElement.selected = true
+        }
+
+        yearSelectElement.appendChild(optionElement)
+    }
+}
+
+/* Sync Date Selects */
+const syncDateSelects = (monthSelectElement, yearSelectElement, viewDate) => {
+    if (monthSelectElement) {
+        monthSelectElement.value = String(viewDate.getMonth())
+    }
+
+    populateYearSelect(yearSelectElement, viewDate.getFullYear())
 }
 
 /* Create Calendar Day Button */
@@ -239,18 +278,24 @@ const renderDateCalendar = (
     inputElement,
     modalElement,
     triggerElement,
-    monthLabelElement,
-    gridElement
+    gridElement,
+    monthSelectElement,
+    yearSelectElement,
+    indicatorElement
 ) => {
-    if (!monthLabelElement || !gridElement) {
+    if (!gridElement) {
         return
     }
 
     const selectedDate = parseInputDate(inputElement?.value ?? '')
     const today = new Date()
 
-    monthLabelElement.textContent = formatMonthLabel(viewDate)
+    syncDateSelects(monthSelectElement, yearSelectElement, viewDate)
     gridElement.innerHTML = ''
+
+    if (indicatorElement) {
+        indicatorElement.textContent = formatDateIndicator(viewDate)
+    }
 
     const year = viewDate.getFullYear()
     const month = viewDate.getMonth()
@@ -716,14 +761,29 @@ const initializeDateModal = () => {
     const inputElement = document.querySelector(transactionSelectors.dateInput)
     const modalElement = document.querySelector(transactionSelectors.dateModal)
     const closeButtons = document.querySelectorAll(transactionSelectors.dateCloseButtons)
-    const monthLabelElement = document.querySelector(transactionSelectors.dateMonthLabel)
     const prevButton = document.querySelector(transactionSelectors.datePrevButton)
     const nextButton = document.querySelector(transactionSelectors.dateNextButton)
     const gridElement = document.querySelector(transactionSelectors.dateGrid)
     const todayButton = document.querySelector(transactionSelectors.dateTodayButton)
+    const monthSelectElement = document.querySelector(transactionSelectors.dateMonthSelect)
+    const yearSelectElement = document.querySelector(transactionSelectors.dateYearSelect)
+    const indicatorElement = document.querySelector(transactionSelectors.dateIndicator)
 
-    if (!triggerElement || !inputElement || !modalElement || !monthLabelElement || !gridElement) {
+    if (!triggerElement || !inputElement || !modalElement || !gridElement) {
         return
+    }
+
+    const renderCurrentCalendar = () => {
+        renderDateCalendar(
+            currentCalendarDate,
+            inputElement,
+            modalElement,
+            triggerElement,
+            gridElement,
+            monthSelectElement,
+            yearSelectElement,
+            indicatorElement
+        )
     }
 
     const openModalHandler = (event) => {
@@ -735,15 +795,7 @@ const initializeDateModal = () => {
             ? new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1)
             : new Date(new Date().getFullYear(), new Date().getMonth(), 1)
 
-        renderDateCalendar(
-            currentCalendarDate,
-            inputElement,
-            modalElement,
-            triggerElement,
-            monthLabelElement,
-            gridElement
-        )
-
+        renderCurrentCalendar()
         openDateModal(modalElement, triggerElement)
     }
 
@@ -770,14 +822,7 @@ const initializeDateModal = () => {
                 1
             )
 
-            renderDateCalendar(
-                currentCalendarDate,
-                inputElement,
-                modalElement,
-                triggerElement,
-                monthLabelElement,
-                gridElement
-            )
+            renderCurrentCalendar()
         })
     }
 
@@ -789,14 +834,31 @@ const initializeDateModal = () => {
                 1
             )
 
-            renderDateCalendar(
-                currentCalendarDate,
-                inputElement,
-                modalElement,
-                triggerElement,
-                monthLabelElement,
-                gridElement
+            renderCurrentCalendar()
+        })
+    }
+
+    if (monthSelectElement) {
+        monthSelectElement.addEventListener('change', () => {
+            currentCalendarDate = new Date(
+                currentCalendarDate.getFullYear(),
+                Number(monthSelectElement.value),
+                1
             )
+
+            renderCurrentCalendar()
+        })
+    }
+
+    if (yearSelectElement) {
+        yearSelectElement.addEventListener('change', () => {
+            currentCalendarDate = new Date(
+                Number(yearSelectElement.value),
+                currentCalendarDate.getMonth(),
+                1
+            )
+
+            renderCurrentCalendar()
         })
     }
 
@@ -807,15 +869,7 @@ const initializeDateModal = () => {
             inputElement.value = formatDateForInput(today)
             currentCalendarDate = new Date(today.getFullYear(), today.getMonth(), 1)
 
-            renderDateCalendar(
-                currentCalendarDate,
-                inputElement,
-                modalElement,
-                triggerElement,
-                monthLabelElement,
-                gridElement
-            )
-
+            renderCurrentCalendar()
             closeDateModal(modalElement, triggerElement)
         })
     }

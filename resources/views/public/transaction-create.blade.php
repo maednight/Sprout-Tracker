@@ -280,6 +280,24 @@
                 </button>
             </div>
 
+            <!-- Top Actions -->
+            <div class="sprout-date-modal__topbar">
+                <div
+                    class="sprout-date-modal__indicator"
+                    data-date-indicator
+                >
+                    January 2026
+                </div>
+
+                <button
+                    type="button"
+                    class="sprout-date-modal__today-link"
+                    data-date-today
+                >
+                    Today
+                </button>
+            </div>
+
             <!-- Date Modal Navigation -->
             <div class="sprout-date-modal__nav">
                 <button
@@ -291,8 +309,31 @@
                     ‹
                 </button>
 
-                <div class="sprout-date-modal__month" data-date-month-label>
-                    March 2026
+                <div class="sprout-date-modal__controls">
+                    <select
+                        class="sprout-date-modal__select"
+                        data-date-month-select
+                        aria-label="Select month"
+                    >
+                        <option value="0">January</option>
+                        <option value="1">February</option>
+                        <option value="2">March</option>
+                        <option value="3">April</option>
+                        <option value="4">May</option>
+                        <option value="5">June</option>
+                        <option value="6">July</option>
+                        <option value="7">August</option>
+                        <option value="8">September</option>
+                        <option value="9">October</option>
+                        <option value="10">November</option>
+                        <option value="11">December</option>
+                    </select>
+
+                    <select
+                        class="sprout-date-modal__select"
+                        data-date-year-select
+                        aria-label="Select year"
+                    ></select>
                 </div>
 
                 <button
@@ -302,6 +343,100 @@
                     aria-label="Next month"
                 >
                     ›
+                </button>
+            </div>
+
+            <!-- Weekday Header -->
+            <div class="sprout-date-modal__weekdays">
+                <span>Sun</span>
+                <span>Mon</span>
+                <span>Tue</span>
+                <span>Wed</span>
+                <span>Thu</span>
+                <span>Fri</span>
+                <span>Sat</span>
+            </div>
+
+            <!-- Calendar Grid -->
+            <div class="sprout-date-modal__grid" data-date-grid></div>
+        </div>
+    </div>
+
+                        <!-- Date Modal Navigation -->
+            <div class="sprout-date-modal__nav">
+                <button
+                    type="button"
+                    class="sprout-date-modal__nav-button"
+                    data-date-prev
+                    aria-label="Previous month"
+                >
+                    ‹
+                </button>
+
+                <div class="sprout-date-modal__controls">
+                    <select
+                        class="sprout-date-modal__select"
+                        data-date-month-select
+                        aria-label="Select month"
+                    >
+                        <option value="0">January</option>
+                        <option value="1">February</option>
+                        <option value="2">March</option>
+                        <option value="3">April</option>
+                        <option value="4">May</option>
+                        <option value="5">June</option>
+                        <option value="6">July</option>
+                        <option value="7">August</option>
+                        <option value="8">September</option>
+                        <option value="9">October</option>
+                        <option value="10">November</option>
+                        <option value="11">December</option>
+                    </select>
+
+                    <select
+                        class="sprout-date-modal__select"
+                        data-date-year-select
+                        aria-label="Select year"
+                    ></select>
+                </div>
+
+                <button
+                    type="button"
+                    class="sprout-date-modal__nav-button"
+                    data-date-next
+                    aria-label="Next month"
+                >
+                    ›
+                </button>
+            </div>
+
+            <!-- Visible Month Indicator -->
+            <div class="sprout-date-modal__indicator" data-date-indicator>
+                November 2026
+            </div>
+
+            <!-- Weekday Header -->
+            <div class="sprout-date-modal__weekdays">
+                <span>Sun</span>
+                <span>Mon</span>
+                <span>Tue</span>
+                <span>Wed</span>
+                <span>Thu</span>
+                <span>Fri</span>
+                <span>Sat</span>
+            </div>
+
+            <!-- Calendar Grid -->
+            <div class="sprout-date-modal__grid" data-date-grid></div>
+
+            <!-- Date Modal Footer -->
+            <div class="sprout-date-modal__footer">
+                <button
+                    type="button"
+                    class="sprout-date-modal__today"
+                    data-date-today
+                >
+                    Today
                 </button>
             </div>
 

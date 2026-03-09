@@ -747,18 +747,22 @@
   position: relative;
   width: 100%;
   max-width: 414px;
+  min-height: 470px;
   background: #FFFFFF;
   border-radius: 22px 22px 0 0;
   padding: 20px 20px 24px;
   box-sizing: border-box;
   box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
 }
 
 .sprout-date-modal__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 18px;
+  margin-bottom: 14px;
+  flex-shrink: 0;
 }
 
 .sprout-date-modal__title {
@@ -780,12 +784,49 @@
   cursor: pointer;
 }
 
+/* Top Bar */
+.sprout-date-modal__topbar {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 14px;
+  min-height: 22px;
+  flex-shrink: 0;
+}
+
+.sprout-date-modal__indicator {
+  text-align: center;
+  color: #2B2B2B;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.sprout-date-modal__today-link {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  color: #00C957;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+}
+
+/* Navigation */
 .sprout-date-modal__nav {
   display: grid;
   grid-template-columns: 36px 1fr 36px;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 18px;
+  gap: 10px;
+  margin-bottom: 14px;
+  flex-shrink: 0;
 }
 
 .sprout-date-modal__nav-button {
@@ -800,17 +841,38 @@
   cursor: pointer;
 }
 
-.sprout-date-modal__month {
-  text-align: center;
-  color: #1F1F1F;
-  font-size: 15px;
-  font-weight: 700;
+.sprout-date-modal__controls {
+  display: grid;
+  grid-template-columns: 1fr 110px;
+  gap: 8px;
+  align-items: center;
 }
 
+.sprout-date-modal__select {
+  width: 100%;
+  height: 38px;
+  border: 1px solid #D9F7E2;
+  border-radius: 10px;
+  background: #F7FFF9;
+  color: #2B2B2B;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  padding: 0 12px;
+  outline: none;
+  cursor: pointer;
+}
+
+.sprout-date-modal__select:focus {
+  border-color: #00F36B;
+}
+
+/* Weekdays */
 .sprout-date-modal__weekdays {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  margin-bottom: 10px;
+  margin-bottom: 12px;
+  flex-shrink: 0;
 }
 
 .sprout-date-modal__weekdays span {
@@ -820,15 +882,19 @@
   font-weight: 500;
 }
 
+/* Grid */
 .sprout-date-modal__grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
+  grid-template-rows: repeat(6, 42px);
   gap: 8px;
+  min-height: 292px;
+  flex-shrink: 0;
 }
 
 .sprout-date-modal__day {
   width: 100%;
-  aspect-ratio: 1 / 1;
+  height: 42px;
   border: 1px solid transparent;
   border-radius: 10px;
   background: #FFFFFF;
@@ -855,20 +921,4 @@
   border-color: #00F36B;
   color: #00C957;
   font-weight: 700;
-}
-
-.sprout-date-modal__footer {
-  margin-top: 18px;
-  display: flex;
-  justify-content: flex-end;
-}
-
-.sprout-date-modal__today {
-  border: none;
-  background: transparent;
-  color: #00C957;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  font-family: 'Inter', sans-serif;
 }
