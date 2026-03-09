@@ -31,13 +31,33 @@
   position: relative;
 }
 
-/* Top Bar */
+/* Dashboard Mobile Width Wrapper */
+.sprout-phone.sprout-app--mobile {
+  width: 100%;
+  max-width: 414px;
+  min-height: 100vh;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Dashboard Floating Backdrop */
+.sprout-dashboard-mobile__backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(6px);
+  z-index: 15;
+}
+
+/* Dashboard Top Bar */
 .sprout-dashboard-mobile__topbar {
   display: grid;
   grid-template-columns: 56px 1fr 56px;
   align-items: center;
   margin-bottom: 16px;
   position: relative;
+  z-index: 21;
 }
 
 .sprout-dashboard-mobile__topbar-space {
@@ -91,15 +111,18 @@
   cursor: pointer;
 }
 
-/* Filter Dropdown */
+/* Dashboard Filter Dropdown */
 .sprout-dashboard-mobile__dropdown {
+  position: absolute;
+  top: 52px;
+  left: 0;
   width: 110px;
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.95);
-  box-shadow: var(--sprout-dashboard-shadow);
+  background: rgba(255, 255, 255, 0.96);
   border: 1px solid var(--sprout-dashboard-border);
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.08);
   overflow: hidden;
-  margin-bottom: 14px;
+  z-index: 20;
 }
 
 .sprout-dashboard-mobile__dropdown-item {
@@ -126,17 +149,27 @@
   font-weight: 700;
 }
 
-/* Period Panel */
+/* Dashboard Period Panel */
 .sprout-dashboard-mobile__period-panel {
-  background: rgba(255, 255, 255, 0.82);
+  position: absolute;
+  top: 72px;
+  left: 16px;
+  right: 16px;
+  background: rgba(255, 255, 255, 0.94);
   border-radius: 24px;
-  box-shadow: var(--sprout-dashboard-shadow);
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.1);
   border: 1px solid var(--sprout-dashboard-border);
-  padding: 16px;
-  margin-bottom: 18px;
+  padding: 12px 14px 14px;
+  z-index: 20;
 }
 
-/* Period Tabs */
+/* Dashboard Floating Panels Layer */
+.sprout-dashboard-mobile__dropdown,
+.sprout-dashboard-mobile__period-panel {
+  pointer-events: auto;
+}
+
+/* Dashboard Period Tabs */
 .sprout-dashboard-mobile__period-tabs {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -162,7 +195,7 @@
   box-shadow: none;
 }
 
-/* Week Panel */
+/* Dashboard Week Panel */
 .sprout-dashboard-mobile__week-panel {
   margin-top: 14px;
 }
@@ -205,7 +238,7 @@
   font-weight: 700;
 }
 
-/* Month Panel */
+/* Dashboard Month Panel */
 .sprout-dashboard-mobile__month-panel {
   margin-top: 14px;
 }
@@ -234,12 +267,12 @@
   outline: none;
 }
 
-/* Year Panel */
+/* Dashboard Year Panel */
 .sprout-dashboard-mobile__year-panel {
   margin-top: 14px;
 }
 
-/* Year Switcher */
+/* Dashboard Year Switcher */
 .sprout-dashboard-mobile__year-switcher {
   display: flex;
   align-items: center;
@@ -248,7 +281,7 @@
   margin-bottom: 12px;
 }
 
-/* Year Arrow */
+/* Dashboard Year Arrow */
 .sprout-dashboard-mobile__year-arrow {
   width: 24px;
   height: 24px;
@@ -264,7 +297,7 @@
   justify-content: center;
 }
 
-/* Year Value */
+/* Dashboard Year Value */
 .sprout-dashboard-mobile__year-value {
   color: var(--sprout-dashboard-green-dark);
   font-family: 'Inter', sans-serif;
@@ -273,14 +306,14 @@
   line-height: 1;
 }
 
-/* Year Month Grid */
+/* Dashboard Year Month Grid */
 .sprout-dashboard-mobile__year-months {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
 }
 
-/* Year Month Button */
+/* Dashboard Year Month Button */
 .sprout-dashboard-mobile__year-month {
   height: 32px;
   border: none;
@@ -294,13 +327,13 @@
   padding: 0;
 }
 
-/* Active Year Month Button */
+/* Dashboard Active Year Month Button */
 .sprout-dashboard-mobile__year-month--active {
   background: var(--sprout-dashboard-green);
   color: #ffffff;
 }
 
-/* Calendar Card */
+/* Dashboard Calendar Card */
 .sprout-dashboard-mobile__calendar-card {
   background: var(--sprout-dashboard-card);
   border-radius: 24px;
@@ -309,7 +342,7 @@
   margin-bottom: 18px;
 }
 
-/* Calendar Heading */
+/* Dashboard Calendar Heading */
 .sprout-dashboard-mobile__calendar-heading {
   text-align: center;
   color: var(--sprout-dashboard-green-dark);
@@ -319,7 +352,7 @@
   margin-bottom: 14px;
 }
 
-/* Weekday Row */
+/* Dashboard Weekday Row */
 .sprout-dashboard-mobile__weekday-row {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -335,7 +368,7 @@
   text-align: center;
 }
 
-/* Month Grid */
+/* Dashboard Month Grid */
 .sprout-dashboard-mobile__month-grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -343,7 +376,7 @@
   margin-bottom: 20px;
 }
 
-/* Week Grid */
+/* Dashboard Week Grid */
 .sprout-dashboard-mobile__week-grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -351,7 +384,7 @@
   margin-bottom: 20px;
 }
 
-/* Day Cell */
+/* Dashboard Day Cell */
 .sprout-dashboard-mobile__day-cell {
   width: 100%;
   aspect-ratio: 1 / 1;
@@ -384,7 +417,7 @@
   color: #ffffff;
 }
 
-/* Week Cell Label */
+/* Dashboard Week Cell Label */
 .sprout-dashboard-mobile__week-cell-label {
   font-size: 10px;
   font-weight: 600;
@@ -392,7 +425,7 @@
   margin-top: 2px;
 }
 
-/* Day Number */
+/* Dashboard Day Number */
 .sprout-dashboard-mobile__day-number {
   font-size: clamp(13px, 3.5vw, 16px);
   font-weight: 500;
@@ -400,7 +433,7 @@
   margin-top: 2px;
 }
 
-/* Day Legends */
+/* Dashboard Day Legends */
 .sprout-dashboard-mobile__day-legends {
   margin-top: 3px;
   display: flex;
@@ -435,23 +468,25 @@
   color: #ffb3a8;
 }
 
-/* Year Summary Grid */
+/* Dashboard Year Summary Grid */
 .sprout-dashboard-mobile__year-summary-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
+  --sprout-dashboard-calendar-gap: 6px;
+  --sprout-dashboard-day-cell-size: calc((100% - (var(--sprout-dashboard-calendar-gap) * 6)) / 7);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sprout-dashboard-calendar-gap);
   margin-bottom: 20px;
 }
 
-/* Year Summary Item */
+/* Dashboard Year Summary Item */
 .sprout-dashboard-mobile__year-summary-item {
-  width: 100%;
+  width: var(--sprout-dashboard-day-cell-size);
   aspect-ratio: 1 / 1;
   min-height: 0;
   border: none;
   border-radius: 10px;
   background: var(--sprout-dashboard-soft-cell);
-  padding: 3px 2px;
+  padding: 4px 2px;
   color: #777777;
   font-family: 'Inter', sans-serif;
   display: flex;
@@ -462,21 +497,24 @@
   cursor: pointer;
   box-sizing: border-box;
   overflow: hidden;
+  flex: 0 0 var(--sprout-dashboard-day-cell-size);
 }
 
-/* Active Year Summary Item */
+/* Dashboard Active Year Summary Item */
 .sprout-dashboard-mobile__year-summary-item--active {
   background: var(--sprout-dashboard-green);
   outline: none;
 }
 
-/* Year Summary Label */
+/* Dashboard Year Summary Label */
 .sprout-dashboard-mobile__year-summary-label {
   font-size: 12px;
-  font-weight: 700;
-  line-height: 1.05;
+  font-weight: 600;
+  line-height: 1.1;
+  text-align: center;
 }
 
+/* Dashboard Active Year Summary Label */
 .sprout-dashboard-mobile__year-summary-item--active .sprout-dashboard-mobile__year-summary-label {
   color: #ffffff;
 }
@@ -486,25 +524,31 @@
   font-size: 8px;
   font-weight: 700;
   line-height: 1;
+  white-space: nowrap;
+  text-align: center;
 }
 
+/* Dashboard Year Summary Income */
 .sprout-dashboard-mobile__year-summary-amount--income {
   color: var(--sprout-dashboard-income);
 }
 
+/* Dashboard Year Summary Expense */
 .sprout-dashboard-mobile__year-summary-amount--expense {
   color: var(--sprout-dashboard-expense);
 }
 
+/* Dashboard Active Year Summary Income */
 .sprout-dashboard-mobile__year-summary-item--active .sprout-dashboard-mobile__year-summary-amount--income {
   color: #d8ffe7;
 }
 
+/* Dashboard Active Year Summary Expense */
 .sprout-dashboard-mobile__year-summary-item--active .sprout-dashboard-mobile__year-summary-amount--expense {
   color: #ffb3a8;
 }
 
-/* Summary Row */
+/* Dashboard Summary Row */
 .sprout-dashboard-mobile__summary-row {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -549,14 +593,14 @@
   color: var(--sprout-dashboard-balance);
 }
 
-/* History List */
+/* Dashboard History List */
 .sprout-dashboard-mobile__history-list {
   display: flex;
   flex-direction: column;
   gap: 18px;
 }
 
-/* History Card */
+/* Dashboard History Card */
 .sprout-dashboard-mobile__history-card {
   background: var(--sprout-dashboard-card);
   border-radius: 24px;
@@ -564,7 +608,7 @@
   overflow: hidden;
 }
 
-/* History Header */
+/* Dashboard History Header */
 .sprout-dashboard-mobile__history-header {
   display: flex;
   align-items: center;
@@ -603,7 +647,7 @@
   color: var(--sprout-dashboard-expense);
 }
 
-/* Transaction Row */
+/* Dashboard Transaction Row */
 .sprout-dashboard-mobile__transaction-row {
   display: flex;
   align-items: center;
@@ -625,7 +669,7 @@
   flex: 1;
 }
 
-/* Transaction Icon */
+/* Dashboard Transaction Icon */
 .sprout-dashboard-mobile__transaction-icon {
   width: 48px;
   height: 48px;
@@ -648,7 +692,7 @@
   background: #2d9af0;
 }
 
-/* Transaction Icon Image */
+/* Dashboard Transaction Icon Image */
 .sprout-dashboard-mobile__transaction-icon-image {
   width: 24px;
   height: 24px;
@@ -657,7 +701,7 @@
   filter: brightness(0) saturate(100%) invert(100%);
 }
 
-/* Transaction Text */
+/* Dashboard Transaction Text */
 .sprout-dashboard-mobile__transaction-text {
   min-width: 0;
 }
@@ -678,7 +722,7 @@
   margin-top: 3px;
 }
 
-/* Transaction Right Side */
+/* Dashboard Transaction Right Side */
 .sprout-dashboard-mobile__transaction-right {
   text-align: right;
   flex-shrink: 0;
@@ -710,7 +754,7 @@
   margin-top: 4px;
 }
 
-/* Floating Action Button */
+/* Dashboard Floating Action Button */
 .sprout-dashboard-mobile__fab {
   position: fixed;
   right: 24px;
@@ -734,7 +778,7 @@
   z-index: 1001;
 }
 
-/* Small Phones */
+/* Dashboard Small Phones */
 @media (max-width: 380px) {
   .sprout-dashboard-mobile {
     padding: 18px 12px 110px;
@@ -769,21 +813,16 @@
   }
 }
 
-/* Dashboard Mobile Width Wrapper */
-.sprout-phone.sprout-app--mobile {
-  width: 100%;
-  max-width: 414px;
-  min-height: 100vh;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Tablet Width */
+/* Dashboard Tablet Width */
 @media (min-width: 768px) and (max-width: 899px) {
   .sprout-dashboard-mobile {
     max-width: 430px;
     margin: 0 auto;
+  }
+
+  .sprout-dashboard-mobile__period-panel {
+    left: calc(50% - 199px);
+    right: calc(50% - 199px);
   }
 
   .sprout-dashboard-mobile__fab {

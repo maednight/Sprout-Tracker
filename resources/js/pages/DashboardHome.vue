@@ -1,7 +1,14 @@
 <template>
   <!-- Dashboard Root -->
   <div class="sprout-dashboard-mobile">
-    <!-- Top Bar -->
+    <!-- Dashboard Floating Backdrop -->
+    <div
+      v-if="isFilterMenuVisible || isPeriodMenuVisible"
+      class="sprout-dashboard-mobile__backdrop"
+      @click="closePanels"
+    ></div>
+
+    <!-- Dashboard Top Bar -->
     <header class="sprout-dashboard-mobile__topbar">
       <button
         type="button"
@@ -43,10 +50,10 @@
       <div class="sprout-dashboard-mobile__topbar-space"></div>
     </header>
 
-    <!-- Filter Dropdown -->
+    <!-- Dashboard Filter Dropdown -->
     <div
       v-if="isFilterMenuVisible"
-      class="sprout-dashboard-mobile__dropdown sprout-dashboard-mobile__dropdown--filter"
+      class="sprout-dashboard-mobile__dropdown"
     >
       <button
         v-for="filterOption in filterOptions"
@@ -62,12 +69,12 @@
       </button>
     </div>
 
-    <!-- Period Panel -->
+    <!-- Dashboard Period Panel -->
     <section
       v-if="isPeriodMenuVisible"
       class="sprout-dashboard-mobile__period-panel"
     >
-      <!-- Period Tabs -->
+      <!-- Dashboard Period Tabs -->
       <div class="sprout-dashboard-mobile__period-tabs">
         <button
           type="button"
@@ -103,7 +110,7 @@
         </button>
       </div>
 
-      <!-- Week Options -->
+      <!-- Dashboard Week Options -->
       <div
         v-if="selectedPeriodView === 'week'"
         class="sprout-dashboard-mobile__week-panel"
@@ -130,7 +137,7 @@
         </div>
       </div>
 
-      <!-- Month Options -->
+      <!-- Dashboard Month Options -->
       <div
         v-if="selectedPeriodView === 'month'"
         class="sprout-dashboard-mobile__month-panel"
@@ -152,7 +159,7 @@
         </div>
       </div>
 
-      <!-- Year Options -->
+      <!-- Dashboard Year Options -->
       <div
         v-if="selectedPeriodView === 'year'"
         class="sprout-dashboard-mobile__year-panel"
@@ -199,14 +206,14 @@
       </div>
     </section>
 
-    <!-- Calendar Card -->
+    <!-- Dashboard Calendar Card -->
     <section class="sprout-dashboard-mobile__calendar-card">
-      <!-- Calendar Heading -->
+      <!-- Dashboard Calendar Heading -->
       <div class="sprout-dashboard-mobile__calendar-heading">
         {{ calendarHeading }}
       </div>
 
-      <!-- Weekday Labels -->
+      <!-- Dashboard Weekday Labels -->
       <div
         v-if="selectedPeriodView !== 'year'"
         class="sprout-dashboard-mobile__weekday-row"
@@ -220,7 +227,7 @@
         </span>
       </div>
 
-      <!-- Month View -->
+      <!-- Dashboard Month View -->
       <div
         v-if="selectedPeriodView === 'month'"
         class="sprout-dashboard-mobile__month-grid"
@@ -262,7 +269,7 @@
         </button>
       </div>
 
-      <!-- Week View -->
+      <!-- Dashboard Week View -->
       <div
         v-else-if="selectedPeriodView === 'week'"
         class="sprout-dashboard-mobile__week-grid"
@@ -285,6 +292,7 @@
             {{ weekCell.day }}
           </span>
 
+          <!-- Dashboard Week Cell Legends -->
           <div
             v-if="weekCell.dailyIncome > 0 || weekCell.dailyExpense > 0"
             class="sprout-dashboard-mobile__day-legends"
@@ -306,7 +314,7 @@
         </button>
       </div>
 
-      <!-- Year View -->
+      <!-- Dashboard Year View -->
       <div
         v-else
         class="sprout-dashboard-mobile__year-summary-grid"
@@ -327,23 +335,23 @@
           </span>
 
           <!-- Dashboard Year Summary Legends -->
-            <span
-              v-if="yearSummaryItem.income > 0"
-              class="sprout-dashboard-mobile__year-summary-amount sprout-dashboard-mobile__year-summary-amount--income"
-            >
-              ₱{{ formatCompactAmount(yearSummaryItem.income) }}
-            </span>
+          <span
+            v-if="yearSummaryItem.income > 0"
+            class="sprout-dashboard-mobile__year-summary-amount sprout-dashboard-mobile__year-summary-amount--income"
+          >
+            {{ formatYearLegendAmount(yearSummaryItem.income) }}
+          </span>
 
-            <span
-              v-if="yearSummaryItem.expense > 0"
-              class="sprout-dashboard-mobile__year-summary-amount sprout-dashboard-mobile__year-summary-amount--expense"
-            >
-              ₱{{ formatCompactAmount(yearSummaryItem.expense) }}
-            </span>
+          <span
+            v-if="yearSummaryItem.expense > 0"
+            class="sprout-dashboard-mobile__year-summary-amount sprout-dashboard-mobile__year-summary-amount--expense"
+          >
+            {{ formatYearLegendAmount(yearSummaryItem.expense) }}
+          </span>
         </button>
       </div>
 
-      <!-- Summary Row -->
+      <!-- Dashboard Summary Row -->
       <div class="sprout-dashboard-mobile__summary-row">
         <div class="sprout-dashboard-mobile__summary-item sprout-dashboard-mobile__summary-item--left">
           <div class="sprout-dashboard-mobile__summary-label">Income</div>
@@ -368,14 +376,14 @@
       </div>
     </section>
 
-    <!-- Transaction History -->
+    <!-- Dashboard Transaction History -->
     <section class="sprout-dashboard-mobile__history-list">
       <article
         v-for="transactionGroup in filteredTransactionGroups"
         :key="transactionGroup.dateKey"
         class="sprout-dashboard-mobile__history-card"
       >
-        <!-- Group Header -->
+        <!-- Dashboard History Header -->
         <div class="sprout-dashboard-mobile__history-header">
           <div class="sprout-dashboard-mobile__history-date">
             {{ transactionGroup.dateLabel }}
@@ -398,14 +406,14 @@
           </div>
         </div>
 
-        <!-- Group Transactions -->
+        <!-- Dashboard Group Transactions -->
         <div
           v-for="transactionItem in transactionGroup.transactions"
           :key="transactionItem.id"
           class="sprout-dashboard-mobile__transaction-row"
         >
           <div class="sprout-dashboard-mobile__transaction-left">
-            <!-- Transaction Icon -->
+            <!-- Dashboard Transaction Icon -->
             <div
               class="sprout-dashboard-mobile__transaction-icon"
               :class="transactionIconClass(transactionItem.iconColor)"
@@ -447,7 +455,7 @@
       </article>
     </section>
 
-    <!-- Floating Action Button -->
+    <!-- Dashboard Floating Action Button -->
     <a
       href="/transactions/create"
       class="sprout-dashboard-mobile__fab"
@@ -459,16 +467,16 @@
 </template>
 
 <script setup>
-/* Vue Imports */
+/* Dashboard Vue Imports */
 import { computed, ref } from 'vue'
 
-/* Filter Options */
+/* Dashboard Filter Options */
 const filterOptions = ['All', 'Income', 'Expense', 'Savings']
 
-/* Weekday Labels */
+/* Dashboard Weekday Labels */
 const weekdayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
-/* Month Options */
+/* Dashboard Month Options */
 const monthOptions = [
   { value: 0, label: 'Jan' },
   { value: 1, label: 'Feb' },
@@ -484,7 +492,7 @@ const monthOptions = [
   { value: 11, label: 'Dec' }
 ]
 
-/* Display State */
+/* Dashboard Display State */
 const selectedFilter = ref('All')
 const selectedPeriodView = ref('month')
 const isFilterMenuVisible = ref(false)
@@ -493,7 +501,7 @@ const currentDisplayDate = ref(new Date(2026, 2, 3))
 const selectedDate = ref(new Date(2026, 2, 3))
 const displayYear = ref(2026)
 
-/* Mock Transaction Data */
+/* Dashboard Mock Transaction Data */
 const transactionGroups = ref([
   {
     dateKey: '2026-03-03',
@@ -553,7 +561,7 @@ const transactionGroups = ref([
   }
 ])
 
-/* Current Period Label */
+/* Dashboard Current Period Label */
 const currentPeriodLabel = computed(() => {
   if (selectedPeriodView.value === 'week') {
     return 'This Week'
@@ -566,7 +574,7 @@ const currentPeriodLabel = computed(() => {
   return 'This Month'
 })
 
-/* Calendar Heading */
+/* Dashboard Calendar Heading */
 const calendarHeading = computed(() => {
   if (selectedPeriodView.value === 'year') {
     return String(displayYear.value)
@@ -577,7 +585,7 @@ const calendarHeading = computed(() => {
   })
 })
 
-/* Transaction Summary By Date */
+/* Dashboard Transaction Summary By Date */
 const transactionSummaryByDate = computed(() => {
   const summaryMap = {}
 
@@ -591,7 +599,7 @@ const transactionSummaryByDate = computed(() => {
   return summaryMap
 })
 
-/* Filtered Transaction Groups */
+/* Dashboard Filtered Transaction Groups */
 const filteredTransactionGroups = computed(() => {
   if (selectedFilter.value === 'All') {
     return transactionGroups.value
@@ -623,7 +631,7 @@ const filteredTransactionGroups = computed(() => {
     .filter((transactionGroup) => transactionGroup.transactions.length > 0)
 })
 
-/* Period Summary */
+/* Dashboard Period Summary */
 const periodSummary = computed(() => {
   let totalIncome = 0
   let totalExpense = 0
@@ -642,7 +650,7 @@ const periodSummary = computed(() => {
   }
 })
 
-/* Month Calendar Cells */
+/* Dashboard Month Calendar Cells */
 const monthCalendarCells = computed(() => {
   const year = currentDisplayDate.value.getFullYear()
   const month = currentDisplayDate.value.getMonth()
@@ -670,7 +678,7 @@ const monthCalendarCells = computed(() => {
   })
 })
 
-/* Week Calendar Cells */
+/* Dashboard Week Calendar Cells */
 const weekCalendarCells = computed(() => {
   const focusedDate = new Date(selectedDate.value)
   const startIndex = (focusedDate.getDay() + 6) % 7
@@ -696,7 +704,7 @@ const weekCalendarCells = computed(() => {
   })
 })
 
-/* Year Month Summaries */
+/* Dashboard Year Month Summaries */
 const yearMonthSummaries = computed(() => {
   return monthOptions.map((monthOption) => {
     let totalIncome = 0
@@ -723,36 +731,43 @@ const yearMonthSummaries = computed(() => {
   })
 })
 
-/* Toggle Filter Menu */
+/* Dashboard Close Floating Panels */
+const closePanels = () => {
+  isFilterMenuVisible.value = false
+  isPeriodMenuVisible.value = false
+}
+
+/* Dashboard Toggle Filter Menu */
 const toggleFilterMenu = () => {
   isFilterMenuVisible.value = !isFilterMenuVisible.value
   isPeriodMenuVisible.value = false
 }
 
-/* Toggle Period Menu */
+/* Dashboard Toggle Period Menu */
 const togglePeriodMenu = () => {
   isPeriodMenuVisible.value = !isPeriodMenuVisible.value
   isFilterMenuVisible.value = false
 }
 
-/* Select Filter */
+/* Dashboard Select Filter */
 const selectFilter = (filterOption) => {
   selectedFilter.value = filterOption
   isFilterMenuVisible.value = false
 }
 
-/* Set Period View */
+/* Dashboard Set Period View */
 const setPeriodView = (periodView) => {
   selectedPeriodView.value = periodView
 }
 
-/* Select Date */
+/* Dashboard Select Date */
 const selectDate = (date) => {
   selectedDate.value = new Date(date)
   currentDisplayDate.value = new Date(date)
+  closePanels()
 }
 
-/* Select Month */
+/* Dashboard Select Month */
 const selectMonth = (monthIndex) => {
   currentDisplayDate.value = new Date(
     currentDisplayDate.value.getFullYear(),
@@ -769,7 +784,7 @@ const selectMonth = (monthIndex) => {
   isPeriodMenuVisible.value = false
 }
 
-/* Select Month From Year */
+/* Dashboard Select Month From Year */
 const selectMonthFromYear = (monthIndex) => {
   currentDisplayDate.value = new Date(displayYear.value, monthIndex, 1)
   selectedDate.value = new Date(displayYear.value, monthIndex, 1)
@@ -777,7 +792,7 @@ const selectMonthFromYear = (monthIndex) => {
   isPeriodMenuVisible.value = false
 }
 
-/* Go Previous Period */
+/* Dashboard Go Previous Period */
 const goPreviousPeriod = () => {
   if (selectedPeriodView.value === 'week') {
     const previousWeekDate = new Date(selectedDate.value)
@@ -798,7 +813,7 @@ const goPreviousPeriod = () => {
   selectedDate.value = new Date(previousMonthDate)
 }
 
-/* Go Next Period */
+/* Dashboard Go Next Period */
 const goNextPeriod = () => {
   if (selectedPeriodView.value === 'week') {
     const nextWeekDate = new Date(selectedDate.value)
@@ -819,7 +834,7 @@ const goNextPeriod = () => {
   selectedDate.value = new Date(nextMonthDate)
 }
 
-/* Format Date Key */
+/* Dashboard Format Date Key */
 const formatDateKey = (date) => {
   const year = date.getFullYear()
   const month = String(date.getMonth() + 1).padStart(2, '0')
@@ -828,24 +843,35 @@ const formatDateKey = (date) => {
   return `${year}-${month}-${day}`
 }
 
-/* Same Date Check */
+/* Dashboard Same Date Check */
 const isSameDate = (firstDate, secondDate) => {
   return firstDate.getFullYear() === secondDate.getFullYear()
     && firstDate.getMonth() === secondDate.getMonth()
     && firstDate.getDate() === secondDate.getDate()
 }
 
-/* Format Money */
+/* Dashboard Format Money */
 const formatMoney = (amount) => {
   return Number(amount || 0).toLocaleString('en-PH')
 }
 
-/* Format Compact Amount */
+/* Dashboard Format Compact Amount */
 const formatCompactAmount = (amount) => {
   return Number(amount || 0).toLocaleString('en-PH')
 }
 
-/* Transaction Icon Class */
+/* Dashboard Format Year Legend Amount */
+const formatYearLegendAmount = (amount) => {
+  const numericAmount = Number(amount || 0)
+
+  if (numericAmount >= 1000) {
+    return `₱${(numericAmount / 1000).toFixed(1).replace('.0', '')}k`
+  }
+
+  return `₱${numericAmount.toLocaleString('en-PH')}`
+}
+
+/* Dashboard Transaction Icon Class */
 const transactionIconClass = (iconColor) => {
   return {
     'sprout-dashboard-mobile__transaction-icon--coral': iconColor === 'coral',
@@ -854,7 +880,7 @@ const transactionIconClass = (iconColor) => {
   }
 }
 
-/* Transaction Amount Class */
+/* Dashboard Transaction Amount Class */
 const transactionAmountClass = (transactionType) => {
   return {
     'sprout-dashboard-mobile__transaction-amount--income': transactionType === 'income',
