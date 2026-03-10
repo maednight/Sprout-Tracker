@@ -30,7 +30,8 @@
             <div class="sprout-phone sprout-app sprout-app--mobile">
                 <div
                     id="app"
-                    data-dashboard='{{ json_encode($dashboardPayload ?? ["transactionGroups" => [], "initialDisplayDate" => now()->format("Y-m-d")]) }}'
+                    data-dashboard='@json($dashboardPayload ?? ["transactionGroups" => [], "initialDisplayDate" => now()->format("Y-m-d")])'
+                    data-csrf-token="{{ csrf_token() }}"
                 ></div>
 
                 @include('public.partials.nav-mobile')

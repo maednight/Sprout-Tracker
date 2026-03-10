@@ -60,6 +60,7 @@ const transactionClasses = {
     emptyPickerText: 'sprout-transaction__picker-text--empty'
 }
 
+
 /* Category Options Per Transaction Type */
 const categoryOptionsByType = {
     expense: [
@@ -139,6 +140,30 @@ const formatPesoCurrency = (digits) => {
     }
 
     return `₱${number.toLocaleString('en-PH')}.00`
+}
+
+/* Parse Whole Amount Digits */
+const parseWholeAmountDigits = (value) => {
+    if (!value) {
+        return ''
+    }
+
+    const cleanedValue = String(value)
+        .replace(/₱/g, '')
+        .replace(/,/g, '')
+        .trim()
+
+    if (!cleanedValue) {
+        return ''
+    }
+
+    const numericValue = Number(cleanedValue)
+
+    if (!Number.isNaN(numericValue)) {
+        return String(Math.trunc(numericValue))
+    }
+
+    return cleanedValue.replace(/[^\d]/g, '')
 }
 
 /* Format Date For Input */
@@ -373,7 +398,8 @@ const initializeAmountFormatter = () => {
         return
     }
 
-    const initialDigits = (amountInput.value ?? '').replace(/[^\d]/g, '')
+    const initialDigits = parseWholeAmountDigits(amountInput.value ?? '')
+
     amountInput.dataset.rawDigits = initialDigits
 
     if (initialDigits) {
@@ -422,7 +448,7 @@ const initializeAmountFormatter = () => {
         event.preventDefault()
 
         const pastedText = event.clipboardData?.getData('text') ?? ''
-        const pastedDigits = pastedText.replace(/[^\d]/g, '')
+        const pastedDigits = parseWholeAmountDigits(pastedText)
 
         if (!pastedDigits) {
             return

@@ -388,33 +388,74 @@
       <div
         class="sprout-dashboard-mobile__summary-row"
         :class="{
-          'sprout-dashboard-mobile__summary-row--four': true
+          'sprout-dashboard-mobile__summary-row--four': !isSummaryCompact,
+          'sprout-dashboard-mobile__summary-row--compact': isSummaryCompact
         }"
       >
-        <div class="sprout-dashboard-mobile__summary-item sprout-dashboard-mobile__summary-item--left">
+        <div
+          class="sprout-dashboard-mobile__summary-item sprout-dashboard-mobile__summary-item--income"
+          :class="{
+            'sprout-dashboard-mobile__summary-item--left': !isSummaryCompact
+          }"
+        >
           <div class="sprout-dashboard-mobile__summary-label">Income</div>
-          <div class="sprout-dashboard-mobile__summary-value sprout-dashboard-mobile__summary-value--income">
+          <div
+            class="sprout-dashboard-mobile__summary-value sprout-dashboard-mobile__summary-value--income"
+            :class="{
+              'sprout-dashboard-mobile__summary-value--compact': isSummaryCompact
+            }"
+          >
             ₱{{ formatMoney(periodSummary.income) }}
           </div>
         </div>
 
-        <div class="sprout-dashboard-mobile__summary-item sprout-dashboard-mobile__summary-item--center">
+        <div
+          class="sprout-dashboard-mobile__summary-item sprout-dashboard-mobile__summary-item--expense"
+          :class="{
+            'sprout-dashboard-mobile__summary-item--center': !isSummaryCompact
+          }"
+        >
           <div class="sprout-dashboard-mobile__summary-label">Expense</div>
-          <div class="sprout-dashboard-mobile__summary-value sprout-dashboard-mobile__summary-value--expense">
+          <div
+            class="sprout-dashboard-mobile__summary-value sprout-dashboard-mobile__summary-value--expense"
+            :class="{
+              'sprout-dashboard-mobile__summary-value--compact': isSummaryCompact
+            }"
+          >
             ₱{{ formatMoney(periodSummary.expense) }}
           </div>
         </div>
 
-        <div class="sprout-dashboard-mobile__summary-item sprout-dashboard-mobile__summary-item--center">
+        <div
+          class="sprout-dashboard-mobile__summary-item sprout-dashboard-mobile__summary-item--savings"
+          :class="{
+            'sprout-dashboard-mobile__summary-item--center': !isSummaryCompact
+          }"
+        >
           <div class="sprout-dashboard-mobile__summary-label">Savings</div>
-          <div class="sprout-dashboard-mobile__summary-value sprout-dashboard-mobile__summary-value--savings">
+          <div
+            class="sprout-dashboard-mobile__summary-value sprout-dashboard-mobile__summary-value--savings"
+            :class="{
+              'sprout-dashboard-mobile__summary-value--compact': isSummaryCompact
+            }"
+          >
             ₱{{ formatMoney(periodSummary.savings) }}
           </div>
         </div>
 
-        <div class="sprout-dashboard-mobile__summary-item sprout-dashboard-mobile__summary-item--right">
+        <div
+          class="sprout-dashboard-mobile__summary-item sprout-dashboard-mobile__summary-item--balance"
+          :class="{
+            'sprout-dashboard-mobile__summary-item--right': !isSummaryCompact
+          }"
+        >
           <div class="sprout-dashboard-mobile__summary-label">Balance</div>
-          <div class="sprout-dashboard-mobile__summary-value sprout-dashboard-mobile__summary-value--balance">
+          <div
+            class="sprout-dashboard-mobile__summary-value sprout-dashboard-mobile__summary-value--balance"
+            :class="{
+              'sprout-dashboard-mobile__summary-value--compact': isSummaryCompact
+            }"
+          >
             ₱{{ formatMoney(periodSummary.balance) }}
           </div>
         </div>
@@ -426,6 +467,7 @@
       <article
         v-for="transactionGroup in filteredTransactionGroups"
         :key="transactionGroup.dateKey"
+        :ref="(element) => setTransactionGroupRef(element, transactionGroup.dateKey)"
         class="sprout-dashboard-mobile__history-card"
       >
         <!-- Dashboard History Header -->
@@ -464,7 +506,7 @@
           :key="transactionItem.id"
           type="button"
           class="sprout-dashboard-mobile__transaction-row sprout-dashboard-mobile__transaction-row--button"
-          @click="openTransactionActionModal(transactionItem)"
+         @click="openTransactionActionModal(transactionItem, transactionGroup.dateLabel)"
         >
           <div class="sprout-dashboard-mobile__transaction-left">
             <div
@@ -523,65 +565,164 @@
       +
     </a>
 
-    <!-- Dashboard Action Modal -->
-    <div
-      v-if="isActionModalVisible && activeTransaction"
-      class="sprout-dashboard-mobile__action-modal"
+<!-- Dashboard Action Modal -->
+<div
+  v-if="isActionModalVisible && activeTransaction"
+  class="sprout-dashboard-mobile__action-modal"
+>
+  <button
+    type="button"
+    class="sprout-dashboard-mobile__action-backdrop"
+    @click="closeTransactionActionModal"
+    aria-label="Close actions"
+  ></button>
+
+  <div class="sprout-dashboard-mobile__action-sheet">
+    <div class="sprout-dashboard-mobile__action-title">
+      Transaction Options
+    </div>
+
+    <div class="sprout-dashboard-mobile__action-subtitle">
+      {{ activeTransaction.category }}
+    </div>
+
+    <button
+      type="button"
+      class="sprout-dashboard-mobile__action-button"
+      @click="openTransactionViewModal"
     >
+      View Transaction
+    </button>
+
+    <button
+      type="button"
+      class="sprout-dashboard-mobile__action-button"
+      @click="goToEditTransaction"
+    >
+      Edit Transaction
+    </button>
+
+    <form
+      :action="deleteTransactionUrl"
+      method="POST"
+    >
+      <input type="hidden" name="_token" :value="csrfToken">
+      <input type="hidden" name="_method" value="DELETE">
+
       <button
-        type="button"
-        class="sprout-dashboard-mobile__action-backdrop"
-        @click="closeTransactionActionModal"
-        aria-label="Close actions"
-      ></button>
+        type="submit"
+        class="sprout-dashboard-mobile__action-button sprout-dashboard-mobile__action-button--delete"
+      >
+        Delete Transaction
+      </button>
+    </form>
 
-      <div class="sprout-dashboard-mobile__action-sheet">
-        <div class="sprout-dashboard-mobile__action-title">
-          Transaction Options
-        </div>
+    <button
+      type="button"
+      class="sprout-dashboard-mobile__action-button sprout-dashboard-mobile__action-button--cancel"
+      @click="closeTransactionActionModal"
+    >
+      Cancel
+    </button>
+  </div>
+</div>
 
-        <div class="sprout-dashboard-mobile__action-subtitle">
+<!-- Dashboard View Modal -->
+<div
+  v-if="isViewModalVisible && activeTransaction"
+  class="sprout-dashboard-mobile__action-modal"
+>
+  <button
+    type="button"
+    class="sprout-dashboard-mobile__action-backdrop"
+    @click="closeTransactionViewModal"
+    aria-label="Close transaction details"
+  ></button>
+
+  <div class="sprout-dashboard-mobile__view-sheet">
+    <div class="sprout-dashboard-mobile__view-title">
+      Transaction Details
+    </div>
+
+    <div class="sprout-dashboard-mobile__view-card">
+      <div class="sprout-dashboard-mobile__view-row">
+        <span class="sprout-dashboard-mobile__view-label">Category</span>
+        <span class="sprout-dashboard-mobile__view-value">
           {{ activeTransaction.category }}
+        </span>
+      </div>
+
+      <div class="sprout-dashboard-mobile__view-row">
+        <span class="sprout-dashboard-mobile__view-label">Type</span>
+        <span class="sprout-dashboard-mobile__view-value">
+          {{ formatTransactionTypeLabel(activeTransaction.type) }}
+        </span>
+      </div>
+
+      <div class="sprout-dashboard-mobile__view-row">
+        <span class="sprout-dashboard-mobile__view-label">Date</span>
+        <span class="sprout-dashboard-mobile__view-value">
+          {{ activeTransactionDateLabel }}
+        </span>
+      </div>
+
+      <div class="sprout-dashboard-mobile__view-row">
+        <span class="sprout-dashboard-mobile__view-label">Time</span>
+        <span class="sprout-dashboard-mobile__view-value">
+          {{ activeTransaction.time }}
+        </span>
+      </div>
+
+      <div class="sprout-dashboard-mobile__view-row">
+        <span class="sprout-dashboard-mobile__view-label">Amount</span>
+        <span
+          class="sprout-dashboard-mobile__view-value sprout-dashboard-mobile__view-value--amount"
+          :class="transactionAmountClass(activeTransaction.type)"
+        >
+          {{ transactionDisplayPrefix(activeTransaction.type) }}₱{{ formatMoney(activeTransaction.amount) }}
+        </span>
+      </div>
+
+      <div
+        v-if="activeTransaction.account"
+        class="sprout-dashboard-mobile__view-row"
+      >
+        <span class="sprout-dashboard-mobile__view-label">Account</span>
+        <span class="sprout-dashboard-mobile__view-value">
+          {{ activeTransaction.account }}
+        </span>
+      </div>
+
+      <div
+        v-if="activeTransaction.description"
+        class="sprout-dashboard-mobile__view-description-block"
+      >
+        <div class="sprout-dashboard-mobile__view-description-label">
+          Description
         </div>
 
-        <button
-          type="button"
-          class="sprout-dashboard-mobile__action-button"
-          @click="goToEditTransaction"
-        >
-          Edit Transaction
-        </button>
-
-        <form
-          :action="deleteTransactionUrl"
-          method="POST"
-        >
-          <input type="hidden" name="_token" :value="csrfToken">
-          <input type="hidden" name="_method" value="DELETE">
-
-          <button
-            type="submit"
-            class="sprout-dashboard-mobile__action-button sprout-dashboard-mobile__action-button--delete"
-          >
-            Delete Transaction
-          </button>
-        </form>
-
-        <button
-          type="button"
-          class="sprout-dashboard-mobile__action-button sprout-dashboard-mobile__action-button--cancel"
-          @click="closeTransactionActionModal"
-        >
-          Cancel
-        </button>
+        <div class="sprout-dashboard-mobile__view-description-value">
+          {{ activeTransaction.description }}
+        </div>
       </div>
     </div>
+
+    <button
+      type="button"
+      class="sprout-dashboard-mobile__action-button sprout-dashboard-mobile__action-button--cancel"
+      @click="closeTransactionViewModal"
+    >
+      Close
+    </button>
+  </div>
+</div>
+
   </div>
 </template>
 
 <script setup>
 /* Vue Imports */
-import { computed, ref } from 'vue'
+import { computed, nextTick, ref } from 'vue'
 
 /* Dashboard Props */
 const props = defineProps({
@@ -645,10 +786,15 @@ const currentDisplayDate = ref(new Date(resolvedInitialDate))
 const selectedDate = ref(new Date(resolvedInitialDate))
 const displayYear = ref(resolvedInitialDate.getFullYear())
 const isActionModalVisible = ref(false)
+const isViewModalVisible = ref(false)
 const activeTransaction = ref(null)
+const activeTransactionDateLabel = ref('')
 
 /* Dashboard Transaction Data */
 const transactionGroups = ref(props.initialTransactionGroups)
+
+/* Dashboard Transaction Group Refs */
+const transactionGroupRefs = ref({})
 
 /* Dashboard Current Period Label */
 const currentPeriodLabel = computed(() => {
@@ -672,21 +818,6 @@ const calendarHeading = computed(() => {
   return currentDisplayDate.value.toLocaleDateString('en-US', {
     month: 'long'
   })
-})
-
-/* Dashboard Transaction Summary By Date */
-const transactionSummaryByDate = computed(() => {
-  const summaryMap = {}
-
-  filteredTransactionGroups.value.forEach((transactionGroup) => {
-    summaryMap[transactionGroup.dateKey] = {
-      income: Number(transactionGroup.income || 0),
-      expense: Number(transactionGroup.expense || 0),
-      savings: Number(transactionGroup.savings || 0)
-    }
-  })
-
-  return summaryMap
 })
 
 /* Dashboard Filtered Transaction Groups */
@@ -732,13 +863,66 @@ const filteredTransactionGroups = computed(() => {
     .filter((transactionGroup) => transactionGroup.transactions.length > 0)
 })
 
+/* Dashboard Transaction Summary By Date */
+const transactionSummaryByDate = computed(() => {
+  const summaryMap = {}
+
+  filteredTransactionGroups.value.forEach((transactionGroup) => {
+    summaryMap[transactionGroup.dateKey] = {
+      income: Number(transactionGroup.income || 0),
+      expense: Number(transactionGroup.expense || 0),
+      savings: Number(transactionGroup.savings || 0)
+    }
+  })
+
+  return summaryMap
+})
+
+/* Dashboard Visible Period Groups */
+const visiblePeriodGroups = computed(() => {
+  if (selectedPeriodView.value === 'year') {
+    return filteredTransactionGroups.value.filter((transactionGroup) => {
+      const [year] = transactionGroup.dateKey.split('-').map(Number)
+
+      return year === displayYear.value
+    })
+  }
+
+  if (selectedPeriodView.value === 'week') {
+    const focusedDate = new Date(selectedDate.value)
+    const startIndex = (focusedDate.getDay() + 6) % 7
+    const firstDateOfWeek = new Date(focusedDate)
+
+    firstDateOfWeek.setDate(focusedDate.getDate() - startIndex)
+    firstDateOfWeek.setHours(0, 0, 0, 0)
+
+    const lastDateOfWeek = new Date(firstDateOfWeek)
+
+    lastDateOfWeek.setDate(firstDateOfWeek.getDate() + 6)
+    lastDateOfWeek.setHours(23, 59, 59, 999)
+
+    return filteredTransactionGroups.value.filter((transactionGroup) => {
+      const transactionDate = buildDateFromKey(transactionGroup.dateKey)
+
+      return transactionDate >= firstDateOfWeek && transactionDate <= lastDateOfWeek
+    })
+  }
+
+  return filteredTransactionGroups.value.filter((transactionGroup) => {
+    const [year, month] = transactionGroup.dateKey.split('-').map(Number)
+
+    return year === currentDisplayDate.value.getFullYear()
+      && month - 1 === currentDisplayDate.value.getMonth()
+  })
+})
+
 /* Dashboard Period Summary */
 const periodSummary = computed(() => {
   let totalIncome = 0
   let totalExpense = 0
   let totalSavings = 0
 
-  filteredTransactionGroups.value.forEach((transactionGroup) => {
+  visiblePeriodGroups.value.forEach((transactionGroup) => {
     totalIncome += Number(transactionGroup.income || 0)
     totalExpense += Number(transactionGroup.expense || 0)
     totalSavings += Number(transactionGroup.savings || 0)
@@ -752,6 +936,18 @@ const periodSummary = computed(() => {
   }
 })
 
+/* Dashboard Summary Compact State */
+const isSummaryCompact = computed(() => {
+  const formattedValues = [
+    formatMoney(periodSummary.value.income),
+    formatMoney(periodSummary.value.expense),
+    formatMoney(periodSummary.value.savings),
+    formatMoney(periodSummary.value.balance)
+  ]
+
+  return formattedValues.some((formattedValue) => formattedValue.length >= 9)
+})
+
 /* Dashboard Month Calendar Cells */
 const monthCalendarCells = computed(() => {
   const year = currentDisplayDate.value.getFullYear()
@@ -763,6 +959,7 @@ const monthCalendarCells = computed(() => {
 
   return Array.from({ length: 42 }, (_, index) => {
     const cellDate = new Date(firstVisibleDate)
+
     cellDate.setDate(firstVisibleDate.getDate() + index)
 
     const dateKey = formatDateKey(cellDate)
@@ -790,10 +987,12 @@ const weekCalendarCells = computed(() => {
   const focusedDate = new Date(selectedDate.value)
   const startIndex = (focusedDate.getDay() + 6) % 7
   const firstDateOfWeek = new Date(focusedDate)
+
   firstDateOfWeek.setDate(focusedDate.getDate() - startIndex)
 
   return Array.from({ length: 7 }, (_, index) => {
     const cellDate = new Date(firstDateOfWeek)
+
     cellDate.setDate(firstDateOfWeek.getDate() + index)
 
     const dateKey = formatDateKey(cellDate)
@@ -855,12 +1054,41 @@ const deleteTransactionUrl = computed(() => {
   return `/transactions/${activeTransaction.value.id}`
 })
 
+/* Dashboard Set Transaction Group Ref */
+const setTransactionGroupRef = (element, dateKey) => {
+  if (element) {
+    transactionGroupRefs.value[dateKey] = element
+    return
+  }
+
+  delete transactionGroupRefs.value[dateKey]
+}
+
+/* Dashboard Scroll To Transaction Group */
+const scrollToTransactionGroup = async (date) => {
+  await nextTick()
+
+  const dateKey = formatDateKey(date)
+  const targetElement = transactionGroupRefs.value[dateKey]
+
+  if (!targetElement) {
+    return
+  }
+
+  targetElement.scrollIntoView({
+    behavior: 'smooth',
+    block: 'start'
+  })
+}
+
 /* Dashboard Close Panels */
 const closePanels = () => {
   isFilterMenuVisible.value = false
   isPeriodMenuVisible.value = false
   isActionModalVisible.value = false
+  isViewModalVisible.value = false
   activeTransaction.value = null
+  activeTransactionDateLabel.value = ''
 }
 
 /* Dashboard Toggle Filter Menu */
@@ -889,11 +1117,13 @@ const setPeriodView = (periodView) => {
 }
 
 /* Dashboard Select Date */
-const selectDate = (date) => {
+const selectDate = async (date) => {
   selectedDate.value = new Date(date)
   currentDisplayDate.value = new Date(date)
   displayYear.value = currentDisplayDate.value.getFullYear()
   isPeriodMenuVisible.value = false
+
+  await scrollToTransactionGroup(date)
 }
 
 /* Dashboard Select Month */
@@ -926,10 +1156,13 @@ const selectMonthFromYear = (monthIndex) => {
 const goPreviousPeriod = () => {
   if (selectedPeriodView.value === 'week') {
     const previousWeekDate = new Date(selectedDate.value)
+
     previousWeekDate.setDate(previousWeekDate.getDate() - 7)
+
     selectedDate.value = previousWeekDate
     currentDisplayDate.value = new Date(previousWeekDate)
     displayYear.value = currentDisplayDate.value.getFullYear()
+
     return
   }
 
@@ -939,7 +1172,9 @@ const goPreviousPeriod = () => {
   }
 
   const previousMonthDate = new Date(currentDisplayDate.value)
+
   previousMonthDate.setMonth(previousMonthDate.getMonth() - 1)
+
   currentDisplayDate.value = previousMonthDate
   selectedDate.value = new Date(previousMonthDate)
   displayYear.value = currentDisplayDate.value.getFullYear()
@@ -949,10 +1184,13 @@ const goPreviousPeriod = () => {
 const goNextPeriod = () => {
   if (selectedPeriodView.value === 'week') {
     const nextWeekDate = new Date(selectedDate.value)
+
     nextWeekDate.setDate(nextWeekDate.getDate() + 7)
+
     selectedDate.value = nextWeekDate
     currentDisplayDate.value = new Date(nextWeekDate)
     displayYear.value = currentDisplayDate.value.getFullYear()
+
     return
   }
 
@@ -962,24 +1200,40 @@ const goNextPeriod = () => {
   }
 
   const nextMonthDate = new Date(currentDisplayDate.value)
+
   nextMonthDate.setMonth(nextMonthDate.getMonth() + 1)
+
   currentDisplayDate.value = nextMonthDate
   selectedDate.value = new Date(nextMonthDate)
   displayYear.value = currentDisplayDate.value.getFullYear()
 }
 
 /* Dashboard Open Transaction Action Modal */
-const openTransactionActionModal = (transactionItem) => {
+const openTransactionActionModal = (transactionItem, transactionDateLabel) => {
   activeTransaction.value = transactionItem
+  activeTransactionDateLabel.value = transactionDateLabel ?? ''
   isActionModalVisible.value = true
+  isViewModalVisible.value = false
   isFilterMenuVisible.value = false
   isPeriodMenuVisible.value = false
+}
+
+/* Dashboard Open Transaction View Modal */
+const openTransactionViewModal = () => {
+  isActionModalVisible.value = false
+  isViewModalVisible.value = true
+}
+
+/* Dashboard Close Transaction View Modal */
+const closeTransactionViewModal = () => {
+  isViewModalVisible.value = false
 }
 
 /* Dashboard Close Transaction Action Modal */
 const closeTransactionActionModal = () => {
   isActionModalVisible.value = false
   activeTransaction.value = null
+  activeTransactionDateLabel.value = ''
 }
 
 /* Dashboard Go To Edit Transaction */
@@ -989,6 +1243,13 @@ const goToEditTransaction = () => {
   }
 
   window.location.href = `/transactions/${activeTransaction.value.id}/edit`
+}
+
+/* Dashboard Build Date From Key */
+const buildDateFromKey = (dateKey) => {
+  const [year, month, day] = dateKey.split('-').map(Number)
+
+  return new Date(year, month - 1, day)
 }
 
 /* Dashboard Format Date Key */
@@ -1026,6 +1287,26 @@ const formatYearLegendAmount = (amount) => {
   }
 
   return `₱${numericAmount.toLocaleString('en-PH')}`
+}
+
+/* Dashboard Description Long Check */
+const isDescriptionLong = (description) => {
+  if (!description) {
+    return false
+  }
+
+  return String(description).trim().length > 28
+}
+
+/* Dashboard Format Transaction Type Label */
+const formatTransactionTypeLabel = (transactionType) => {
+  const typeMap = {
+    income: 'Income',
+    expense: 'Expense',
+    savings: 'Savings'
+  }
+
+  return typeMap[transactionType] ?? 'Transaction'
 }
 
 /* Dashboard Transaction Icon Class */

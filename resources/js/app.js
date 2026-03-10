@@ -1,5 +1,4 @@
 /* App Entry */
-
 import './bootstrap'
 import './pages/transaction-create'
 
@@ -10,30 +9,36 @@ import DashboardHome from './pages/DashboardHome.vue'
 const dashboardElement = document.querySelector('#app')
 
 if (dashboardElement) {
-  let dashboardPayload = {
-    transactionGroups: [],
-    initialDisplayDate: null
-  }
-
-  try {
-    const rawDashboardPayload = dashboardElement.getAttribute('data-dashboard')
-    dashboardPayload = rawDashboardPayload
-      ? JSON.parse(rawDashboardPayload)
-      : {
-          transactionGroups: [],
-          initialDisplayDate: null
-        }
-  } catch (error) {
-    console.error('Dashboard payload parse error:', error)
-
-    dashboardPayload = {
-      transactionGroups: [],
-      initialDisplayDate: null
+    let dashboardPayload = {
+        transactionGroups: [],
+        initialDisplayDate: null
     }
-  }
 
-  createApp(DashboardHome, {
-    initialTransactionGroups: dashboardPayload.transactionGroups ?? [],
-    initialDisplayDate: dashboardPayload.initialDisplayDate ?? null
-  }).mount('#app')
+    let csrfToken = ''
+
+    try {
+        const rawDashboardPayload = dashboardElement.getAttribute('data-dashboard')
+
+        dashboardPayload = rawDashboardPayload
+            ? JSON.parse(rawDashboardPayload)
+            : {
+                transactionGroups: [],
+                initialDisplayDate: null
+            }
+    } catch (error) {
+        console.error('Dashboard payload parse error:', error)
+
+        dashboardPayload = {
+            transactionGroups: [],
+            initialDisplayDate: null
+        }
+    }
+
+    csrfToken = dashboardElement.getAttribute('data-csrf-token') || ''
+
+    createApp(DashboardHome, {
+        initialTransactionGroups: dashboardPayload.transactionGroups ?? [],
+        initialDisplayDate: dashboardPayload.initialDisplayDate ?? null,
+        csrfToken
+    }).mount('#app')
 }
