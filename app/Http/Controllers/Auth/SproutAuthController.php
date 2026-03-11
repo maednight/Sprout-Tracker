@@ -46,14 +46,15 @@ class SproutAuthController extends Controller
             'password' => [
                 'required',
                 'confirmed',
-                Password::min(9)
+                Password::min(8)
                     ->mixedCase()
+                    ->numbers()
                     ->symbols(),
             ],
         ], [
-            'password.min' => 'Password must be at least 9 characters.',
-            'password.mixed' => 'Password must include at least one uppercase and one lowercase letter.',
-            'password.mixedCase' => 'Password must include at least one uppercase and one lowercase letter.',
+            'password.min' => 'Password must be at least 8 characters.',
+            'password.mixed_case' => 'Password must include at least one uppercase and one lowercase letter.',
+            'password.numbers' => 'Password must include at least one number.',
             'password.symbols' => 'Password must include at least one symbol.',
             'password.confirmed' => 'Password confirmation does not match.',
         ]);

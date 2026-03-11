@@ -5,85 +5,66 @@
   display: flex;
 }
 
-/* Less empty space, bigger card */
+/* Desktop wrap */
 .sprout-desktop__wrap {
   width: 100%;
   min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-
-  /* reduced padding so card looks larger */
   padding: 18px 24px;
+  box-sizing: border-box;
 }
 
-/* Expanded container */
+/* Desktop card */
 .sprout-desktop__card {
   width: min(1240px, 94vw);
   min-height: 560px;
   border-radius: 22px;
   background: rgba(255, 255, 255, 0.82);
   border: 1px solid rgba(0, 0, 0, 0.06);
-
   display: grid;
   grid-template-columns: 1.1fr 0.9fr;
   align-items: center;
   overflow: hidden;
 }
 
-/* LEFT */
+/* Left */
 .sprout-desktop__left {
   padding: 54px 56px;
   display: flex;
-  align-items: center;        
+  align-items: center;
 }
 
 .sprout-left__content {
   width: 100%;
-  max-width: 520px;           
+  max-width: 520px;
 }
 
-/* RIGHT */
+/* Right */
 .sprout-desktop__right {
   padding: 54px 56px;
   display: flex;
-  align-items: center;        
+  align-items: center;
   justify-content: flex-end;
 }
 
-/* Brand stack: logo + title = one block */
-.sprout-brand {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start; /* left aligned like your design */
-  gap: 10px;
-  margin-bottom: 18px;
-}
-
-.sprout-brand__logo {
-  width: 78px;          /* “icon sits on top” size */
-  height: auto;
-  display: block;
-}
-
-/* Desktop typography */
+/* Desktop title */
 .sprout-title--desktop {
   text-align: left;
   font-size: 40px;
-  line-height: 1.05;          
+  line-height: 1.05;
   letter-spacing: -0.2px;
-  margin: 0;                 
+  margin: 0;
   padding: 0;
 }
 
-
-
-/* "Sprout" word is a stacked unit (logo above only the word Sprout) */
+/* Sprout word */
 .sprout-word {
   position: relative;
-  display: center;
+  display: inline-block;
   margin-left: 2px;
-  padding-top: 22px;          
+  padding-top: 22px;
 }
 
 .sprout-word__logo {
@@ -105,27 +86,59 @@
   text-align: left;
   font-size: 15px;
   line-height: 1.5;
-  margin: 10px 0 0;        
+  margin: 10px 0 0;
   padding: 0;
-  color: #7a7a7a;
+  color: #7A7A7A;
 }
 
-/* hint */
 .sprout-desktop__hint {
-  margin: 10px 0 0;         
+  margin: 10px 0 0;
   padding: 0;
-  color: #5a5a5a;
+  color: #5A5A5A;
   font-size: 14px;
   line-height: 1.5;
 }
 
-/* form width */
+/* Form width */
 .sprout-form--desktop {
   width: 100%;
   max-width: 420px;
 }
 
-/* Responsive adjustments for smaller laptops */
+/* Desktop hover button */
+@media (min-width: 900px) {
+  .sprout-btn::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -120%;
+    width: 120%;
+    height: 100%;
+    background: linear-gradient(
+      120deg,
+      transparent,
+      rgba(255,255,255,0.35),
+      transparent
+    );
+    transition: left 0.55s ease;
+  }
+
+  .sprout-btn:hover::before {
+    left: 120%;
+  }
+
+  .sprout-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 22px rgba(0, 217, 95, 0.25);
+  }
+
+  .sprout-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 5px 12px rgba(0, 217, 95, 0.18);
+  }
+}
+
+/* Responsive */
 @media (max-width: 1100px) {
   .sprout-desktop__left,
   .sprout-desktop__right {
@@ -145,7 +158,6 @@
   }
 }
 
-/* If user shrinks window, stack columns nicely */
 @media (max-width: 900px) {
   .sprout-desktop__card {
     grid-template-columns: 1fr;
@@ -155,40 +167,4 @@
   .sprout-desktop__right {
     justify-content: flex-start;
   }
-}
-
-@media (min-width: 900px) {
-
-  .sprout-btn::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: -120%;
-    width: 120%;
-    height: 100%;
-
-    background: linear-gradient(
-      120deg,
-      transparent,
-      rgba(255,255,255,0.35),
-      transparent
-    );
-
-    transition: left 0.55s ease;
-  }
-
-  .sprout-btn:hover::before {
-    left: 120%;
-  }
-
-  .sprout-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 10px 22px rgba(0, 217, 95, 0.25);
-  }
-
-  .sprout-btn:active {
-    transform: translateY(0);
-    box-shadow: 0 5px 12px rgba(0, 217, 95, 0.18);
-  }
-
 }

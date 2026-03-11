@@ -43,15 +43,46 @@
                     />
 
                     <label class="sprout-label" for="password_desktop">Password</label>
-                    <input
-                        id="password_desktop"
-                        name="password"
-                        type="password"
-                        class="sprout-input"
-                        placeholder="Password"
-                        required
-                        autocomplete="current-password"
-                    />
+
+                    <div class="sprout-password-field">
+                        <input
+                            id="password_desktop"
+                            name="password"
+                            type="password"
+                            class="sprout-input sprout-input--password"
+                            placeholder="Password"
+                            required
+                            autocomplete="current-password"
+                        />
+
+                        <button
+                            type="button"
+                            class="sprout-password-toggle"
+                            aria-label="Show password"
+                            onclick="
+                                const input = document.getElementById('password_desktop');
+                                const icon = this.querySelector('img');
+                                const openIcon = '/projectassets/icons/eyeopen.svg';
+                                const closeIcon = '/projectassets/icons/eyeclose.svg';
+
+                                if (input.type === 'password') {
+                                    input.type = 'text';
+                                    icon.src = openIcon;
+                                    this.setAttribute('aria-label', 'Hide password');
+                                } else {
+                                    input.type = 'password';
+                                    icon.src = closeIcon;
+                                    this.setAttribute('aria-label', 'Show password');
+                                }
+                            "
+                        >
+                            <img
+                                src="/projectassets/icons/eyeclose.svg"
+                                alt=""
+                                class="sprout-password-toggle__icon"
+                            >
+                        </button>
+                    </div>
 
                     @if ($errors->any())
                         <div class="sprout-error">{{ $errors->first() }}</div>
