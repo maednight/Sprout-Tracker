@@ -1234,6 +1234,15 @@ const initializePhotoUpload = () => {
     if (cameraButton) {
         cameraButton.addEventListener('click', () => {
             closePhotoModal(modalElement)
+
+            const isMobileDevice = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+
+            if (isMobileDevice) {
+                cameraInput.setAttribute('capture', '')
+            } else {
+                cameraInput.removeAttribute('capture')
+            }
+
             cameraInput.click()
         })
     }
@@ -1241,6 +1250,9 @@ const initializePhotoUpload = () => {
     if (galleryButton) {
         galleryButton.addEventListener('click', () => {
             closePhotoModal(modalElement)
+
+            galleryInput.removeAttribute('capture')
+
             galleryInput.click()
         })
     }
