@@ -6,6 +6,7 @@ use App\Models\Transaction;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class DashboardController extends Controller
@@ -81,11 +82,42 @@ class DashboardController extends Controller
                                     $accountName
                                 ),
                                 'iconColor' => $this->resolveTransactionIconColor($transaction->type),
+
+                                /* Receipt Photos */
+                                'receiptPhotoUrls' => $this->resolveReceiptPhotoUrls($transaction),
                             ];
                         })
                         ->values()
                         ->all(),
                 ];
+            })
+            ->values()
+            ->all();
+    }
+
+    /* Resolve receipt photo urls */
+    private function resolveReceiptPhotoUrls(Transaction $transaction): array
+    {
+        $photoPaths = [];
+
+        if (is_array($transaction->receipt_photo_paths) && !empty($transaction->receipt_photo_paths)) {
+            $photoPaths = $transaction->receipt_photo_paths;
+        } elseif (!empty($transaction->receipt_photo_path)) {
+            $photoPaths = [$transaction->receipt_photo_path];
+        }
+
+        return collect($photoPaths)
+            ->filter(fn ($photoPath) => filled($photoPath))
+            ->map(function ($photoPath) {
+                if (
+                    Str::startsWith($photoPath, ['http://', 'https://', '/storage/', 'storage/'])
+                ) {
+                    return Str::startsWith($photoPath, 'storage/')
+                        ? asset($photoPath)
+                        : $photoPath;
+                }
+
+                return Storage::url($photoPath);
             })
             ->values()
             ->all();

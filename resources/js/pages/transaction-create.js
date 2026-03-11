@@ -56,7 +56,11 @@ const transactionSelectors = {
     photoGalleryInput: '[data-photo-gallery-input]',
     photoPreviewWrapper: '[data-photo-preview-wrapper]',
     photoRemoveExistingButton: '[data-photo-remove-existing]',
-    existingPhotoPathInput: '[data-existing-photo-path]'
+    existingPhotoPathInput: '[data-existing-photo-path]',
+    photoViewer: '[data-photo-viewer]',
+    photoViewerCloseButtons: '[data-photo-viewer-close]',
+    photoViewerImage: '[data-photo-viewer-image]',
+    photoPreviewImages: '[data-photo-preview-image]'
 }
 
 /* CSS Classes */
@@ -70,7 +74,8 @@ const transactionClasses = {
     hiddenAddOptionOverlay: 'sprout-add-option-overlay--hidden',
     emptyPickerText: 'sprout-transaction__picker-text--empty',
     hiddenPhotoModal: 'sprout-photo-modal--hidden',
-    hiddenPhotoPreview: 'sprout-transaction__photo-preview-list--hidden'
+    hiddenPhotoPreview: 'sprout-transaction__photo-preview-list--hidden',
+    hiddenPhotoViewer: 'sprout-photo-viewer--hidden'
 }
 
 /* Storage Keys */
@@ -741,6 +746,61 @@ const closePhotoModal = (modalElement) => {
     document.body.style.overflow = ''
 }
 
+/* Photo Viewer Open */
+const openPhotoViewer = (viewerElement, imageElement, imageSource, imageAlt = 'Photo preview') => {
+    if (!viewerElement || !imageElement || !imageSource) {
+        return
+    }
+
+    imageElement.src = imageSource
+    imageElement.alt = imageAlt
+    viewerElement.classList.remove(transactionClasses.hiddenPhotoViewer)
+    document.body.style.overflow = 'hidden'
+}
+
+/* Photo Viewer Close */
+const closePhotoViewer = (viewerElement, imageElement) => {
+    if (!viewerElement || !imageElement) {
+        return
+    }
+
+    viewerElement.classList.add(transactionClasses.hiddenPhotoViewer)
+    imageElement.src = ''
+    imageElement.alt = 'Large photo preview'
+    document.body.style.overflow = ''
+}
+
+/* Bind Photo Preview Viewer Events */
+const bindPhotoPreviewViewerEvents = () => {
+    const viewerElement = document.querySelector(transactionSelectors.photoViewer)
+    const viewerImageElement = document.querySelector(transactionSelectors.photoViewerImage)
+    const closeButtons = document.querySelectorAll(transactionSelectors.photoViewerCloseButtons)
+    const previewImages = document.querySelectorAll(transactionSelectors.photoPreviewImages)
+
+    if (!viewerElement || !viewerImageElement || !previewImages.length) {
+        return
+    }
+
+    previewImages.forEach((previewImage) => {
+        previewImage.style.cursor = 'pointer'
+
+        previewImage.addEventListener('click', () => {
+            openPhotoViewer(
+                viewerElement,
+                viewerImageElement,
+                previewImage.getAttribute('src'),
+                previewImage.getAttribute('alt') || 'Photo preview'
+            )
+        })
+    })
+
+    closeButtons.forEach((closeButton) => {
+        closeButton.addEventListener('click', () => {
+            closePhotoViewer(viewerElement, viewerImageElement)
+        })
+    })
+}
+
 /* Clear Selected Category */
 const clearSelectedCategory = (inputElement, textElement) => {
     if (inputElement) {
@@ -1045,6 +1105,7 @@ const createPhotoPreviewItemElement = (imageSource, altText, removeHandler) => {
     imageElement.className = 'sprout-transaction__photo-preview-image'
     imageElement.src = imageSource
     imageElement.alt = altText
+    imageElement.setAttribute('data-photo-preview-image', '')
 
     removeButton.type = 'button'
     removeButton.className = 'sprout-transaction__photo-remove'
@@ -1765,6 +1826,7 @@ const initializeTransactionCreatePage = () => {
     initializeDateModal()
     initializeExistingPickerValues()
     initializePhotoUpload()
+    bindPhotoPreviewViewerEvents()
 
     const categoryModalData = initializeCategoryModal()
     const accountModalData = initializeAccountModal()

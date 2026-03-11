@@ -506,7 +506,7 @@
           :key="transactionItem.id"
           type="button"
           class="sprout-dashboard-mobile__transaction-row sprout-dashboard-mobile__transaction-row--button"
-         @click="openTransactionActionModal(transactionItem, transactionGroup.dateLabel)"
+          @click="openTransactionActionModal(transactionItem, transactionGroup.dateLabel)"
         >
           <div class="sprout-dashboard-mobile__transaction-left">
             <div
@@ -565,158 +565,184 @@
       +
     </a>
 
-<!-- Dashboard Action Modal -->
-<div
-  v-if="isActionModalVisible && activeTransaction"
-  class="sprout-dashboard-mobile__action-modal"
->
-  <button
-    type="button"
-    class="sprout-dashboard-mobile__action-backdrop"
-    @click="closeTransactionActionModal"
-    aria-label="Close actions"
-  ></button>
-
-  <div class="sprout-dashboard-mobile__action-sheet">
-    <div class="sprout-dashboard-mobile__action-title">
-      Transaction Options
-    </div>
-
-    <div class="sprout-dashboard-mobile__action-subtitle">
-      {{ activeTransaction.category }}
-    </div>
-
-    <button
-      type="button"
-      class="sprout-dashboard-mobile__action-button"
-      @click="openTransactionViewModal"
+    <!-- Dashboard Action Modal -->
+    <div
+      v-if="isActionModalVisible && activeTransaction"
+      class="sprout-dashboard-mobile__action-modal"
     >
-      View Transaction
-    </button>
-
-    <button
-      type="button"
-      class="sprout-dashboard-mobile__action-button"
-      @click="goToEditTransaction"
-    >
-      Edit Transaction
-    </button>
-
-    <form
-      :action="deleteTransactionUrl"
-      method="POST"
-    >
-      <input type="hidden" name="_token" :value="csrfToken">
-      <input type="hidden" name="_method" value="DELETE">
-
       <button
-        type="submit"
-        class="sprout-dashboard-mobile__action-button sprout-dashboard-mobile__action-button--delete"
-      >
-        Delete Transaction
-      </button>
-    </form>
+        type="button"
+        class="sprout-dashboard-mobile__action-backdrop"
+        @click="closeTransactionActionModal"
+        aria-label="Close actions"
+      ></button>
 
-    <button
-      type="button"
-      class="sprout-dashboard-mobile__action-button sprout-dashboard-mobile__action-button--cancel"
-      @click="closeTransactionActionModal"
-    >
-      Cancel
-    </button>
-  </div>
-</div>
+      <div class="sprout-dashboard-mobile__action-sheet">
+        <div class="sprout-dashboard-mobile__action-title">
+          Transaction Options
+        </div>
 
-<!-- Dashboard View Modal -->
-<div
-  v-if="isViewModalVisible && activeTransaction"
-  class="sprout-dashboard-mobile__action-modal"
->
-  <button
-    type="button"
-    class="sprout-dashboard-mobile__action-backdrop"
-    @click="closeTransactionViewModal"
-    aria-label="Close transaction details"
-  ></button>
-
-  <div class="sprout-dashboard-mobile__view-sheet">
-    <div class="sprout-dashboard-mobile__view-title">
-      Transaction Details
-    </div>
-
-    <div class="sprout-dashboard-mobile__view-card">
-      <div class="sprout-dashboard-mobile__view-row">
-        <span class="sprout-dashboard-mobile__view-label">Category</span>
-        <span class="sprout-dashboard-mobile__view-value">
+        <div class="sprout-dashboard-mobile__action-subtitle">
           {{ activeTransaction.category }}
-        </span>
-      </div>
+        </div>
 
-      <div class="sprout-dashboard-mobile__view-row">
-        <span class="sprout-dashboard-mobile__view-label">Type</span>
-        <span class="sprout-dashboard-mobile__view-value">
-          {{ formatTransactionTypeLabel(activeTransaction.type) }}
-        </span>
-      </div>
-
-      <div class="sprout-dashboard-mobile__view-row">
-        <span class="sprout-dashboard-mobile__view-label">Date</span>
-        <span class="sprout-dashboard-mobile__view-value">
-          {{ activeTransactionDateLabel }}
-        </span>
-      </div>
-
-      <div class="sprout-dashboard-mobile__view-row">
-        <span class="sprout-dashboard-mobile__view-label">Time</span>
-        <span class="sprout-dashboard-mobile__view-value">
-          {{ activeTransaction.time }}
-        </span>
-      </div>
-
-      <div class="sprout-dashboard-mobile__view-row">
-        <span class="sprout-dashboard-mobile__view-label">Amount</span>
-        <span
-          class="sprout-dashboard-mobile__view-value sprout-dashboard-mobile__view-value--amount"
-          :class="transactionAmountClass(activeTransaction.type)"
+        <button
+          type="button"
+          class="sprout-dashboard-mobile__action-button"
+          @click="openTransactionViewModal"
         >
-          {{ transactionDisplayPrefix(activeTransaction.type) }}₱{{ formatMoney(activeTransaction.amount) }}
-        </span>
-      </div>
+          View Transaction
+        </button>
 
-      <div
-        v-if="activeTransaction.account"
-        class="sprout-dashboard-mobile__view-row"
-      >
-        <span class="sprout-dashboard-mobile__view-label">Account</span>
-        <span class="sprout-dashboard-mobile__view-value">
-          {{ activeTransaction.account }}
-        </span>
-      </div>
+        <button
+          type="button"
+          class="sprout-dashboard-mobile__action-button"
+          @click="goToEditTransaction"
+        >
+          Edit Transaction
+        </button>
 
-      <div
-        v-if="activeTransaction.description"
-        class="sprout-dashboard-mobile__view-description-block"
-      >
-        <div class="sprout-dashboard-mobile__view-description-label">
-          Description
-        </div>
+        <form
+          :action="deleteTransactionUrl"
+          method="POST"
+        >
+          <input type="hidden" name="_token" :value="csrfToken">
+          <input type="hidden" name="_method" value="DELETE">
 
-        <div class="sprout-dashboard-mobile__view-description-value">
-          {{ activeTransaction.description }}
-        </div>
+          <button
+            type="submit"
+            class="sprout-dashboard-mobile__action-button sprout-dashboard-mobile__action-button--delete"
+          >
+            Delete Transaction
+          </button>
+        </form>
+
+        <button
+          type="button"
+          class="sprout-dashboard-mobile__action-button sprout-dashboard-mobile__action-button--cancel"
+          @click="closeTransactionActionModal"
+        >
+          Cancel
+        </button>
       </div>
     </div>
 
-    <button
-      type="button"
-      class="sprout-dashboard-mobile__action-button sprout-dashboard-mobile__action-button--cancel"
-      @click="closeTransactionViewModal"
+    <!-- Dashboard View Modal -->
+    <div
+      v-if="isViewModalVisible && activeTransaction"
+      class="sprout-dashboard-mobile__action-modal"
     >
-      Close
-    </button>
-  </div>
-</div>
+      <button
+        type="button"
+        class="sprout-dashboard-mobile__action-backdrop"
+        @click="closeTransactionViewModal"
+        aria-label="Close transaction details"
+      ></button>
 
+      <div class="sprout-dashboard-mobile__view-sheet">
+        <div class="sprout-dashboard-mobile__view-title">
+          Transaction Details
+        </div>
+
+        <div class="sprout-dashboard-mobile__view-card">
+          <div class="sprout-dashboard-mobile__view-row">
+            <span class="sprout-dashboard-mobile__view-label">Category</span>
+            <span class="sprout-dashboard-mobile__view-value">
+              {{ activeTransaction.category }}
+            </span>
+          </div>
+
+          <div class="sprout-dashboard-mobile__view-row">
+            <span class="sprout-dashboard-mobile__view-label">Type</span>
+            <span class="sprout-dashboard-mobile__view-value">
+              {{ formatTransactionTypeLabel(activeTransaction.type) }}
+            </span>
+          </div>
+
+          <div class="sprout-dashboard-mobile__view-row">
+            <span class="sprout-dashboard-mobile__view-label">Date</span>
+            <span class="sprout-dashboard-mobile__view-value">
+              {{ activeTransactionDateLabel }}
+            </span>
+          </div>
+
+          <div class="sprout-dashboard-mobile__view-row">
+            <span class="sprout-dashboard-mobile__view-label">Time</span>
+            <span class="sprout-dashboard-mobile__view-value">
+              {{ activeTransaction.time }}
+            </span>
+          </div>
+
+          <div class="sprout-dashboard-mobile__view-row">
+            <span class="sprout-dashboard-mobile__view-label">Amount</span>
+            <span
+              class="sprout-dashboard-mobile__view-value sprout-dashboard-mobile__view-value--amount"
+              :class="transactionAmountClass(activeTransaction.type)"
+            >
+              {{ transactionDisplayPrefix(activeTransaction.type) }}₱{{ formatMoney(activeTransaction.amount) }}
+            </span>
+          </div>
+
+          <div
+            v-if="activeTransaction.account"
+            class="sprout-dashboard-mobile__view-row"
+          >
+            <span class="sprout-dashboard-mobile__view-label">Account</span>
+            <span class="sprout-dashboard-mobile__view-value">
+              {{ activeTransaction.account }}
+            </span>
+          </div>
+
+          <div
+            v-if="activeTransaction.description"
+            class="sprout-dashboard-mobile__view-description-block"
+          >
+            <div class="sprout-dashboard-mobile__view-description-label">
+              Description
+            </div>
+
+            <div class="sprout-dashboard-mobile__view-description-value">
+              {{ activeTransaction.description }}
+            </div>
+          </div>
+
+          <!-- Receipt Photos -->
+          <div
+            v-if="hasActiveTransactionReceiptPhotos"
+            class="sprout-dashboard-mobile__view-photos-block"
+          >
+            <div class="sprout-dashboard-mobile__view-description-label">
+              Receipt Photos
+            </div>
+
+            <div class="sprout-dashboard-mobile__view-photos-grid">
+              <a
+                v-for="(receiptPhotoUrl, photoIndex) in activeTransaction.receiptPhotoUrls"
+                :key="`${activeTransaction.id}-photo-${photoIndex}`"
+                :href="receiptPhotoUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="sprout-dashboard-mobile__view-photo-link"
+              >
+                <img
+                  :src="receiptPhotoUrl"
+                  :alt="`Receipt photo ${photoIndex + 1}`"
+                  class="sprout-dashboard-mobile__view-photo-image"
+                >
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          class="sprout-dashboard-mobile__action-button sprout-dashboard-mobile__action-button--cancel"
+          @click="closeTransactionViewModal"
+        >
+          Close
+        </button>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -820,6 +846,12 @@ const calendarHeading = computed(() => {
   })
 })
 
+/* Dashboard Active Transaction Receipt Photos */
+const hasActiveTransactionReceiptPhotos = computed(() => {
+  return Array.isArray(activeTransaction.value?.receiptPhotoUrls)
+    && activeTransaction.value.receiptPhotoUrls.length > 0
+})
+
 /* Dashboard Filtered Transaction Groups */
 const filteredTransactionGroups = computed(() => {
   if (selectedFilter.value === 'All') {
@@ -828,7 +860,12 @@ const filteredTransactionGroups = computed(() => {
       income: Number(transactionGroup.income || 0),
       expense: Number(transactionGroup.expense || 0),
       savings: Number(transactionGroup.savings || 0),
-      transactions: transactionGroup.transactions || []
+      transactions: (transactionGroup.transactions || []).map((transactionItem) => ({
+        ...transactionItem,
+        receiptPhotoUrls: Array.isArray(transactionItem.receiptPhotoUrls)
+          ? transactionItem.receiptPhotoUrls
+          : []
+      }))
     }))
   }
 
@@ -836,9 +873,16 @@ const filteredTransactionGroups = computed(() => {
 
   return transactionGroups.value
     .map((transactionGroup) => {
-      const filteredTransactions = (transactionGroup.transactions || []).filter((transactionItem) => {
-        return transactionItem.type === targetType
-      })
+      const filteredTransactions = (transactionGroup.transactions || [])
+        .filter((transactionItem) => {
+          return transactionItem.type === targetType
+        })
+        .map((transactionItem) => ({
+          ...transactionItem,
+          receiptPhotoUrls: Array.isArray(transactionItem.receiptPhotoUrls)
+            ? transactionItem.receiptPhotoUrls
+            : []
+        }))
 
       const recalculatedIncome = filteredTransactions
         .filter((transactionItem) => transactionItem.type === 'income')
@@ -1210,7 +1254,13 @@ const goNextPeriod = () => {
 
 /* Dashboard Open Transaction Action Modal */
 const openTransactionActionModal = (transactionItem, transactionDateLabel) => {
-  activeTransaction.value = transactionItem
+  activeTransaction.value = {
+    ...transactionItem,
+    receiptPhotoUrls: Array.isArray(transactionItem.receiptPhotoUrls)
+      ? transactionItem.receiptPhotoUrls
+      : []
+  }
+
   activeTransactionDateLabel.value = transactionDateLabel ?? ''
   isActionModalVisible.value = true
   isViewModalVisible.value = false
@@ -1287,15 +1337,6 @@ const formatYearLegendAmount = (amount) => {
   }
 
   return `₱${numericAmount.toLocaleString('en-PH')}`
-}
-
-/* Dashboard Description Long Check */
-const isDescriptionLong = (description) => {
-  if (!description) {
-    return false
-  }
-
-  return String(description).trim().length > 28
 }
 
 /* Dashboard Format Transaction Type Label */
