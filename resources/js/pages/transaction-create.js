@@ -45,7 +45,18 @@ const transactionSelectors = {
     addAccountOverlay: '[data-add-account-overlay]',
     addAccountCloseButtons: '[data-add-account-close]',
     addAccountInput: '[data-add-account-input]',
-    addAccountSave: '[data-add-account-save]'
+    addAccountSave: '[data-add-account-save]',
+
+    photoTrigger: '[data-photo-trigger]',
+    photoModal: '[data-photo-modal]',
+    photoCloseButtons: '[data-photo-close]',
+    photoCameraButton: '[data-photo-camera-button]',
+    photoGalleryButton: '[data-photo-gallery-button]',
+    photoCameraInput: '[data-photo-camera-input]',
+    photoGalleryInput: '[data-photo-gallery-input]',
+    photoPreviewWrapper: '[data-photo-preview-wrapper]',
+    photoRemoveExistingButton: '[data-photo-remove-existing]',
+    existingPhotoPathInput: '[data-existing-photo-path]'
 }
 
 /* CSS Classes */
@@ -57,9 +68,16 @@ const transactionClasses = {
     hiddenAccountModal: 'sprout-account-modal--hidden',
     selectedAccountItem: 'sprout-account-modal__item--selected',
     hiddenAddOptionOverlay: 'sprout-add-option-overlay--hidden',
-    emptyPickerText: 'sprout-transaction__picker-text--empty'
+    emptyPickerText: 'sprout-transaction__picker-text--empty',
+    hiddenPhotoModal: 'sprout-photo-modal--hidden',
+    hiddenPhotoPreview: 'sprout-transaction__photo-preview-list--hidden'
 }
 
+/* Storage Keys */
+const transactionStorageKeys = {
+    categories: 'sprout_custom_categories',
+    accounts: 'sprout_custom_accounts'
+}
 
 /* Category Options Per Transaction Type */
 const categoryOptionsByType = {
@@ -121,6 +139,20 @@ const accountOptionsByType = {
     ]
 }
 
+/* Default Category Options */
+const defaultCategoryOptionsByType = {
+    expense: [...categoryOptionsByType.expense],
+    income: [...categoryOptionsByType.income],
+    savings: [...categoryOptionsByType.savings]
+}
+
+/* Default Account Options */
+const defaultAccountOptionsByType = {
+    expense: [...accountOptionsByType.expense],
+    income: [...accountOptionsByType.income],
+    savings: [...accountOptionsByType.savings]
+}
+
 /* Current Transaction Type */
 let currentTransactionType = 'expense'
 
@@ -164,6 +196,115 @@ const parseWholeAmountDigits = (value) => {
     }
 
     return cleanedValue.replace(/[^\d]/g, '')
+}
+
+/* Read Storage JSON */
+const readStorageJson = (storageKey, fallbackValue) => {
+    try {
+        const storedValue = window.localStorage.getItem(storageKey)
+
+        if (!storedValue) {
+            return fallbackValue
+        }
+
+        const parsedValue = JSON.parse(storedValue)
+
+        return parsedValue ?? fallbackValue
+    } catch (error) {
+        return fallbackValue
+    }
+}
+
+/* Write Storage JSON */
+const writeStorageJson = (storageKey, value) => {
+    try {
+        window.localStorage.setItem(storageKey, JSON.stringify(value))
+    } catch (error) {
+        console.error(`Unable to save ${storageKey}:`, error)
+    }
+}
+
+/* Is Default Category */
+const isDefaultCategory = (transactionType, categoryName) => {
+    const defaultCategories = defaultCategoryOptionsByType[transactionType] ?? []
+
+    return defaultCategories.includes(categoryName)
+}
+
+/* Is Default Account */
+const isDefaultAccount = (transactionType, accountName) => {
+    const defaultAccounts = defaultAccountOptionsByType[transactionType] ?? []
+
+    return defaultAccounts.includes(accountName)
+}
+
+/* Load Stored Categories */
+const loadStoredCategories = () => {
+    const storedCategories = readStorageJson(transactionStorageKeys.categories, {})
+
+    Object.keys(categoryOptionsByType).forEach((transactionType) => {
+        const defaultCategories = defaultCategoryOptionsByType[transactionType] ?? []
+        const customCategories = Array.isArray(storedCategories[transactionType])
+            ? storedCategories[transactionType]
+            : []
+
+        categoryOptionsByType[transactionType] = [
+            ...defaultCategories,
+            ...customCategories.filter((categoryName) => !defaultCategories.includes(categoryName))
+        ]
+    })
+}
+
+/* Save Stored Categories */
+const saveStoredCategories = () => {
+    const customCategoriesByType = {}
+
+    Object.keys(categoryOptionsByType).forEach((transactionType) => {
+        const defaultCategories = defaultCategoryOptionsByType[transactionType] ?? []
+        const currentCategories = categoryOptionsByType[transactionType] ?? []
+
+        customCategoriesByType[transactionType] = currentCategories.filter(
+            (categoryName) => !defaultCategories.includes(categoryName)
+        )
+    })
+
+    writeStorageJson(transactionStorageKeys.categories, customCategoriesByType)
+}
+
+/* Load Stored Accounts */
+const loadStoredAccounts = () => {
+    const storedAccounts = readStorageJson(transactionStorageKeys.accounts, [])
+
+    const uniqueStoredAccounts = Array.isArray(storedAccounts)
+        ? [...new Set(storedAccounts)]
+        : []
+
+    Object.keys(accountOptionsByType).forEach((transactionType) => {
+        const defaultAccounts = defaultAccountOptionsByType[transactionType] ?? []
+
+        accountOptionsByType[transactionType] = [
+            ...defaultAccounts,
+            ...uniqueStoredAccounts.filter((accountName) => !defaultAccounts.includes(accountName))
+        ]
+    })
+}
+
+/* Save Stored Accounts */
+const saveStoredAccounts = () => {
+    const mergedAccounts = new Set()
+
+    Object.keys(accountOptionsByType).forEach((transactionType) => {
+        const defaultAccounts = defaultAccountOptionsByType[transactionType] ?? []
+        const currentAccounts = accountOptionsByType[transactionType] ?? []
+
+        currentAccounts.forEach((accountName) => {
+            if (!defaultAccounts.includes(accountName)) {
+                mergedAccounts.add(accountName)
+            }
+        })
+    })
+
+    writeStorageJson(transactionStorageKeys.accounts, [...mergedAccounts])
 }
 
 /* Format Date For Input */
@@ -580,7 +721,27 @@ const closeAddOverlay = (overlayElement) => {
     document.body.style.overflow = ''
 }
 
-/* Clear Category Selection */
+/* Photo Modal Open */
+const openPhotoModal = (modalElement) => {
+    if (!modalElement) {
+        return
+    }
+
+    modalElement.classList.remove(transactionClasses.hiddenPhotoModal)
+    document.body.style.overflow = 'hidden'
+}
+
+/* Photo Modal Close */
+const closePhotoModal = (modalElement) => {
+    if (!modalElement) {
+        return
+    }
+
+    modalElement.classList.add(transactionClasses.hiddenPhotoModal)
+    document.body.style.overflow = ''
+}
+
+/* Clear Selected Category */
 const clearSelectedCategory = (inputElement, textElement) => {
     if (inputElement) {
         inputElement.value = ''
@@ -592,7 +753,7 @@ const clearSelectedCategory = (inputElement, textElement) => {
     }
 }
 
-/* Clear Account Selection */
+/* Clear Selected Account */
 const clearSelectedAccount = (inputElement, textElement) => {
     if (inputElement) {
         inputElement.value = ''
@@ -645,27 +806,115 @@ const updateSelectedAccount = (selectedItem, accountItems, inputElement, textEle
 }
 
 /* Create Category Button */
-const createCategoryButton = (categoryName) => {
+const createCategoryButton = (transactionType, categoryName) => {
     const buttonElement = document.createElement('button')
+    const labelElement = document.createElement('span')
 
     buttonElement.type = 'button'
     buttonElement.className = 'sprout-category-modal__item'
     buttonElement.dataset.categoryItem = ''
     buttonElement.dataset.categoryName = categoryName
-    buttonElement.textContent = categoryName
+
+    labelElement.textContent = categoryName
+    buttonElement.appendChild(labelElement)
+
+    if (!isDefaultCategory(transactionType, categoryName)) {
+        const removeButton = document.createElement('button')
+
+        removeButton.type = 'button'
+        removeButton.className = 'sprout-category-modal__remove'
+        removeButton.textContent = '-'
+        removeButton.setAttribute('aria-label', `Remove ${categoryName}`)
+
+        removeButton.addEventListener('click', (event) => {
+            event.preventDefault()
+            event.stopPropagation()
+
+            categoryOptionsByType[transactionType] = (categoryOptionsByType[transactionType] ?? []).filter(
+                (itemName) => itemName !== categoryName
+            )
+
+            saveStoredCategories()
+
+            const categoryInputElement = document.querySelector(transactionSelectors.categoryInput)
+            const categoryTextElement = document.querySelector(transactionSelectors.categorySelectedText)
+            const categoryModalElement = document.querySelector(transactionSelectors.categoryModal)
+            const categoryTriggerElement = document.querySelector(transactionSelectors.categoryTrigger)
+            const categoryGridElement = document.querySelector(transactionSelectors.categoryGrid)
+
+            if (categoryInputElement?.value === categoryName) {
+                clearSelectedCategory(categoryInputElement, categoryTextElement)
+            }
+
+            renderCategoryButtons(
+                transactionType,
+                categoryGridElement,
+                categoryInputElement,
+                categoryTextElement,
+                categoryModalElement,
+                categoryTriggerElement
+            )
+        })
+
+        buttonElement.appendChild(removeButton)
+    }
 
     return buttonElement
 }
 
 /* Create Account Button */
-const createAccountButton = (accountName) => {
+const createAccountButton = (transactionType, accountName) => {
     const buttonElement = document.createElement('button')
+    const labelElement = document.createElement('span')
 
     buttonElement.type = 'button'
     buttonElement.className = 'sprout-account-modal__item'
     buttonElement.dataset.accountItem = ''
     buttonElement.dataset.accountName = accountName
-    buttonElement.textContent = accountName
+
+    labelElement.textContent = accountName
+    buttonElement.appendChild(labelElement)
+
+    if (!isDefaultAccount(transactionType, accountName)) {
+        const removeButton = document.createElement('button')
+
+        removeButton.type = 'button'
+        removeButton.className = 'sprout-account-modal__remove'
+        removeButton.textContent = '-'
+        removeButton.setAttribute('aria-label', `Remove ${accountName}`)
+
+        removeButton.addEventListener('click', (event) => {
+            event.preventDefault()
+            event.stopPropagation()
+
+            Object.keys(accountOptionsByType).forEach((typeKey) => {
+                accountOptionsByType[typeKey] = (accountOptionsByType[typeKey] ?? []).filter(
+                    (itemName) => itemName !== accountName
+                )
+            })
+
+            saveStoredAccounts()
+
+            const accountInputElement = document.querySelector(transactionSelectors.accountInput)
+            const accountTextElement = document.querySelector(transactionSelectors.accountSelectedText)
+            const accountModalElement = document.querySelector(transactionSelectors.accountModal)
+            const accountTriggerElement = document.querySelector(transactionSelectors.accountTrigger)
+
+            if (accountInputElement?.value === accountName) {
+                clearSelectedAccount(accountInputElement, accountTextElement)
+            }
+
+            renderAccountButtons(
+                transactionType,
+                accountModalElement,
+                accountTriggerElement,
+                accountInputElement,
+                accountTextElement
+            )
+        })
+
+        buttonElement.appendChild(removeButton)
+    }
 
     return buttonElement
 }
@@ -689,7 +938,7 @@ const renderCategoryButtons = (
     gridElement.innerHTML = ''
 
     categories.forEach((categoryName) => {
-        const buttonElement = createCategoryButton(categoryName)
+        const buttonElement = createCategoryButton(transactionType, categoryName)
 
         if (currentSelectedCategory === categoryName) {
             buttonElement.classList.add(transactionClasses.selectedCategoryItem)
@@ -736,7 +985,7 @@ const renderAccountButtons = (
     gridElement.innerHTML = ''
 
     accounts.forEach((accountName) => {
-        const buttonElement = createAccountButton(accountName)
+        const buttonElement = createAccountButton(transactionType, accountName)
 
         if (currentSelectedAccount === accountName) {
             buttonElement.classList.add(transactionClasses.selectedAccountItem)
@@ -779,6 +1028,266 @@ const initializeExistingPickerValues = () => {
         accountTextElement.textContent = accountInputElement.value
         accountTextElement.classList.remove(transactionClasses.emptyPickerText)
     }
+}
+
+/* Photo File State */
+let selectedNewPhotoItems = []
+let nextPhotoItemId = 0
+
+/* Create Photo Preview Item */
+const createPhotoPreviewItemElement = (imageSource, altText, removeHandler) => {
+    const itemElement = document.createElement('div')
+    const imageElement = document.createElement('img')
+    const removeButton = document.createElement('button')
+
+    itemElement.className = 'sprout-transaction__photo-preview-item'
+
+    imageElement.className = 'sprout-transaction__photo-preview-image'
+    imageElement.src = imageSource
+    imageElement.alt = altText
+
+    removeButton.type = 'button'
+    removeButton.className = 'sprout-transaction__photo-remove'
+    removeButton.setAttribute('aria-label', `Remove ${altText}`)
+    removeButton.textContent = '×'
+
+    removeButton.addEventListener('click', removeHandler)
+
+    itemElement.appendChild(imageElement)
+    itemElement.appendChild(removeButton)
+
+    return itemElement
+}
+
+/* Sync Existing Photo Paths Input */
+const syncExistingPhotoPathsInput = (existingPhotoPathsInput, existingPhotoPaths) => {
+    if (!existingPhotoPathsInput) {
+        return
+    }
+
+    existingPhotoPathsInput.value = JSON.stringify(existingPhotoPaths)
+}
+
+/* Sync Gallery Input Files */
+const syncGalleryInputFiles = (galleryInput, photoItems) => {
+    if (!galleryInput) {
+        return
+    }
+
+    const dataTransfer = new DataTransfer()
+
+    photoItems.forEach((photoItem) => {
+        dataTransfer.items.add(photoItem.file)
+    })
+
+    galleryInput.files = dataTransfer.files
+}
+
+/* Render Photo Previews */
+const renderPhotoPreviews = (
+    previewWrapper,
+    galleryInput,
+    existingPhotoPathsInput,
+    existingPhotoPaths
+) => {
+    if (!previewWrapper) {
+        return
+    }
+
+    previewWrapper.innerHTML = ''
+
+    const hasExistingPhotos = existingPhotoPaths.length > 0
+    const hasNewPhotos = selectedNewPhotoItems.length > 0
+
+    if (!hasExistingPhotos && !hasNewPhotos) {
+        previewWrapper.classList.add(transactionClasses.hiddenPhotoPreview)
+        return
+    }
+
+    previewWrapper.classList.remove(transactionClasses.hiddenPhotoPreview)
+
+    existingPhotoPaths.forEach((photoPath) => {
+        const previewItemElement = createPhotoPreviewItemElement(
+            `/storage/${photoPath}`,
+            'Receipt preview',
+            () => {
+                const updatedExistingPhotoPaths = existingPhotoPaths.filter(
+                    (currentPhotoPath) => currentPhotoPath !== photoPath
+                )
+
+                syncExistingPhotoPathsInput(existingPhotoPathsInput, updatedExistingPhotoPaths)
+                renderPhotoPreviews(
+                    previewWrapper,
+                    galleryInput,
+                    existingPhotoPathsInput,
+                    updatedExistingPhotoPaths
+                )
+            }
+        )
+
+        previewWrapper.appendChild(previewItemElement)
+    })
+
+    selectedNewPhotoItems.forEach((photoItem) => {
+        const previewItemElement = createPhotoPreviewItemElement(
+            photoItem.previewUrl,
+            photoItem.file.name,
+            () => {
+                URL.revokeObjectURL(photoItem.previewUrl)
+
+                selectedNewPhotoItems = selectedNewPhotoItems.filter(
+                    (currentPhotoItem) => currentPhotoItem.id !== photoItem.id
+                )
+
+                syncGalleryInputFiles(galleryInput, selectedNewPhotoItems)
+                renderPhotoPreviews(
+                    previewWrapper,
+                    galleryInput,
+                    existingPhotoPathsInput,
+                    existingPhotoPaths
+                )
+            }
+        )
+
+        previewWrapper.appendChild(previewItemElement)
+    })
+}
+
+/* Append New Photo Files */
+const appendNewPhotoFiles = (
+    files,
+    galleryInput,
+    previewWrapper,
+    existingPhotoPathsInput,
+    existingPhotoPaths
+) => {
+    if (!files.length) {
+        return
+    }
+
+    const newPhotoItems = files.map((file) => ({
+        id: nextPhotoItemId++,
+        file,
+        previewUrl: URL.createObjectURL(file)
+    }))
+
+    selectedNewPhotoItems = [
+        ...selectedNewPhotoItems,
+        ...newPhotoItems
+    ]
+
+    syncGalleryInputFiles(galleryInput, selectedNewPhotoItems)
+    renderPhotoPreviews(
+        previewWrapper,
+        galleryInput,
+        existingPhotoPathsInput,
+        existingPhotoPaths
+    )
+}
+
+/* Initialize Photo Upload */
+const initializePhotoUpload = () => {
+    const triggerElement = document.querySelector(transactionSelectors.photoTrigger)
+    const modalElement = document.querySelector(transactionSelectors.photoModal)
+    const closeButtons = document.querySelectorAll(transactionSelectors.photoCloseButtons)
+    const cameraButton = document.querySelector(transactionSelectors.photoCameraButton)
+    const galleryButton = document.querySelector(transactionSelectors.photoGalleryButton)
+    const cameraInput = document.querySelector(transactionSelectors.photoCameraInput)
+    const galleryInput = document.querySelector(transactionSelectors.photoGalleryInput)
+    const previewWrapper = document.querySelector(transactionSelectors.photoPreviewWrapper)
+    const existingPhotoPathsInput = document.querySelector('[data-existing-photo-paths]')
+
+    if (!triggerElement || !modalElement || !cameraInput || !galleryInput || !previewWrapper) {
+        return
+    }
+
+    let existingPhotoPaths = []
+
+    try {
+        const rawExistingPhotoPaths = existingPhotoPathsInput?.value ?? '[]'
+        const parsedExistingPhotoPaths = JSON.parse(rawExistingPhotoPaths)
+
+        existingPhotoPaths = Array.isArray(parsedExistingPhotoPaths)
+            ? parsedExistingPhotoPaths
+            : []
+    } catch (error) {
+        existingPhotoPaths = []
+    }
+
+    renderPhotoPreviews(
+        previewWrapper,
+        galleryInput,
+        existingPhotoPathsInput,
+        existingPhotoPaths
+    )
+
+    triggerElement.addEventListener('click', () => {
+        openPhotoModal(modalElement)
+    })
+
+    closeButtons.forEach((closeButton) => {
+        closeButton.addEventListener('click', () => {
+            closePhotoModal(modalElement)
+        })
+    })
+
+    if (cameraButton) {
+        cameraButton.addEventListener('click', () => {
+            closePhotoModal(modalElement)
+            cameraInput.click()
+        })
+    }
+
+    if (galleryButton) {
+        galleryButton.addEventListener('click', () => {
+            closePhotoModal(modalElement)
+            galleryInput.click()
+        })
+    }
+
+    cameraInput.addEventListener('change', () => {
+        const selectedFiles = [...(cameraInput.files ?? [])]
+
+        appendNewPhotoFiles(
+            selectedFiles,
+            galleryInput,
+            previewWrapper,
+            existingPhotoPathsInput,
+            existingPhotoPaths
+        )
+
+        cameraInput.value = ''
+    })
+
+    galleryInput.addEventListener('change', () => {
+        const selectedFiles = [...(galleryInput.files ?? [])]
+
+        const existingFileKeys = new Set(
+            selectedNewPhotoItems.map((photoItem) => {
+                const file = photoItem.file
+                return `${file.name}-${file.size}-${file.lastModified}`
+            })
+        )
+
+        const deduplicatedFiles = selectedFiles.filter((file) => {
+            const fileKey = `${file.name}-${file.size}-${file.lastModified}`
+
+            if (existingFileKeys.has(fileKey)) {
+                return false
+            }
+
+            existingFileKeys.add(fileKey)
+            return true
+        })
+
+        appendNewPhotoFiles(
+            deduplicatedFiles,
+            galleryInput,
+            previewWrapper,
+            existingPhotoPathsInput,
+            existingPhotoPaths
+        )
+    })
 }
 
 /* Initialize Date Modal */
@@ -1139,6 +1648,7 @@ const initializeAddCategoryOverlay = (
 
         if (!alreadyExists) {
             categoryOptionsByType[currentTransactionType].push(newCategoryName)
+            saveStoredCategories()
         }
 
         categoryInputElement.value = newCategoryName
@@ -1214,6 +1724,7 @@ const initializeAddAccountOverlay = (
             accountOptionsByType.expense.push(newAccountName)
             accountOptionsByType.income.push(newAccountName)
             accountOptionsByType.savings.push(newAccountName)
+            saveStoredAccounts()
         }
 
         accountInputElement.value = newAccountName
@@ -1235,9 +1746,13 @@ const initializeAddAccountOverlay = (
 
 /* Initialize Page */
 const initializeTransactionCreatePage = () => {
+    loadStoredCategories()
+    loadStoredAccounts()
+
     initializeAmountFormatter()
     initializeDateModal()
     initializeExistingPickerValues()
+    initializePhotoUpload()
 
     const categoryModalData = initializeCategoryModal()
     const accountModalData = initializeAccountModal()

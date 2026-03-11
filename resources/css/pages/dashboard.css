@@ -942,6 +942,11 @@
   word-break: break-word;
 }
 
+/* Dashboard View Value Amount */
+.sprout-dashboard-mobile__view-value--amount {
+  font-weight: 800;
+}
+
 /* Dashboard View Description Block */
 .sprout-dashboard-mobile__view-description-block {
   padding: 16px 0 6px;
@@ -1060,4 +1065,53 @@
   .sprout-dashboard-mobile__fab {
     right: calc(50% - 190px);
   }
+}
+
+/* Category Remove Button */
+.sprout-category-modal__item,
+.sprout-account-modal__item {
+  position: relative;
+}
+
+/* Remove Control */
+.sprout-category-modal__remove,
+.sprout-account-modal__remove {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  border: none;
+  background: transparent;
+  color: #00c957;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+}
+
+/* Remove Control On Active */
+.sprout-category-modal__item:active .sprout-category-modal__remove,
+.sprout-category-modal__item--selected .sprout-category-modal__remove,
+.sprout-account-modal__item:active .sprout-account-modal__remove,
+.sprout-account-modal__item--selected .sprout-account-modal__remove {
+  color: #ffffff;
+}
+
+/* Category And Account Remove */
+.sprout-category-modal__item,
+.sprout-account-modal__item {
+  position: relative;
+}
+
+.sprout-category-modal__remove,
+.sprout-account-modal__remove {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  border: none;
+  background: transparent;
+  color: #00c957;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
 }

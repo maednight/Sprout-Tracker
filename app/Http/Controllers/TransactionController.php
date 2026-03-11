@@ -8,6 +8,7 @@ use App\Models\Transaction;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class TransactionController extends Controller
@@ -68,6 +69,8 @@ class TransactionController extends Controller
             $validatedData['account'] ?? null
         );
 
+        $receiptPhotoPaths = $this->storeReceiptPhotos($request);
+
         Transaction::create([
             'user_id' => $user->id,
             'type' => $transactionType,
@@ -76,6 +79,8 @@ class TransactionController extends Controller
             'account_id' => $accountId,
             'occurred_at' => $occurredAt,
             'description' => $validatedData['description'] ?? null,
+            'receipt_photo_path' => $receiptPhotoPaths[0] ?? null,
+            'receipt_photo_paths' => $receiptPhotoPaths,
         ]);
 
         return redirect()
@@ -113,6 +118,8 @@ class TransactionController extends Controller
             $validatedData['account'] ?? null
         );
 
+        $receiptPhotoPaths = $this->resolveUpdatedReceiptPhotoPaths($request, $transaction);
+
         $transaction->update([
             'type' => $transactionType,
             'amount' => $normalizedAmount,
@@ -120,6 +127,8 @@ class TransactionController extends Controller
             'account_id' => $accountId,
             'occurred_at' => $occurredAt,
             'description' => $validatedData['description'] ?? null,
+            'receipt_photo_path' => $receiptPhotoPaths[0] ?? null,
+            'receipt_photo_paths' => $receiptPhotoPaths,
         ]);
 
         return redirect()
@@ -130,6 +139,10 @@ class TransactionController extends Controller
     public function destroy(Transaction $transaction): RedirectResponse
     {
         $this->authorizeTransaction($transaction);
+
+        foreach ($this->getTransactionPhotoPaths($transaction) as $photoPath) {
+            Storage::disk('public')->delete($photoPath);
+        }
 
         $transaction->delete();
 
@@ -148,6 +161,10 @@ class TransactionController extends Controller
             'category' => ['nullable', 'string', 'max:80'],
             'account' => ['nullable', 'string', 'max:80'],
             'description' => ['nullable', 'string', 'max:255'],
+            'receipt_photos' => ['nullable', 'array'],
+            'receipt_photos.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'receipt_photo_camera' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'existing_receipt_photo_paths' => ['nullable', 'string'],
         ]);
     }
 
@@ -205,6 +222,82 @@ class TransactionController extends Controller
         ]);
 
         return $account->id;
+    }
+
+    /* Get transaction photo paths */
+    private function getTransactionPhotoPaths(Transaction $transaction): array
+    {
+        $photoPaths = is_array($transaction->receipt_photo_paths)
+            ? $transaction->receipt_photo_paths
+            : [];
+
+        if (empty($photoPaths) && $transaction->receipt_photo_path) {
+            $photoPaths = [$transaction->receipt_photo_path];
+        }
+
+        return array_values(array_filter($photoPaths));
+    }
+
+    /* Decode existing photo paths input */
+    private function decodeExistingPhotoPaths(?string $rawValue): array
+    {
+        if (!$rawValue) {
+            return [];
+        }
+
+        $decodedValue = json_decode($rawValue, true);
+
+        if (!is_array($decodedValue)) {
+            return [];
+        }
+
+        return array_values(array_filter($decodedValue));
+    }
+
+    /* Store receipt photos */
+    private function storeReceiptPhotos(Request $request): array
+    {
+        $storedPaths = [];
+
+        $galleryFiles = $request->file('receipt_photos', []);
+
+        if (is_array($galleryFiles)) {
+            foreach ($galleryFiles as $uploadedFile) {
+                if ($uploadedFile) {
+                    $storedPaths[] = $uploadedFile->store('transaction-photos', 'public');
+                }
+            }
+        }
+
+        $cameraFile = $request->file('receipt_photo_camera');
+
+        if ($cameraFile) {
+            $storedPaths[] = $cameraFile->store('transaction-photos', 'public');
+        }
+
+        return array_values(array_filter($storedPaths));
+    }
+
+    /* Resolve updated receipt photo paths */
+    private function resolveUpdatedReceiptPhotoPaths(Request $request, Transaction $transaction): array
+    {
+        $currentPhotoPaths = $this->getTransactionPhotoPaths($transaction);
+        $keptExistingPhotoPaths = $this->decodeExistingPhotoPaths(
+            $request->input('existing_receipt_photo_paths')
+        );
+
+        $removedPhotoPaths = array_diff($currentPhotoPaths, $keptExistingPhotoPaths);
+
+        foreach ($removedPhotoPaths as $removedPhotoPath) {
+            Storage::disk('public')->delete($removedPhotoPath);
+        }
+
+        $newPhotoPaths = $this->storeReceiptPhotos($request);
+
+        return array_values(array_filter([
+            ...$keptExistingPhotoPaths,
+            ...$newPhotoPaths,
+        ]));
     }
 
     /* Authorize transaction */

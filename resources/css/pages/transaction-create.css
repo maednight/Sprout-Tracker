@@ -366,7 +366,7 @@
   background: #FFFFFF;
   color: #00C957;
 
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 350;
   font-family: 'Inter', sans-serif;
 
@@ -921,4 +921,154 @@
   border-color: #00F36B;
   color: #00C957;
   font-weight: 700;
+}
+
+/* Hide file inputs for photo upload */
+.sprout-transaction__file-input {
+    display: none;
+}
+
+/* Photo Preview List */
+.sprout-transaction__photo-preview-list {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.sprout-transaction__photo-preview-list--hidden {
+  display: none;
+}
+
+/* Photo Preview Item */
+.sprout-transaction__photo-preview-item {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #F7FBF8;
+  border: 1px solid #D9F7E2;
+}
+
+/* Photo Preview Image */
+.sprout-transaction__photo-preview-image {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+/* Remove Photo Button */
+.sprout-transaction__photo-remove {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(43, 43, 43, 0.72);
+  color: #FFFFFF;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Photo Modal */
+.sprout-photo-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.sprout-photo-modal--hidden {
+  display: none;
+}
+
+/* Photo Modal Backdrop */
+.sprout-photo-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  border: none;
+  background: rgba(0, 0, 0, 0.08);
+  padding: 0;
+  margin: 0;
+}
+
+/* Photo Modal Sheet */
+.sprout-photo-modal__sheet {
+  position: relative;
+  width: 100%;
+  max-width: 414px;
+  background: #FFFFFF;
+  border-radius: 22px 22px 0 0;
+  padding: 20px 20px calc(24px + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.08);
+}
+
+/* Photo Modal Actions */
+.sprout-photo-modal__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Photo Modal Header */
+.sprout-photo-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.sprout-photo-modal__title {
+  margin: 0;
+  color: #1F1F1F;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.sprout-photo-modal__close {
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  color: #1F1F1F;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* Photo Modal Button */
+.sprout-photo-modal__button {
+  width: 100%;
+  min-height: 42px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+}
+
+/* Photo Modal Primary Button */
+.sprout-photo-modal__button--primary {
+  border: none;
+  background: #00F36B;
+  color: #FFFFFF;
+}
+
+/* Photo Modal Secondary Button */
+.sprout-photo-modal__button--secondary {
+  border: 1.4px solid #00F36B;
+  background: #FFFFFF;
+  color: #00C957;
 }

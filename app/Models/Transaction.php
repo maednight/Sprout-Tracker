@@ -15,11 +15,14 @@ class Transaction extends Model
         'account_id',
         'occurred_at',
         'description',
+        'receipt_photo_path',
+        'receipt_photo_paths',
     ];
 
     protected $casts = [
         'occurred_at' => 'datetime',
         'amount' => 'decimal:2',
+        'receipt_photo_paths' => 'array',
     ];
 
     public function user(): BelongsTo
