@@ -1009,9 +1009,10 @@
   max-width: 414px;
   background: #FFFFFF;
   border-radius: 22px 22px 0 0;
-  padding: 20px 20px calc(24px + env(safe-area-inset-bottom));
+  padding: 20px 20px 120px;
   box-sizing: border-box;
   box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.08);
+  z-index: 81;
 }
 
 /* Photo Modal Actions */
@@ -1057,6 +1058,12 @@
   font-weight: 600;
   font-family: 'Inter', sans-serif;
   cursor: pointer;
+}
+
+.sprout-photo-modal__button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Photo Modal Primary Button */

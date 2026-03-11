@@ -142,6 +142,7 @@ rel="stylesheet"
                   value="{{ $transactionTypeValue }}"
                   data-transaction-type-input
               >
+
               <input
                   type="file"
                   accept="image/*"
@@ -158,6 +159,7 @@ rel="stylesheet"
                   class="sprout-transaction__file-input"
                   data-photo-gallery-input
               >
+
               <input
                   type="hidden"
                   name="existing_receipt_photo_paths"
@@ -716,7 +718,7 @@ data-photo-modal
       </button>
   </div>
 
-  <div class="sprout-photo-modal__actions">
+    <div class="sprout-photo-modal__actions">
       <button
           type="button"
           class="sprout-photo-modal__button sprout-photo-modal__button--primary"
