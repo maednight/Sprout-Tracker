@@ -8,6 +8,8 @@
 @import './pages/dashboard.css';
 @import './pages/dashboard-layout.css';
 @import './pages/transaction-create.css';
+@import './pages/budget.css';
+@import './pages/settings.css';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
@@ -18,4 +20,3 @@
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
-

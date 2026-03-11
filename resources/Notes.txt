@@ -1,59 +1,35 @@
-Do the transactions/create → dashboard connection first.
+Let’s continue this way:
 
-That should come before:
+Now
 
-desktop version
+Build Budget mobile
 
-photo upload
+empty state
 
-Because right now the dashboard is already your main screen, so the next best step is making it real, not just mock data.
+set budget form
 
-Best order
-1. Connect transaction form data to dashboard
+summary page
 
-This gives you:
+save to database
 
-real transactions list
+After that
 
-real income / expense totals
+Build Transaction analytics mobile
 
-real calendar legends
+line graph
 
-real dashboard behavior
+pie graph
 
-Once this works, your app already feels functional.
+category stats
 
-2. Make photo upload work
+tap category → budget vs spent
 
-This is useful, but it is a secondary feature. The app can still work without it.
+Then
 
-3. Create desktop version
+Convert finished modules into desktop
 
-Do this after the core logic is stable, so you do not repeat the same dashboard logic twice.
+dashboard desktop
 
-Why this order is better
+transaction desktop
 
-If you build desktop now, you might later change:
-
-dashboard data structure
-
-summary computation
-
-calendar logic
-
-transaction grouping
-
-and then you’ll need to update both mobile and desktop.
-
-If you connect the backend first, the desktop version will be easier because the logic is already ready.
-
-Recommendation
-
-Next task should be:
-
-Connect saved transactions from transactions/create to the dashboard and replace mock Vue data with backend-driven data.
-
-That is the strongest next move.
-
-If you want, I can guide you step by step in the safest order:
-database → controller → blade data pass → Vue props/data mapping → calendar summary rendering.
+budget desktop

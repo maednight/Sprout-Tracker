@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\Auth\SproutAuthController;
+use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\TransactionController;
 use Illuminate\Support\Facades\Route;
 
@@ -23,9 +25,21 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/transactions', fn () => 'Transactions page')->name('transaction.index');
-    Route::get('/budget', fn () => 'Budget page')->name('budget.index');
+
+    /* Budget Routes */
+    Route::get('/budget', [BudgetController::class, 'index'])->name('budget.index');
+    Route::get('/budget/create', [BudgetController::class, 'create'])->name('budget.create');
+    Route::post('/budget', [BudgetController::class, 'store'])->name('budget.store');
+
     Route::get('/savings', fn () => 'Savings page')->name('savings.index');
-    Route::get('/settings', fn () => 'Settings page')->name('settings.index');
+
+    /* Settings Routes */
+    Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
+    Route::put('/settings/name', [SettingsController::class, 'updateName'])->name('settings.name.update');
+    Route::post('/settings/photo', [SettingsController::class, 'updatePhoto'])->name('settings.photo.update');
+    Route::put('/settings/email', [SettingsController::class, 'updateEmail'])->name('settings.email.update');
+    Route::put('/settings/password', [SettingsController::class, 'updatePassword'])->name('settings.password.update');
+    Route::post('/logout', [SproutAuthController::class, 'logout'])->name('logout');
 
     Route::get('/transactions/create', [TransactionController::class, 'create'])->name('transaction.create');
     Route::post('/transactions', [TransactionController::class, 'store'])->name('transaction.store');
