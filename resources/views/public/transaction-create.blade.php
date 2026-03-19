@@ -312,10 +312,6 @@
                 <button type="submit" class="sprout-transaction__button sprout-transaction__button--primary">
                     {{ $isEditMode ? 'Update' : 'Save' }}
                 </button>
-
-                <button type="button" class="sprout-transaction__button sprout-transaction__button--secondary">
-                    Continue
-                </button>
             </div>
         </form>
 

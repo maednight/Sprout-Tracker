@@ -8,21 +8,25 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('budgets', function (Blueprint $table) {
+        Schema::create('budget_items', function (Blueprint $table) {
             $table->id();
 
-            /* Budget Owner */
-            $table->foreignId('user_id')
+            /* Budget Reference */
+            $table->foreignId('budget_id')
                 ->constrained()
                 ->cascadeOnDelete();
 
-            /* Budget Details */
-            $table->string('name', 80);
-            $table->string('cycle', 20)->default('monthly');
-            $table->boolean('is_reused')->default(false);
+            /* Category Reference */
+            $table->foreignId('category_id')
+                ->nullable()
+                ->constrained()
+                ->nullOnDelete();
 
-            /* Budget Period */
-            $table->date('period_date');
+            /* Stored Category Snapshot */
+            $table->string('category_name');
+
+            /* Allocated Amount */
+            $table->decimal('allocated_amount', 12, 2)->default(0);
 
             $table->timestamps();
         });
@@ -30,6 +34,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('budgets');
+        Schema::dropIfExists('budget_items');
     }
 };
