@@ -83,6 +83,12 @@
   border: 1px solid rgba(0, 201, 87, 0.14);
 }
 
+.sprout-settings-mobile__alert--error {
+  background: #FFF1F0;
+  color: #D84A4A;
+  border: 1px solid rgba(216, 74, 74, 0.16);
+}
+
 /* Card */
 .sprout-settings-mobile__card {
   background: var(--sprout-settings-card);
@@ -357,6 +363,46 @@
 
 .sprout-settings-mobile__input:focus {
   border-color: var(--sprout-settings-green);
+}
+
+.sprout-settings-mobile__password-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.sprout-settings-mobile__input--password {
+  padding-right: 40px;
+}
+
+.sprout-settings-mobile__password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+  opacity: 0.85;
+  pointer-events: auto;
+}
+
+.sprout-settings-mobile__password-toggle:focus {
+  outline: none;
+}
+
+.sprout-settings-mobile__password-toggle-icon {
+  width: 16px;
+  height: 16px;
+  display: block;
+  pointer-events: none;
 }
 
 .sprout-settings-mobile__error {
