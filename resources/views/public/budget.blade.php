@@ -22,6 +22,7 @@
         <main class="sprout-budget__page">
             <div class="sprout-budget__content">
 
+                <!-- Budget Header -->
                 <header class="sprout-budget__header">
                     <a
                         href="{{ route('budget.index', ['month' => $previousMonthValue]) }}"
@@ -64,70 +65,82 @@
                         </a>
                     </section>
                 @else
-                    <section class="sprout-budget-summary">
-                        <header class="sprout-budget-summary__topbar">
+                    <section class="sprout-budget-card">
+                        <div class="sprout-budget-card__topline">
+                            <button
+                                type="button"
+                                class="sprout-budget-card__schedule-button"
+                                id="budget-schedule-open"
+                            >
+                                Budget Sched
+                            </button>
+
                             <a
                                 href="{{ route('budget.allocate', $budget) }}"
-                                class="sprout-budget-summary__back"
-                                aria-label="Back to budget allocation"
+                                class="sprout-budget-card__edit-button"
+                                aria-label="Edit budget"
                             >
-                                ‹
+                                <img src="{{ asset('projectassets/icons/edit.svg') }}" alt="Edit budget">
                             </a>
+                        </div>
 
-                            <h2 class="sprout-budget-summary__title">
-                                Budget
-                            </h2>
-
-                            <span class="sprout-budget-summary__topbar-space"></span>
-                        </header>
-
-                        <div class="sprout-budget-summary__hero">
-                            <div class="sprout-budget-summary__chart-wrap">
-                                <canvas id="budgetSummaryChart" width="120" height="120"></canvas>
+                        <div class="sprout-budget-card__summary">
+                            <div class="sprout-budget-card__chart-wrap">
+                                <canvas id="budgetSummaryChart" width="132" height="132"></canvas>
                             </div>
 
-                            <div class="sprout-budget-summary__amount-block">
-                                <p class="sprout-budget-summary__cycle">
+                            <div class="sprout-budget-card__amount-wrap">
+                                <p class="sprout-budget-card__cycle">
                                     {{ ucfirst($budget->cycle) }}
                                 </p>
 
-                                <p class="sprout-budget-summary__amount">
+                                <p class="sprout-budget-card__total">
                                     ₱{{ number_format($totalAllocated, 0) }}
                                 </p>
 
-                                <a
-                                    href="{{ route('budget.allocate', $budget) }}"
-                                    class="sprout-budget-summary__edit"
-                                    aria-label="Edit budget allocation"
-                                >
-                                    <img src="{{ asset('projectassets/icons/edit.svg') }}" alt="Edit budget">
-                                </a>
+                                <p class="sprout-budget-card__per-day">
+                                    ~₱{{ number_format($plannedPerDay, 2) }} per day
+                                </p>
                             </div>
                         </div>
 
-                        <div class="sprout-budget-summary__list">
+                        <div class="sprout-budget-card__list">
                             @foreach ($categoryRows as $categoryRow)
-                                <div class="sprout-budget-summary__item {{ !$categoryRow['is_active'] ? 'sprout-budget-summary__item--inactive' : '' }}">
-                                    <div class="sprout-budget-summary__item-main">
-                                        <div
-                                            class="sprout-budget-summary__item-icon"
-                                            style="--budget-icon-bg: {{ $categoryRow['is_active'] ? $categoryRow['color'] : '#E7E7E7' }};"
-                                        >
-                                            <img
-                                                src="{{ asset('projectassets/icons/' . $categoryRow['icon']) }}"
-                                                alt="{{ $categoryRow['name'] }} icon"
+                                @if ($categoryRow['amount'] > 0)
+                                    @php
+                                        $percentage = $totalAllocated > 0
+                                            ? ($categoryRow['amount'] / $totalAllocated) * 100
+                                            : 0;
+                                    @endphp
+
+                                    <div class="sprout-budget-card__row">
+                                        <div class="sprout-budget-card__row-left">
+                                            <div
+                                                class="sprout-budget-card__row-icon"
+                                                style="--budget-row-color: {{ $categoryRow['color'] }};"
                                             >
+                                                <img
+                                                    src="{{ asset('projectassets/icons/' . $categoryRow['icon']) }}"
+                                                    alt="{{ $categoryRow['name'] }} icon"
+                                                >
+                                            </div>
+
+                                            <div class="sprout-budget-card__row-copy">
+                                                <span class="sprout-budget-card__row-name">
+                                                    {{ $categoryRow['name'] }}
+                                                </span>
+
+                                                <span class="sprout-budget-card__row-percent">
+                                                    {{ number_format($percentage, 2) }}%
+                                                </span>
+                                            </div>
                                         </div>
 
-                                        <span class="sprout-budget-summary__item-name">
-                                            {{ $categoryRow['name'] }}
+                                        <span class="sprout-budget-card__row-amount">
+                                            ₱{{ number_format($categoryRow['amount'], 0) }}
                                         </span>
                                     </div>
-
-                                    <span class="sprout-budget-summary__item-amount">
-                                        ₱{{ number_format($categoryRow['amount'], 0) }}
-                                    </span>
-                                </div>
+                                @endif
                             @endforeach
                         </div>
                     </section>
@@ -141,52 +154,154 @@
 </div>
 
 @if ($budget)
+<div class="sprout-budget-schedule-modal sprout-budget-schedule-modal--hidden" id="budget-schedule-modal">
+    <button
+        type="button"
+        class="sprout-budget-schedule-modal__backdrop"
+        id="budget-schedule-close-backdrop"
+    ></button>
+
+    <div class="sprout-budget-schedule-modal__sheet">
+        <div class="sprout-budget-schedule-modal__header">
+            <button
+                type="button"
+                class="sprout-budget-schedule-modal__close"
+                id="budget-schedule-close"
+                aria-label="Close budget schedule"
+            >
+                ×
+            </button>
+
+            <div class="sprout-budget-schedule-modal__filter-wrap">
+                <select
+                    class="sprout-budget-schedule-modal__filter"
+                    id="budget-schedule-filter"
+                >
+                    @foreach ($scheduleFilters as $filter)
+                        <option value="{{ $filter['value'] }}">
+                            {{ $filter['label'] }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+        </div>
+
+        <div class="sprout-budget-schedule-modal__table-head">
+            <span>Period</span>
+            <span>Plan</span>
+            <span>Spent</span>
+            <span>Remain</span>
+        </div>
+
+        <div class="sprout-budget-schedule-modal__rows" id="budget-schedule-rows"></div>
+    </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    const canvas = document.getElementById('budgetSummaryChart')
-
-    if (!canvas) {
-        return
-    }
+    const summaryCanvas = document.getElementById('budgetSummaryChart')
+    const scheduleModal = document.getElementById('budget-schedule-modal')
+    const scheduleOpen = document.getElementById('budget-schedule-open')
+    const scheduleClose = document.getElementById('budget-schedule-close')
+    const scheduleCloseBackdrop = document.getElementById('budget-schedule-close-backdrop')
+    const scheduleFilter = document.getElementById('budget-schedule-filter')
+    const scheduleRowsContainer = document.getElementById('budget-schedule-rows')
 
     const rawRows = @json($categoryRows)
-    const activeRows = rawRows.filter((row) => Number(row.amount) > 0)
+    const scheduleRows = @json($scheduleRows)
+    let summaryChart = null
 
-    const chartData = activeRows.length > 0
-        ? {
-            values: activeRows.map((row) => Number(row.amount)),
-            colors: activeRows.map((row) => row.color)
-        }
-        : {
-            values: [1],
-            colors: ['#E4E4E4']
+    const formatCurrency = (value) => {
+        const numericValue = Number(value || 0)
+
+        return `₱${new Intl.NumberFormat('en-PH', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(numericValue)}`
+    }
+
+    const rebuildSummaryChart = () => {
+        if (!summaryCanvas || typeof Chart === 'undefined') {
+            return
         }
 
-    new Chart(canvas, {
-        type: 'doughnut',
-        data: {
-            datasets: [
-                {
-                    data: chartData.values,
-                    backgroundColor: chartData.colors,
-                    borderWidth: 0,
-                    hoverOffset: 0
-                }
-            ]
-        },
-        options: {
-            responsive: false,
-            cutout: '72%',
-            plugins: {
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    enabled: false
+        const activeRows = rawRows.filter((row) => Number(row.amount) > 0)
+        const hasData = activeRows.length > 0
+
+        const datasetValues = hasData ? activeRows.map((row) => Number(row.amount)) : [1]
+        const datasetColors = hasData ? activeRows.map((row) => row.color) : ['#E4E4E4']
+
+        if (summaryChart) {
+            summaryChart.destroy()
+        }
+
+        summaryChart = new Chart(summaryCanvas, {
+            type: 'doughnut',
+            data: {
+                datasets: [
+                    {
+                        data: datasetValues,
+                        backgroundColor: datasetColors,
+                        borderColor: hasData ? '#ffffff' : 'transparent',
+                        borderWidth: hasData ? 3 : 0,
+                        hoverOffset: 0
+                    }
+                ]
+            },
+            options: {
+                responsive: false,
+                cutout: '82%',
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        enabled: false
+                    }
                 }
             }
+        })
+    }
+
+    const renderScheduleRows = (filterValue) => {
+        const rows = scheduleRows[filterValue] || []
+
+        if (!scheduleRowsContainer) {
+            return
         }
+
+        scheduleRowsContainer.innerHTML = rows.map((row) => {
+            return `
+                <div class="sprout-budget-schedule-modal__table-row ${row.is_current ? 'sprout-budget-schedule-modal__table-row--current' : ''}">
+                    <span>${row.period}</span>
+                    <span>${formatCurrency(row.plan)}</span>
+                    <span>${formatCurrency(row.spent)}</span>
+                    <span class="${Number(row.remain) < 0 ? 'sprout-budget-schedule-modal__remain--negative' : 'sprout-budget-schedule-modal__remain--positive'}">
+                        ${formatCurrency(row.remain)}
+                    </span>
+                </div>
+            `
+        }).join('')
+    }
+
+    const openScheduleModal = () => {
+        scheduleModal?.classList.remove('sprout-budget-schedule-modal--hidden')
+        renderScheduleRows(scheduleFilter?.value || 'all')
+    }
+
+    const closeScheduleModal = () => {
+        scheduleModal?.classList.add('sprout-budget-schedule-modal--hidden')
+    }
+
+    scheduleOpen?.addEventListener('click', openScheduleModal)
+    scheduleClose?.addEventListener('click', closeScheduleModal)
+    scheduleCloseBackdrop?.addEventListener('click', closeScheduleModal)
+
+    scheduleFilter?.addEventListener('change', (event) => {
+        renderScheduleRows(event.target.value)
     })
+
+    rebuildSummaryChart()
 })
 </script>
 @endif

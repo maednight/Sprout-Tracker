@@ -32,6 +32,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/budget', [BudgetController::class, 'store'])->name('budget.store');
     Route::get('/budget/{budget}/allocate', [BudgetController::class, 'allocate'])->name('budget.allocate');
     Route::put('/budget/{budget}/allocate', [BudgetController::class, 'updateAllocation'])->name('budget.allocate.update');
+    Route::delete('/budget/{budget}', [BudgetController::class, 'destroy'])->name('budget.destroy');
 
     Route::get('/savings', fn () => 'Savings page')->name('savings.index');
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Budget;
 use App\Models\BudgetItem;
+use App\Models\Transaction;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -29,12 +30,26 @@ class BudgetController extends Controller
         $categories = $this->getBudgetCategories();
         $categoryRows = $this->buildBudgetRows($budget, $categories);
         $totalAllocated = collect($categoryRows)->sum('amount');
+        $plannedPerDay = $this->calculatePlannedPerDay(
+            $totalAllocated,
+            $budget?->cycle ?? 'monthly',
+            $selectedMonthDate
+        );
+
+        $schedulePayload = $budget
+            ? $this->buildSchedulePayload($budget, $categories, $selectedMonthDate)
+            : [
+                'filters' => [],
+                'rows' => [],
+            ];
 
         return view('public.budget', [
             'budget' => $budget,
-            'categories' => $categories,
             'categoryRows' => $categoryRows,
             'totalAllocated' => $totalAllocated,
+            'plannedPerDay' => $plannedPerDay,
+            'scheduleFilters' => $schedulePayload['filters'],
+            'scheduleRows' => $schedulePayload['rows'],
             'displayMonthLabel' => $selectedMonthDate->format('F'),
             'selectedMonthValue' => $selectedMonthDate->format('Y-m'),
             'previousMonthValue' => $selectedMonthDate->copy()->subMonth()->format('Y-m'),
@@ -119,7 +134,6 @@ class BudgetController extends Controller
         abort_unless($budget->user_id === auth()->id(), 403);
 
         $categories = $this->getBudgetCategories();
-        $categoryKeys = collect($categories)->pluck('key')->all();
 
         $validatedData = $request->validate([
             'amounts' => ['required', 'array'],
@@ -154,6 +168,23 @@ class BudgetController extends Controller
             ])
             ->with('success', 'Budget allocation saved successfully.');
     }
+
+    /* Reset Budget */
+    public function destroy(Budget $budget): RedirectResponse
+    {
+        abort_unless($budget->user_id === auth()->id(), 403);
+
+        $periodMonth = optional($budget->period_date)->format('Y-m');
+
+        $budget->delete();
+
+        return redirect()
+            ->route('budget.index', [
+                'month' => $periodMonth,
+            ])
+            ->with('success', 'Budget was reset successfully.');
+    }
+
 /* Budget Categories */
 private function getBudgetCategories(): array
 {
@@ -189,12 +220,6 @@ private function getBudgetCategories(): array
             'color' => '#E74C3C',
         ],
         [
-            'key' => 'savings',
-            'name' => 'Savings',
-            'icon' => 'savings.svg',
-            'color' => '#2D9CDB',
-        ],
-        [
             'key' => 'others',
             'name' => 'Others',
             'icon' => 'others.svg',
@@ -202,6 +227,7 @@ private function getBudgetCategories(): array
         ],
     ];
 }
+
     /* Budget Rows */
     private function buildBudgetRows(?Budget $budget, array $categories): array
     {
@@ -222,6 +248,263 @@ private function getBudgetCategories(): array
                 'is_active' => $amount > 0,
             ];
         })->all();
+    }
+
+    /* Planned Per Day */
+    private function calculatePlannedPerDay(float $totalAllocated, string $cycle, Carbon $selectedMonthDate): float
+    {
+        $daysCount = match ($cycle) {
+            'daily' => 1,
+            'weekly' => 7,
+            'monthly' => $selectedMonthDate->daysInMonth,
+            'quarterly' => $selectedMonthDate->copy()->startOfQuarter()->diffInDays(
+                $selectedMonthDate->copy()->endOfQuarter()
+            ) + 1,
+            'yearly' => $selectedMonthDate->isLeapYear() ? 366 : 365,
+            default => $selectedMonthDate->daysInMonth,
+        };
+
+        if ($daysCount <= 0) {
+            return 0;
+        }
+
+        return round($totalAllocated / $daysCount, 2);
+    }
+
+    /* Schedule Payload */
+    private function buildSchedulePayload(Budget $budget, array $categories, Carbon $selectedMonthDate): array
+    {
+        $filters = [
+            [
+                'value' => 'all',
+                'label' => 'All',
+            ],
+        ];
+
+        foreach ($categories as $category) {
+            $filters[] = [
+                'value' => $category['key'],
+                'label' => $category['name'],
+            ];
+        }
+
+        $rows = [
+            'all' => $this->buildScheduleRowsForFilter(
+                $budget,
+                $categories,
+                $selectedMonthDate,
+                null
+            ),
+        ];
+
+        foreach ($categories as $category) {
+            $rows[$category['key']] = $this->buildScheduleRowsForFilter(
+                $budget,
+                $categories,
+                $selectedMonthDate,
+                $category
+            );
+        }
+
+        return [
+            'filters' => $filters,
+            'rows' => $rows,
+        ];
+    }
+
+    /* Schedule Rows */
+    private function buildScheduleRowsForFilter(
+        Budget $budget,
+        array $categories,
+        Carbon $selectedMonthDate,
+        ?array $selectedCategory
+    ): array {
+        $periods = $this->generateSchedulePeriods(
+            $budget,
+            $selectedMonthDate
+        );
+
+        return collect($periods)->map(function ($period) use ($budget, $categories, $selectedCategory) {
+            $planAmount = $this->calculatePlanAmountForPeriod(
+                $budget,
+                $categories,
+                $selectedCategory
+            );
+
+            $spentAmount = $this->calculateSpentAmountForPeriod(
+                $budget,
+                $period['start'],
+                $period['end'],
+                $selectedCategory
+            );
+
+            return [
+                'period' => $period['label'],
+                'plan' => round($planAmount, 2),
+                'spent' => round($spentAmount, 2),
+                'remain' => round($planAmount - $spentAmount, 2),
+                'is_current' => $period['is_current'],
+            ];
+        })->all();
+    }
+
+    /* Generate Schedule Periods */
+    private function generateSchedulePeriods(Budget $budget, Carbon $selectedMonthDate): array
+    {
+        $baseDate = $budget->period_date
+            ? Carbon::parse($budget->period_date)
+            : $selectedMonthDate->copy();
+
+        if (!$budget->is_reused) {
+            return [[
+                'label' => $this->formatPeriodLabel(
+                    $baseDate,
+                    $budget->cycle
+                ),
+                'start' => $this->resolvePeriodStart($baseDate, $budget->cycle),
+                'end' => $this->resolvePeriodEnd($baseDate, $budget->cycle),
+                'is_current' => true,
+            ]];
+        }
+
+        $rows = [];
+
+        for ($offset = -6; $offset <= 5; $offset++) {
+            $periodDate = $this->shiftPeriodDate(
+                $baseDate->copy(),
+                $budget->cycle,
+                $offset
+            );
+
+            $rows[] = [
+                'label' => $this->formatPeriodLabel($periodDate, $budget->cycle),
+                'start' => $this->resolvePeriodStart($periodDate, $budget->cycle),
+                'end' => $this->resolvePeriodEnd($periodDate, $budget->cycle),
+                'is_current' => $offset === 0,
+            ];
+        }
+
+        return $rows;
+    }
+
+    /* Calculate Plan Amount */
+    private function calculatePlanAmountForPeriod(
+        Budget $budget,
+        array $categories,
+        ?array $selectedCategory
+    ): float {
+        $budgetItems = $budget->items
+            ? $budget->items->keyBy(fn ($item) => mb_strtolower(trim($item->category_name)))
+            : collect();
+
+        if ($selectedCategory) {
+            $matchedItem = $budgetItems->get(mb_strtolower($selectedCategory['name']));
+
+            return $matchedItem ? (float) $matchedItem->allocated_amount : 0;
+        }
+
+        return collect($categories)->sum(function ($category) use ($budgetItems) {
+            $matchedItem = $budgetItems->get(mb_strtolower($category['name']));
+
+            return $matchedItem ? (float) $matchedItem->allocated_amount : 0;
+        });
+    }
+
+    /* Calculate Spent Amount */
+    private function calculateSpentAmountForPeriod(
+        Budget $budget,
+        Carbon $startDate,
+        Carbon $endDate,
+        ?array $selectedCategory
+    ): float {
+        $query = Transaction::query()
+            ->where('user_id', $budget->user_id)
+            ->where('type', 'expense')
+            ->whereBetween('occurred_at', [
+                $startDate->copy()->startOfDay(),
+                $endDate->copy()->endOfDay(),
+            ])
+            ->with('category');
+
+        $transactions = $query->get();
+
+        if ($selectedCategory) {
+            $selectedName = mb_strtolower($selectedCategory['name']);
+
+            $transactions = $transactions->filter(function ($transaction) use ($selectedName) {
+                $categoryName = mb_strtolower(trim($transaction->category?->name ?? ''));
+
+                return $categoryName === $selectedName;
+            });
+        } else {
+            $transactions = $transactions->filter(function ($transaction) {
+                $categoryName = mb_strtolower(trim($transaction->category?->name ?? ''));
+
+                return in_array($categoryName, [
+                    'food',
+                    'transportation',
+                    'household',
+                    'beauty',
+                    'health',
+                    'salary',
+                    'others',
+                ], true);
+            });
+        }
+
+        return (float) $transactions->sum('amount');
+    }
+
+    /* Shift Period Date */
+    private function shiftPeriodDate(Carbon $date, string $cycle, int $offset): Carbon
+    {
+        return match ($cycle) {
+            'daily' => $date->addDays($offset),
+            'weekly' => $date->addWeeks($offset),
+            'monthly' => $date->addMonths($offset),
+            'quarterly' => $date->addQuarters($offset),
+            'yearly' => $date->addYears($offset),
+            default => $date->addMonths($offset),
+        };
+    }
+
+    /* Period Start */
+    private function resolvePeriodStart(Carbon $date, string $cycle): Carbon
+    {
+        return match ($cycle) {
+            'daily' => $date->copy()->startOfDay(),
+            'weekly' => $date->copy()->startOfWeek(),
+            'monthly' => $date->copy()->startOfMonth(),
+            'quarterly' => $date->copy()->startOfQuarter(),
+            'yearly' => $date->copy()->startOfYear(),
+            default => $date->copy()->startOfMonth(),
+        };
+    }
+
+    /* Period End */
+    private function resolvePeriodEnd(Carbon $date, string $cycle): Carbon
+    {
+        return match ($cycle) {
+            'daily' => $date->copy()->endOfDay(),
+            'weekly' => $date->copy()->endOfWeek(),
+            'monthly' => $date->copy()->endOfMonth(),
+            'quarterly' => $date->copy()->endOfQuarter(),
+            'yearly' => $date->copy()->endOfYear(),
+            default => $date->copy()->endOfMonth(),
+        };
+    }
+
+    /* Period Label */
+    private function formatPeriodLabel(Carbon $date, string $cycle): string
+    {
+        return match ($cycle) {
+            'daily' => $date->format('Y M d'),
+            'weekly' => $date->copy()->startOfWeek()->format('Y M d') . ' - ' . $date->copy()->endOfWeek()->format('d'),
+            'monthly' => $date->format('Y M'),
+            'quarterly' => $date->format('Y') . ' Q' . $date->quarter,
+            'yearly' => $date->format('Y'),
+            default => $date->format('Y M'),
+        };
     }
 
     /* Resolve Month */

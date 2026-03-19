@@ -3,10 +3,12 @@
   --sprout-budget-green-dark: #00c957;
   --sprout-budget-text: #2b2b2b;
   --sprout-budget-text-light: #8d8d8d;
-  --sprout-budget-card: rgba(255, 255, 255, 0.78);
+  --sprout-budget-card: rgba(255, 255, 255, 0.86);
   --sprout-budget-line: rgba(0, 0, 0, 0.06);
   --sprout-budget-pill: #f1f1f1;
   --sprout-budget-null: #e7e7e7;
+  --sprout-budget-schedule-lavender: #dcd8fb;
+  --sprout-budget-schedule-text: #4b50a5;
 }
 
 /* Budget Page Shell Override */
@@ -51,7 +53,7 @@
   justify-content: center;
   gap: 12px;
   min-height: 30px;
-  margin-bottom: 40px;
+  margin-bottom: 32px;
 }
 
 /* Budget Month Arrow */
@@ -108,68 +110,6 @@
   text-decoration: none;
 }
 
-/* Budget Filled State */
-.sprout-budget__filled-state {
-  padding-top: 8px;
-}
-
-/* Budget Placeholder Card */
-.sprout-budget__placeholder-card {
-  background: var(--sprout-budget-card);
-  border-radius: 22px;
-  padding: 20px;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.06);
-  color: var(--sprout-budget-text-light);
-  font-family: 'Inter', sans-serif;
-  font-size: 14px;
-  text-align: center;
-}
-
-/* Budget Form Phone */
-.sprout-phone.sprout-budget.sprout-budget--form {
-  background: linear-gradient(
-    to bottom,
-    #ffffff 0%,
-    #f7fbf8 58%,
-    #99f3ab 100%
-  );
-}
-
-/* Budget Form Header */
-.sprout-budget-form__header {
-  display: grid;
-  grid-template-columns: 24px 1fr 24px;
-  align-items: center;
-  margin-bottom: 42px;
-  min-height: 28px;
-}
-
-/* Budget Form Close */
-.sprout-budget-form__close {
-  color: #1f1f1f;
-  font-size: 30px;
-  line-height: 1;
-  text-decoration: none;
-  text-align: left;
-}
-
-/* Budget Form Title */
-.sprout-budget-form__title {
-  margin: 0;
-  color: var(--sprout-budget-text);
-  font-family: 'Inter', sans-serif;
-  font-size: 18px;
-  font-weight: 700;
-  text-align: center;
-  line-height: 1.1;
-}
-
-/* Budget Form Spacer */
-.sprout-budget-form__spacer {
-  width: 24px;
-  height: 24px;
-}
-
 /* Budget Form Alert */
 .sprout-budget-form__alert {
   margin-bottom: 16px;
@@ -189,394 +129,188 @@
   color: #12a150;
 }
 
-/* Budget Form */
-.sprout-budget-form__form {
-  display: flex;
-  flex-direction: column;
-  min-height: calc(100vh - 120px);
+/* Budget Card */
+.sprout-budget-card {
+  background: var(--sprout-budget-card);
+  border-radius: 24px;
+  padding: 18px 18px 10px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06);
 }
 
-/* Budget Form Section */
-.sprout-budget-form__section {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-/* Budget Form Field Card */
-.sprout-budget-form__field-card {
-  width: 100%;
-  min-height: 80px;
-  background: rgba(255, 255, 255, 0.78);
-  border-radius: 18px;
-  padding: 16px;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.05);
-  box-sizing: border-box;
-}
-
-/* Budget Form Button Card */
-.sprout-budget-form__field-card--button {
-  border: none;
-  text-align: left;
-  cursor: pointer;
-  outline: none;
-}
-
-/* Budget Form Field Card Row */
-.sprout-budget-form__field-card--row {
+/* Budget Card Topline */
+.sprout-budget-card__topline {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-}
-
-/* Budget Form Toggle Card */
-.sprout-budget-form__field-card--toggle {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-/* Budget Form Field Grow */
-.sprout-budget-form__field-grow {
-  flex: 1;
-}
-
-.sprout-budget-form__field-grow--left {
-  min-width: 0;
-}
-
-/* Budget Form Label */
-.sprout-budget-form__label {
-  display: block;
-  margin-bottom: 10px;
-  color: var(--sprout-budget-text-light);
-  font-family: 'Inter', sans-serif;
-  font-size: 14px;
-  font-weight: 400;
-}
-
-/* Budget Form Input */
-.sprout-budget-form__input {
-  width: 100%;
-  border: none;
-  background: transparent;
-  padding: 0;
-  color: var(--sprout-budget-text);
-  font-family: 'Inter', sans-serif;
-  font-size: 16px;
-  font-weight: 400;
-  outline: none;
-}
-
-.sprout-budget-form__input::placeholder {
-  color: #b5b5b5;
-}
-
-/* Budget Form Input Display */
-.sprout-budget-form__input-display {
-  color: var(--sprout-budget-text);
-  font-family: 'Inter', sans-serif;
-  font-size: 16px;
-  font-weight: 400;
-  line-height: 1.2;
-}
-
-/* Budget Form Chevron */
-.sprout-budget-form__chevron {
-  color: #9a9a9a;
-  font-size: 24px;
-  line-height: 1;
-  flex-shrink: 0;
-}
-
-/* Budget Toggle Copy */
-.sprout-budget-form__toggle-copy {
-  flex: 1;
-}
-
-/* Budget Toggle Label Button */
-.sprout-budget-form__toggle-label-button {
-  border: none;
-  background: transparent;
-  padding: 0;
-  margin: 0;
-  cursor: pointer;
-}
-
-/* Budget Toggle Label */
-.sprout-budget-form__toggle-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  color: var(--sprout-budget-text-light);
-  font-family: 'Inter', sans-serif;
-  font-size: 14px;
-  font-weight: 400;
-}
-
-/* Budget Toggle Info */
-.sprout-budget-form__info {
-  width: 15px;
-  height: 15px;
-  border: 1px solid var(--sprout-budget-green);
-  border-radius: 999px;
-  color: var(--sprout-budget-green);
-  font-size: 10px;
-  line-height: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Budget Toggle Switch */
-.sprout-budget-form__toggle-switch {
-  width: 38px;
-  height: 20px;
-  border: none;
-  border-radius: 999px;
-  background: #d9d9d9;
-  position: relative;
-  flex-shrink: 0;
-  padding: 0;
-  cursor: pointer;
-}
-
-/* Budget Toggle Active */
-.sprout-budget-form__toggle-switch--active {
-  background: var(--sprout-budget-green);
-}
-
-/* Budget Toggle Thumb */
-.sprout-budget-form__toggle-thumb {
-  width: 14px;
-  height: 14px;
-  border-radius: 999px;
-  background: #ffffff;
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  transition: left 0.2s ease;
-}
-
-.sprout-budget-form__toggle-switch--active .sprout-budget-form__toggle-thumb {
-  left: 21px;
-}
-
-/* Budget Form Actions */
-.sprout-budget-form__actions {
-  margin-top: 26px;
-}
-
-/* Budget Form Next Button */
-.sprout-budget-form__next-button {
-  width: 100%;
-  height: 46px;
-  border: none;
-  border-radius: 10px;
-  background: var(--sprout-budget-green);
-  color: #ffffff;
-  font-family: 'Inter', sans-serif;
-  font-size: 15px;
-  font-weight: 500;
-  cursor: pointer;
-}
-
-/* Budget Info Modal */
-.sprout-budget-info-modal {
-  position: fixed;
-  inset: 0;
-  z-index: 90;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  box-sizing: border-box;
-}
-
-.sprout-budget-info-modal--hidden {
-  display: none;
-}
-
-/* Budget Info Modal Backdrop */
-.sprout-budget-info-modal__backdrop {
-  position: absolute;
-  inset: 0;
-  border: none;
-  background: rgba(0, 0, 0, 0.12);
-  padding: 0;
-  margin: 0;
-}
-
-/* Budget Info Modal Sheet */
-.sprout-budget-info-modal__sheet {
-  position: relative;
-  width: 100%;
-  max-width: 340px;
-  background: #ffffff;
-  border-radius: 22px;
-  padding: 22px 20px;
-  box-sizing: border-box;
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
-}
-
-/* Budget Info Modal Header */
-.sprout-budget-info-modal__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 14px;
-}
-
-/* Budget Info Modal Title */
-.sprout-budget-info-modal__title {
-  margin: 0;
-  color: #1f1f1f;
-  font-family: 'Inter', sans-serif;
-  font-size: 16px;
-  font-weight: 700;
-}
-
-/* Budget Info Modal Close */
-.sprout-budget-info-modal__close {
-  border: none;
-  background: transparent;
-  padding: 0;
-  margin: 0;
-  color: #1f1f1f;
-  font-size: 28px;
-  line-height: 1;
-  cursor: pointer;
-}
-
-/* Budget Info Modal Text */
-.sprout-budget-info-modal__text {
-  margin: 0;
-  color: #5e5e5e;
-  font-family: 'Inter', sans-serif;
-  font-size: 14px;
-  line-height: 1.6;
-}
-
-/* Budget Cycle Modal */
-.sprout-budget-cycle-modal {
-  position: fixed;
-  inset: 0;
-  z-index: 95;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-}
-
-.sprout-budget-cycle-modal--hidden {
-  display: none;
-}
-
-/* Budget Cycle Modal Backdrop */
-.sprout-budget-cycle-modal__backdrop {
-  position: absolute;
-  inset: 0;
-  border: none;
-  background: rgba(0, 0, 0, 0.12);
-  padding: 0;
-  margin: 0;
-}
-
-/* Budget Cycle Modal Sheet */
-.sprout-budget-cycle-modal__sheet {
-  position: relative;
-  width: 100%;
-  max-width: 414px;
-  min-height: 64vh;
-  background: #ffffff;
-  border-radius: 26px 26px 0 0;
-  padding: 22px 20px 28px;
-  box-sizing: border-box;
-  box-shadow: 0 -12px 32px rgba(0, 0, 0, 0.08);
-}
-
-/* Budget Cycle Modal Header */
-.sprout-budget-cycle-modal__header {
-  display: grid;
-  grid-template-columns: 28px 1fr 28px;
-  align-items: center;
-  margin-bottom: 18px;
-}
-
-/* Budget Cycle Modal Header Close */
-.sprout-budget-cycle-modal__header-close {
-  border: none;
-  background: transparent;
-  padding: 0;
-  margin: 0;
-  color: #1f1f1f;
-  font-size: 30px;
-  line-height: 1;
-  cursor: pointer;
-  text-align: left;
-}
-
-/* Budget Cycle Modal Header Space */
-.sprout-budget-cycle-modal__header-space {
-  width: 28px;
-  height: 28px;
-}
-
-/* Budget Cycle Modal Title */
-.sprout-budget-cycle-modal__title {
-  margin: 0;
-  color: #1f1f1f;
-  font-family: 'Inter', sans-serif;
-  font-size: 16px;
-  font-weight: 700;
-  text-align: center;
-}
-
-/* Budget Cycle List */
-.sprout-budget-cycle-modal__list {
-  display: flex;
-  flex-direction: column;
   gap: 12px;
-  margin-top: 8px;
+  margin-bottom: 12px;
 }
 
-/* Budget Cycle List Item */
-.sprout-budget-cycle-modal__list-item {
-  width: 100%;
-  height: 56px;
-  border-radius: 12px;
-  border: 1px solid #e7ece7;
-  background: #ffffff;
-  padding: 0 18px;
-  color: #6f6f6f;
+/* Budget Schedule Button */
+.sprout-budget-card__schedule-button {
+  border: none;
+  border-radius: 999px;
+  background: rgba(0, 243, 107, 0.12);
+  color: #00c957;
   font-family: 'Inter', sans-serif;
-  font-size: 14px;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-sizing: border-box;
-}
-
-/* Hover */
-.sprout-budget-cycle-modal__list-item:hover {
-  background: #f6faf6;
-}
-
-/* Budget Cycle Active */
-.sprout-budget-cycle-modal__list-item--active {
-  background: #00f36b;
-  border-color: #00f36b;
-  color: #ffffff;
+  font-size: 13px;
   font-weight: 600;
+  padding: 8px 14px;
+  cursor: pointer;
+}
+/* Budget Edit Button */
+.sprout-budget-card__edit-button {
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  background: rgba(0, 243, 107, 0.12);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.sprout-budget-card__edit-button img {
+  width: 16px;
+  height: 16px;
+  opacity: 1;
+  filter: brightness(0) saturate(100%) invert(57%) sepia(95%) saturate(1820%) hue-rotate(95deg) brightness(98%) contrast(102%);
 }
 
 /* Budget Summary */
-.sprout-budget-summary {
-  padding-top: 8px;
+.sprout-budget-card__summary {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+/* Budget Summary Chart */
+.sprout-budget-card__chart-wrap {
+  width: 132px;
+  height: 132px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sprout-budget-card__chart-wrap canvas,
+.sprout-budget-summary__chart-wrap canvas {
+  display: block;
+}
+
+.sprout-budget-summary__reset-form {
+  width: 100%;
+  margin-top: 10px;
+}
+
+/* Budget Summary Amount Wrap */
+.sprout-budget-card__amount-wrap {
+  min-width: 0;
+}
+
+/* Budget Summary Cycle */
+.sprout-budget-card__cycle {
+  margin: 0 0 2px;
+  color: #9f9f9f;
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+}
+
+/* Budget Summary Total */
+.sprout-budget-card__total {
+  margin: 0;
+  color: #111111;
+  font-family: 'Inter', sans-serif;
+  font-size: 34px;
+  font-weight: 700;
+  line-height: 1.05;
+}
+
+/* Budget Summary Per Day */
+.sprout-budget-card__per-day {
+  margin: 6px 0 0;
+  color: #9f9f9f;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 400;
+}
+
+/* Budget Category List */
+.sprout-budget-card__list {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Budget Category Row */
+.sprout-budget-card__row {
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* Budget Category Row Left */
+.sprout-budget-card__row-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+/* Budget Category Icon */
+.sprout-budget-card__row-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  background: var(--budget-row-color, #e7e7e7);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sprout-budget-card__row-icon img {
+  width: 19px;
+  height: 19px;
+  display: block;
+  filter: brightness(0) invert(1);
+}
+
+/* Budget Category Copy */
+.sprout-budget-card__row-copy {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+}
+
+/* Budget Category Name */
+.sprout-budget-card__row-name {
+  color: #171717;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+/* Budget Category Percent */
+.sprout-budget-card__row-percent {
+  color: #a5a5a5;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+/* Budget Category Amount */
+.sprout-budget-card__row-amount {
+  color: #111111;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 /* Budget Summary Topbar */
@@ -710,7 +444,6 @@
   flex-shrink: 0;
 }
 
-/* Budget Summary Item Icon Image */
 .sprout-budget-summary__item-icon img {
   width: 18px;
   height: 18px;
@@ -726,30 +459,9 @@
   font-weight: 400;
 }
 
-/* Budget Summary Item Amount */
-.sprout-budget-summary__item-amount {
-  min-width: 62px;
-  height: 24px;
-  padding: 0 10px;
-  border-radius: 999px;
-  background: var(--sprout-budget-pill);
-  color: #1b1b1b;
-  font-family: 'Inter', sans-serif;
-  font-size: 14px;
-  font-weight: 700;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
 /* Budget Summary Item Inactive */
-.sprout-budget-summary__item--inactive .sprout-budget-summary__item-name,
-.sprout-budget-summary__item--inactive .sprout-budget-summary__item-amount {
+.sprout-budget-summary__item--inactive .sprout-budget-summary__item-name {
   color: #bdbdbd;
-}
-
-.sprout-budget-summary__item--inactive .sprout-budget-summary__item-amount {
-  background: #efefef;
 }
 
 /* Budget Allocation */
@@ -811,6 +523,42 @@
 .sprout-budget-summary__actions {
   margin-top: 28px;
   padding-bottom: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Reset Form */
+.sprout-budget-summary__reset-form {
+  width: 100%;
+}
+
+/* Reset Button */
+.sprout-budget-summary__reset-button {
+  width: 100%;
+  height: 46px;
+  border: 1px solid #ffd4d4;
+  border-radius: 10px;
+  background: #fff6f6;
+  color: #d44b4b;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+/* Budget Form Next Button */
+.sprout-budget-form__next-button {
+  width: 100%;
+  height: 46px;
+  border: none;
+  border-radius: 10px;
+  background: var(--sprout-budget-green);
+  color: #ffffff;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
 }
 
 /* Budget Amount Modal */
@@ -823,12 +571,10 @@
   justify-content: center;
 }
 
-/* Budget Amount Modal Hidden */
 .sprout-budget-amount-modal--hidden {
   display: none;
 }
 
-/* Budget Amount Modal Backdrop */
 .sprout-budget-amount-modal__backdrop {
   position: absolute;
   inset: 0;
@@ -838,7 +584,6 @@
   margin: 0;
 }
 
-/* Budget Amount Modal Sheet */
 .sprout-budget-amount-modal__sheet {
   position: relative;
   width: 100%;
@@ -851,7 +596,6 @@
   box-shadow: 0 -12px 32px rgba(0, 0, 0, 0.08);
 }
 
-/* Budget Amount Modal Header */
 .sprout-budget-amount-modal__header {
   display: flex;
   align-items: center;
@@ -859,7 +603,6 @@
   margin-bottom: 24px;
 }
 
-/* Budget Amount Modal Title */
 .sprout-budget-amount-modal__title {
   margin: 0;
   color: #1f1f1f;
@@ -868,7 +611,6 @@
   font-weight: 700;
 }
 
-/* Budget Amount Modal Close */
 .sprout-budget-amount-modal__close {
   border: none;
   background: transparent;
@@ -880,14 +622,12 @@
   cursor: pointer;
 }
 
-/* Budget Amount Modal Body */
 .sprout-budget-amount-modal__body {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-/* Budget Amount Modal Label */
 .sprout-budget-amount-modal__label {
   color: #7c7c7c;
   font-family: 'Inter', sans-serif;
@@ -895,7 +635,6 @@
   font-weight: 400;
 }
 
-/* Budget Amount Modal Input Wrap */
 .sprout-budget-amount-modal__input-wrap {
   width: 100%;
   height: 46px;
@@ -909,7 +648,6 @@
   background: #ffffff;
 }
 
-/* Budget Amount Modal Peso */
 .sprout-budget-amount-modal__peso {
   color: #1f1f1f;
   font-family: 'Inter', sans-serif;
@@ -918,7 +656,6 @@
   line-height: 1;
 }
 
-/* Budget Amount Modal Input */
 .sprout-budget-amount-modal__input {
   width: 100%;
   border: none;
@@ -933,12 +670,10 @@
   outline: none;
 }
 
-/* Budget Amount Modal Input Placeholder */
 .sprout-budget-amount-modal__input::placeholder {
   color: #b5b5b5;
 }
 
-/* Budget Amount Modal Save */
 .sprout-budget-amount-modal__save {
   width: 100%;
   height: 46px;
@@ -953,30 +688,148 @@
   margin-top: 2px;
 }
 
+/* Budget Schedule Modal */
+.sprout-budget-schedule-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 130;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.sprout-budget-schedule-modal--hidden {
+  display: none;
+}
+
+.sprout-budget-schedule-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  border: none;
+  background: rgba(0, 0, 0, 0.12);
+  padding: 0;
+  margin: 0;
+}
+
+.sprout-budget-schedule-modal__sheet {
+  position: relative;
+  width: 100%;
+  max-width: 414px;
+  min-height: 100vh;
+  background: #ffffff;
+  padding: 22px 0 24px;
+  box-sizing: border-box;
+}
+
+.sprout-budget-schedule-modal__header {
+  padding: 0 24px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sprout-budget-schedule-modal__close {
+  border: none;
+  background: transparent;
+  color: #1f1f1f;
+  font-size: 38px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+}
+
+.sprout-budget-schedule-modal__filter-wrap {
+  display: flex;
+  justify-content: center;
+  flex: 1;
+}
+
+.sprout-budget-schedule-modal__filter {
+  border: none;
+  background: transparent;
+  color: var(--sprout-budget-schedule-text);
+  font-family: 'Inter', sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  outline: none;
+}
+
+.sprout-budget-schedule-modal__table-head {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr 1fr;
+  gap: 8px;
+  background: var(--sprout-budget-schedule-lavender);
+  color: var(--sprout-budget-schedule-text);
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 16px 24px;
+}
+
+.sprout-budget-schedule-modal__rows {
+  display: flex;
+  flex-direction: column;
+}
+
+.sprout-budget-schedule-modal__table-row {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr 1fr;
+  gap: 8px;
+  align-items: center;
+  padding: 18px 24px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  color: #1d1d1d;
+}
+
+.sprout-budget-schedule-modal__table-row--current {
+  background: #f4f0d8;
+}
+
+.sprout-budget-schedule-modal__remain--positive {
+  color: #6ec690;
+  font-weight: 700;
+}
+
+.sprout-budget-schedule-modal__remain--negative {
+  color: #d44b4b;
+  font-weight: 700;
+}
+
 /* Responsive Small */
 @media (max-width: 380px) {
   .sprout-budget__content {
     padding: 22px 20px 20px;
   }
 
-  .sprout-budget-summary__hero {
-    gap: 18px;
-    padding-left: 2px;
+  .sprout-budget-card {
+    padding: 16px 16px 8px;
   }
 
-  .sprout-budget-summary__amount {
-    font-size: 24px;
+  .sprout-budget-card__summary {
+    gap: 14px;
   }
 
-  .sprout-budget-summary__item-name {
-    font-size: 14px;
+  .sprout-budget-card__chart-wrap {
+    width: 120px;
+    height: 120px;
   }
 
-  .sprout-budget-summary__actions {
-    margin-top: 24px;
+  .sprout-budget-card__total {
+    font-size: 30px;
   }
 
-  .sprout-budget-amount-modal__sheet {
-    padding: 20px 20px 24px;
+  .sprout-budget-schedule-modal__header,
+  .sprout-budget-schedule-modal__table-head,
+  .sprout-budget-schedule-modal__table-row {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .sprout-budget-schedule-modal__table-head,
+  .sprout-budget-schedule-modal__table-row {
+    font-size: 13px;
   }
 }

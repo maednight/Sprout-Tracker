@@ -22,7 +22,6 @@
         <main class="sprout-budget__page">
             <div class="sprout-budget__content sprout-budget-allocation">
 
-                <!-- Budget Header -->
                 <header class="sprout-budget-summary__topbar">
                     <a
                         href="{{ route('budget.index', ['month' => optional($budget->period_date)->format('Y-m')]) }}"
@@ -37,19 +36,22 @@
                     <span class="sprout-budget-summary__topbar-space"></span>
                 </header>
 
-                <!-- Budget Error Alert -->
+                @if (session('success'))
+                    <div class="sprout-budget-form__alert sprout-budget-form__alert--success">
+                        {{ session('success') }}
+                    </div>
+                @endif
+
                 @if ($errors->any())
                     <div class="sprout-budget-form__alert sprout-budget-form__alert--error">
                         Please check your budget amounts and try again.
                     </div>
                 @endif
 
-                <!-- Budget Allocation Form -->
                 <form action="{{ route('budget.allocate.update', $budget) }}" method="POST" id="budget-allocation-form">
                     @csrf
                     @method('PUT')
 
-                    <!-- Budget Hero -->
                     <div class="sprout-budget-summary__hero">
                         <div class="sprout-budget-summary__chart-wrap">
                             <canvas id="budgetAllocationChart" width="120" height="120"></canvas>
@@ -70,7 +72,6 @@
                         </div>
                     </div>
 
-                    <!-- Budget Category List -->
                     <div class="sprout-budget-summary__list sprout-budget-summary__list--allocation">
                         @foreach ($categoryRows as $categoryRow)
                             @php
@@ -125,7 +126,6 @@
                         @endforeach
                     </div>
 
-                    <!-- Budget Actions -->
                     <div class="sprout-budget-summary__actions">
                         <button type="submit" class="sprout-budget-form__next-button">
                             Confirm
@@ -133,12 +133,25 @@
                     </div>
                 </form>
 
+                <form
+                    action="{{ route('budget.destroy', $budget) }}"
+                    method="POST"
+                    class="sprout-budget-summary__reset-form"
+                    onsubmit="return confirm('Reset this budget? This will remove the budget and its allocation.')"
+                >
+                    @csrf
+                    @method('DELETE')
+
+                    <button type="submit" class="sprout-budget-summary__reset-button">
+                        Reset Budget
+                    </button>
+                </form>
+
             </div>
         </main>
     </div>
 </div>
 
-<!-- Budget Amount Modal -->
 <div class="sprout-budget-amount-modal sprout-budget-amount-modal--hidden" id="budget-amount-modal">
     <button
         type="button"
@@ -250,7 +263,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const rebuildChart = () => {
-        if (!canvas) {
+        if (!canvas || typeof Chart === 'undefined') {
             return
         }
 
