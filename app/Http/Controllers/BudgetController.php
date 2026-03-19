@@ -3,18 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Models\Budget;
+use App\Models\BudgetItem;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use App\Models\Category;
-use App\Models\BudgetItem;
 
 class BudgetController extends Controller
 {
+    /* Budget Page */
     public function index(Request $request): View
     {
         $user = auth()->user();
+
         $selectedMonthDate = $this->resolveSelectedMonthDate(
             $request->query('month')
         );
@@ -25,8 +26,15 @@ class BudgetController extends Controller
             ->whereDate('period_date', $selectedMonthDate->toDateString())
             ->first();
 
+        $categories = $this->getBudgetCategories();
+        $categoryRows = $this->buildBudgetRows($budget, $categories);
+        $totalAllocated = collect($categoryRows)->sum('amount');
+
         return view('public.budget', [
             'budget' => $budget,
+            'categories' => $categories,
+            'categoryRows' => $categoryRows,
+            'totalAllocated' => $totalAllocated,
             'displayMonthLabel' => $selectedMonthDate->format('F'),
             'selectedMonthValue' => $selectedMonthDate->format('Y-m'),
             'previousMonthValue' => $selectedMonthDate->copy()->subMonth()->format('Y-m'),
@@ -34,6 +42,7 @@ class BudgetController extends Controller
         ]);
     }
 
+    /* Set Budget Page */
     public function create(Request $request): View
     {
         $selectedMonthDate = $this->resolveSelectedMonthDate(
@@ -43,12 +52,21 @@ class BudgetController extends Controller
         return view('public.budget-create', [
             'selectedMonthLabel' => $selectedMonthDate->format('F'),
             'selectedMonthValue' => $selectedMonthDate->format('Y-m'),
+            'cycleOptions' => [
+                'daily' => 'Daily',
+                'weekly' => 'Weekly',
+                'monthly' => 'Monthly',
+                'quarterly' => 'Quarterly',
+                'yearly' => 'Yearly',
+            ],
         ]);
     }
 
+    /* Store Budget */
     public function store(Request $request): RedirectResponse
     {
         $user = auth()->user();
+
         $selectedMonthDate = $this->resolveSelectedMonthDate(
             $request->input('month')
         );
@@ -73,11 +91,148 @@ class BudgetController extends Controller
         );
 
         return redirect()
-        ->route('budget.allocate', $budget)            
-        ->with('success', 'Budget basic details saved successfully.');
+            ->route('budget.allocate', $budget)
+            ->with('success', 'Budget basic details saved successfully.');
     }
 
-    /* Resolve selected month date */
+    /* Allocation Page */
+    public function allocate(Budget $budget): View
+    {
+        abort_unless($budget->user_id === auth()->id(), 403);
+
+        $budget->load('items');
+
+        $categories = $this->getBudgetCategories();
+        $categoryRows = $this->buildBudgetRows($budget, $categories);
+        $totalAllocated = collect($categoryRows)->sum('amount');
+
+        return view('public.budget-allocation', [
+            'budget' => $budget,
+            'categoryRows' => $categoryRows,
+            'totalAllocated' => $totalAllocated,
+        ]);
+    }
+
+    /* Update Allocation */
+    public function updateAllocation(Request $request, Budget $budget): RedirectResponse
+    {
+        abort_unless($budget->user_id === auth()->id(), 403);
+
+        $categories = $this->getBudgetCategories();
+        $categoryKeys = collect($categories)->pluck('key')->all();
+
+        $validatedData = $request->validate([
+            'amounts' => ['required', 'array'],
+            'amounts.*' => ['nullable', 'numeric', 'min:0', 'max:99999999.99'],
+        ]);
+
+        $amounts = $validatedData['amounts'] ?? [];
+
+        foreach ($categories as $category) {
+            $rawAmount = $amounts[$category['key']] ?? 0;
+            $amount = is_numeric($rawAmount) ? (float) $rawAmount : 0;
+
+            BudgetItem::updateOrCreate(
+                [
+                    'budget_id' => $budget->id,
+                    'category_name' => $category['name'],
+                ],
+                [
+                    'category_id' => null,
+                    'allocated_amount' => $amount,
+                ]
+            );
+        }
+
+        $budget->items()
+            ->whereNotIn('category_name', collect($categories)->pluck('name')->all())
+            ->delete();
+
+        return redirect()
+            ->route('budget.index', [
+                'month' => optional($budget->period_date)->format('Y-m'),
+            ])
+            ->with('success', 'Budget allocation saved successfully.');
+    }
+
+    /* Budget Categories */
+    private function getBudgetCategories(): array
+    {
+        return [
+            [
+                'key' => 'food',
+                'name' => 'Food',
+                'icon' => 'food&drinks.svg',
+                'color' => '#F2994A',
+            ],
+            [
+                'key' => 'transportation',
+                'name' => 'Transportation',
+                'icon' => 'transport.svg',
+                'color' => '#2D9CDB',
+            ],
+            [
+                'key' => 'household',
+                'name' => 'Household',
+                'icon' => 'homebills.svg',
+                'color' => '#BDBDBD',
+            ],
+            [
+                'key' => 'beauty',
+                'name' => 'Beauty',
+                'icon' => 'selfcare.svg',
+                'color' => '#BB6BD9',
+            ],
+            [
+                'key' => 'health',
+                'name' => 'Health',
+                'icon' => 'health.svg',
+                'color' => '#27AE60',
+            ],
+            [
+                'key' => 'salary',
+                'name' => 'Salary',
+                'icon' => 'salary.svg',
+                'color' => '#6FCF97',
+            ],
+            [
+                'key' => 'savings',
+                'name' => 'Savings',
+                'icon' => 'savings.svg',
+                'color' => '#F2C94C',
+            ],
+            [
+                'key' => 'others',
+                'name' => 'Others',
+                'icon' => 'others.svg',
+                'color' => '#D9D9D9',
+            ],
+        ];
+    }
+
+    /* Budget Rows */
+    private function buildBudgetRows(?Budget $budget, array $categories): array
+    {
+        $budgetItems = $budget?->items
+            ? $budget->items->keyBy(fn ($item) => mb_strtolower(trim($item->category_name)))
+            : collect();
+
+        return collect($categories)->map(function ($category) use ($budgetItems) {
+            $matchedItem = $budgetItems->get(mb_strtolower($category['name']));
+            $amount = $matchedItem ? (float) $matchedItem->allocated_amount : 0;
+
+            return [
+                'key' => $category['key'],
+                'name' => $category['name'],
+                'icon' => $category['icon'],
+                'color' => $category['color'],
+                'amount' => $amount,
+                'is_active' => $amount > 0,
+            ];
+        })->all();
+    }
+
+    /* Resolve Month */
     private function resolveSelectedMonthDate(?string $monthValue): Carbon
     {
         if (!$monthValue) {
@@ -90,32 +245,4 @@ class BudgetController extends Controller
             return now()->startOfMonth();
         }
     }
-}
-
-/* Budget Allocation Page */
-public function allocate(Budget $budget): View
-{
-    $user = auth()->user();
-
-    /* Important Default Categories */
-    $defaultCategories = [
-        ['name' => 'Transport', 'color' => '#2D9CDB'],
-        ['name' => 'Shopping', 'color' => '#F56C5B'],
-        ['name' => 'Home Bills', 'color' => '#BDBDBD'],
-        ['name' => 'Food', 'color' => '#F2994A'],
-        ['name' => 'Others', 'color' => '#D9D9D9'],
-    ];
-
-    $items = collect($defaultCategories)->map(function ($category) {
-        return [
-            'name' => $category['name'],
-            'color' => $category['color'],
-            'amount' => 0,
-        ];
-    });
-
-    return view('public.budget-allocation', [
-        'budget' => $budget,
-        'items' => $items,
-    ]);
 }

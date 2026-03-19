@@ -30,6 +30,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/budget', [BudgetController::class, 'index'])->name('budget.index');
     Route::get('/budget/create', [BudgetController::class, 'create'])->name('budget.create');
     Route::post('/budget', [BudgetController::class, 'store'])->name('budget.store');
+    Route::get('/budget/{budget}/allocate', [BudgetController::class, 'allocate'])->name('budget.allocate');
+    Route::put('/budget/{budget}/allocate', [BudgetController::class, 'updateAllocation'])->name('budget.allocate.update');
 
     Route::get('/savings', fn () => 'Savings page')->name('savings.index');
 
@@ -43,7 +45,6 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/transactions/create', [TransactionController::class, 'create'])->name('transaction.create');
     Route::post('/transactions', [TransactionController::class, 'store'])->name('transaction.store');
-
     Route::get('/transactions/{transaction}/edit', [TransactionController::class, 'edit'])->name('transaction.edit');
     Route::put('/transactions/{transaction}', [TransactionController::class, 'update'])->name('transaction.update');
     Route::delete('/transactions/{transaction}', [TransactionController::class, 'destroy'])->name('transaction.destroy');

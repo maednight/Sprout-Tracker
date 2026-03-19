@@ -1,333 +1,251 @@
-@php
-$budgetNameValue = old('name', '');
-$budgetCycleValue = old('cycle', 'monthly');
-$isReusedValue = old('is_reused', '1') === '1';
-
-$budgetCycleLabelMap = [
-    'daily' => 'Daily',
-    'weekly' => 'Weekly',
-    'monthly' => 'Monthly',
-    'quarterly' => 'Quarterly',
-    'yearly' => 'Yearly',
-];
-
-$budgetCycleLabel = $budgetCycleLabelMap[$budgetCycleValue] ?? 'Monthly';
-@endphp
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- Budget Create Head -->
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Set Budget - Sprout</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Set Budget - Sprout</title>
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inknut+Antiqua:wght@400;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet"
-    >
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link
+    href="https://fonts.googleapis.com/css2?family=Inknut+Antiqua:wght@400;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet"
+>
 
-    <!-- Vite Assets -->
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+@vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="sprout-font">
-    <!-- Budget App Shell -->
-    <div class="sprout-shell">
-        <div class="sprout-phone sprout-budget sprout-budget--form">
+<div class="sprout-shell">
+    <div class="sprout-phone sprout-budget sprout-budget--form">
+        <main class="sprout-budget__page">
+            <div class="sprout-budget__content">
 
-            <!-- Budget Main -->
-            <main class="sprout-budget__page">
-                <div class="sprout-budget__content">
+                <header class="sprout-budget-form__header">
+                    <a
+                        href="{{ route('budget.index', ['month' => $selectedMonthValue]) }}"
+                        class="sprout-budget-form__close"
+                        aria-label="Close set budget"
+                    >
+                        ×
+                    </a>
 
-                    @if ($errors->any())
-                        <div class="sprout-budget-form__alert sprout-budget-form__alert--error">
-                            @foreach ($errors->all() as $error)
-                                <div>{{ $error }}</div>
-                            @endforeach
+                    <h1 class="sprout-budget-form__title">Set Budget</h1>
+
+                    <span class="sprout-budget-form__spacer"></span>
+                </header>
+
+                @if ($errors->any())
+                    <div class="sprout-budget-form__alert sprout-budget-form__alert--error">
+                        Please check the form fields and try again.
+                    </div>
+                @endif
+
+                <form
+                    action="{{ route('budget.store') }}"
+                    method="POST"
+                    class="sprout-budget-form__form"
+                >
+                    @csrf
+
+                    <input type="hidden" name="month" value="{{ $selectedMonthValue }}">
+                    <input type="hidden" name="cycle" id="budget-cycle-input" value="{{ old('cycle', 'monthly') }}">
+                    <input type="hidden" name="is_reused" id="budget-reused-input" value="{{ old('is_reused', '1') }}">
+
+                    <section class="sprout-budget-form__section">
+                        <div class="sprout-budget-form__field-card">
+                            <label for="budget-name" class="sprout-budget-form__label">Name</label>
+
+                            <input
+                                id="budget-name"
+                                type="text"
+                                name="name"
+                                class="sprout-budget-form__input"
+                                value="{{ old('name') }}"
+                                placeholder="Enter budget name"
+                                maxlength="80"
+                                autocomplete="off"
+                            >
                         </div>
-                    @endif
 
-                    <!-- Budget Form Header -->
-                    <header class="sprout-budget-form__header">
-                        <a
-                            href="{{ route('budget.index', ['month' => $selectedMonthValue]) }}"
-                            class="sprout-budget-form__close"
-                            aria-label="Back to budget"
+                        <button
+                            type="button"
+                            class="sprout-budget-form__field-card sprout-budget-form__field-card--button sprout-budget-form__field-card--row"
+                            id="budget-cycle-trigger"
+                            aria-label="Open budget cycle options"
                         >
-                            ×
-                        </a>
+                            <div class="sprout-budget-form__field-grow sprout-budget-form__field-grow--left">
+                                <span class="sprout-budget-form__label">Budget Cycle</span>
+                                <span class="sprout-budget-form__input-display" id="budget-cycle-display">
+                                    {{ $cycleOptions[old('cycle', 'monthly')] }}
+                                </span>
+                            </div>
 
-                        <h1 class="sprout-budget-form__title">
-                            Set Budget
-                        </h1>
+                            <span class="sprout-budget-form__chevron">›</span>
+                        </button>
 
-                        <div class="sprout-budget-form__spacer" aria-hidden="true"></div>
-                    </header>
-
-                    <form method="POST" action="{{ route('budget.store') }}" class="sprout-budget-form__form">
-                        @csrf
-
-                        <input type="hidden" name="month" value="{{ $selectedMonthValue }}">
-                        <input
-                            type="hidden"
-                            name="is_reused"
-                            value="{{ $isReusedValue ? '1' : '0' }}"
-                            data-budget-reused-input
-                        >
-                        <input
-                            type="hidden"
-                            name="cycle"
-                            value="{{ $budgetCycleValue }}"
-                            data-budget-cycle-input
-                        >
-
-                        <!-- Budget Form Section -->
-                        <section class="sprout-budget-form__section">
-                            <div class="sprout-budget-form__field-card">
-                                <label class="sprout-budget-form__label" for="budget_name">
-                                    Name
-                                </label>
-
-                                <input
-                                    id="budget_name"
-                                    name="name"
-                                    type="text"
-                                    class="sprout-budget-form__input"
-                                    value="{{ $budgetNameValue }}"
-                                    placeholder="Enter budget name"
-                                    autocomplete="off"
+                        <div class="sprout-budget-form__field-card sprout-budget-form__field-card--toggle">
+                            <div class="sprout-budget-form__toggle-copy">
+                                <button
+                                    type="button"
+                                    class="sprout-budget-form__toggle-label-button"
+                                    id="budget-info-open"
                                 >
+                                    <span class="sprout-budget-form__toggle-label">
+                                        Reused Budget
+                                        <span class="sprout-budget-form__info">?</span>
+                                    </span>
+                                </button>
                             </div>
 
                             <button
                                 type="button"
-                                class="sprout-budget-form__field-card sprout-budget-form__field-card--row sprout-budget-form__field-card--button"
-                                data-budget-cycle-trigger
-                                aria-label="Open budget cycle options"
+                                class="sprout-budget-form__toggle-switch {{ old('is_reused', '1') === '1' ? 'sprout-budget-form__toggle-switch--active' : '' }}"
+                                id="budget-reused-toggle"
+                                aria-label="Toggle reused budget"
+                                aria-pressed="{{ old('is_reused', '1') === '1' ? 'true' : 'false' }}"
                             >
-                                <div class="sprout-budget-form__field-grow sprout-budget-form__field-grow--left">
-                                    <div class="sprout-budget-form__label">
-                                        Budget Cycle
-                                    </div>
-
-                                    <div
-                                        class="sprout-budget-form__input-display"
-                                        data-budget-cycle-display
-                                    >
-                                        {{ $budgetCycleLabel }}
-                                    </div>
-                                </div>
-
-                                <span class="sprout-budget-form__chevron">›</span>
-                            </button>
-
-                            <div class="sprout-budget-form__field-card sprout-budget-form__field-card--toggle">
-                                <div class="sprout-budget-form__toggle-copy">
-                                    <button
-                                        type="button"
-                                        class="sprout-budget-form__toggle-label-button"
-                                        data-budget-info-trigger
-                                    >
-                                        <span class="sprout-budget-form__toggle-label">
-                                            Reused Budget
-                                            <span class="sprout-budget-form__info">?</span>
-                                        </span>
-                                    </button>
-                                </div>
-
-                                <button
-                                    type="button"
-                                    class="sprout-budget-form__toggle-switch {{ $isReusedValue ? 'sprout-budget-form__toggle-switch--active' : '' }}"
-                                    data-budget-reused-toggle
-                                    aria-pressed="{{ $isReusedValue ? 'true' : 'false' }}"
-                                    aria-label="Toggle reused budget"
-                                >
-                                    <span class="sprout-budget-form__toggle-thumb"></span>
-                                </button>
-                            </div>
-                        </section>
-
-                        <!-- Budget Form Action -->
-                        <div class="sprout-budget-form__actions">
-                            <button
-                                type="submit"
-                                class="sprout-budget-form__next-button"
-                            >
-                                Next
+                                <span class="sprout-budget-form__toggle-thumb"></span>
                             </button>
                         </div>
-                    </form>
+                    </section>
 
-                </div>
-            </main>
+                    <div class="sprout-budget-form__actions">
+                        <button type="submit" class="sprout-budget-form__next-button">
+                            Next
+                        </button>
+                    </div>
+                </form>
 
-        </div>
+            </div>
+        </main>
     </div>
+</div>
 
-    <!-- Budget Info Modal -->
-    <div class="sprout-budget-info-modal sprout-budget-info-modal--hidden" data-budget-info-modal>
-        <button
-            type="button"
-            class="sprout-budget-info-modal__backdrop"
-            data-budget-info-close
-            aria-label="Close reused budget info"
-        ></button>
+<div class="sprout-budget-info-modal sprout-budget-info-modal--hidden" id="budget-info-modal">
+    <button type="button" class="sprout-budget-info-modal__backdrop" id="budget-info-close-backdrop"></button>
 
-        <div class="sprout-budget-info-modal__sheet" role="dialog" aria-modal="true" aria-labelledby="budgetInfoTitle">
-            <div class="sprout-budget-info-modal__header">
-                <h2 id="budgetInfoTitle" class="sprout-budget-info-modal__title">
-                    Reused Budget
-                </h2>
+    <div class="sprout-budget-info-modal__sheet">
+        <div class="sprout-budget-info-modal__header">
+            <h2 class="sprout-budget-info-modal__title">Reused Budget</h2>
 
+            <button type="button" class="sprout-budget-info-modal__close" id="budget-info-close-button">
+                ×
+            </button>
+        </div>
+
+        <p class="sprout-budget-info-modal__text">
+            When enabled, your budget setup can be reused again for the next cycle. If disabled, you will need to set a new budget manually for the next period.
+        </p>
+    </div>
+</div>
+
+<div class="sprout-budget-cycle-modal sprout-budget-cycle-modal--hidden" id="budget-cycle-modal">
+    <button type="button" class="sprout-budget-cycle-modal__backdrop" id="budget-cycle-close-backdrop"></button>
+
+    <div class="sprout-budget-cycle-modal__sheet">
+        <div class="sprout-budget-cycle-modal__header">
+            <button
+                type="button"
+                class="sprout-budget-cycle-modal__header-close"
+                id="budget-cycle-close-button"
+            >
+                ×
+            </button>
+
+            <h2 class="sprout-budget-cycle-modal__title">Budget Cycle</h2>
+
+            <span class="sprout-budget-cycle-modal__header-space"></span>
+        </div>
+
+        <div class="sprout-budget-cycle-modal__list">
+            @foreach ($cycleOptions as $cycleValue => $cycleLabel)
                 <button
                     type="button"
-                    class="sprout-budget-info-modal__close"
-                    data-budget-info-close
-                    aria-label="Close reused budget info"
+                    class="sprout-budget-cycle-modal__list-item {{ old('cycle', 'monthly') === $cycleValue ? 'sprout-budget-cycle-modal__list-item--active' : '' }}"
+                    data-cycle-option
+                    data-cycle-value="{{ $cycleValue }}"
+                    data-cycle-label="{{ $cycleLabel }}"
                 >
-                    ×
+                    {{ $cycleLabel }}
                 </button>
-            </div>
-
-            <p class="sprout-budget-info-modal__text">
-                If enabled, the budget will be reused for each period. If disabled you must manually set the budget for each period.
-            </p>
+            @endforeach
         </div>
     </div>
+</div>
 
-    <!-- Budget Cycle Modal -->
-    <div class="sprout-budget-cycle-modal sprout-budget-cycle-modal--hidden" data-budget-cycle-modal>
-        <button
-            type="button"
-            class="sprout-budget-cycle-modal__backdrop"
-            data-budget-cycle-close
-            aria-label="Close budget cycle options"
-        ></button>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const cycleModal = document.getElementById('budget-cycle-modal')
+    const cycleTrigger = document.getElementById('budget-cycle-trigger')
+    const cycleDisplay = document.getElementById('budget-cycle-display')
+    const cycleInput = document.getElementById('budget-cycle-input')
+    const cycleOptions = document.querySelectorAll('[data-cycle-option]')
+    const cycleCloseButton = document.getElementById('budget-cycle-close-button')
+    const cycleCloseBackdrop = document.getElementById('budget-cycle-close-backdrop')
 
-        <div class="sprout-budget-cycle-modal__sheet" role="dialog" aria-modal="true" aria-labelledby="budgetCycleTitle">
-            <div class="sprout-budget-cycle-modal__header">
-                <button
-                    type="button"
-                    class="sprout-budget-cycle-modal__header-close"
-                    data-budget-cycle-close
-                    aria-label="Close budget cycle options"
-                >
-                    ×
-                </button>
+    const reusedInput = document.getElementById('budget-reused-input')
+    const reusedToggle = document.getElementById('budget-reused-toggle')
 
-                <h2 id="budgetCycleTitle" class="sprout-budget-cycle-modal__title">
-                    Budget Cycle
-                </h2>
+    const infoModal = document.getElementById('budget-info-modal')
+    const infoOpen = document.getElementById('budget-info-open')
+    const infoCloseButton = document.getElementById('budget-info-close-button')
+    const infoCloseBackdrop = document.getElementById('budget-info-close-backdrop')
 
-                <div class="sprout-budget-cycle-modal__header-space" aria-hidden="true"></div>
-            </div>
+    const openCycleModal = () => {
+        cycleModal.classList.remove('sprout-budget-cycle-modal--hidden')
+    }
 
-            <div class="sprout-budget-cycle-modal__list">
-                <button type="button" class="sprout-budget-cycle-modal__list-item {{ $budgetCycleValue === 'daily' ? 'sprout-budget-cycle-modal__list-item--active' : '' }}" data-budget-cycle-option data-value="daily" data-label="Daily">
-                    <span>Daily</span>
-                    <span class="sprout-budget-cycle-modal__check"></span>
-                </button>
+    const closeCycleModal = () => {
+        cycleModal.classList.add('sprout-budget-cycle-modal--hidden')
+    }
 
-                <button type="button" class="sprout-budget-cycle-modal__list-item {{ $budgetCycleValue === 'weekly' ? 'sprout-budget-cycle-modal__list-item--active' : '' }}" data-budget-cycle-option data-value="weekly" data-label="Weekly">
-                    <span>Weekly</span>
-                    <span class="sprout-budget-cycle-modal__check"></span>
-                </button>
+    const openInfoModal = () => {
+        infoModal.classList.remove('sprout-budget-info-modal--hidden')
+    }
 
-                <button type="button" class="sprout-budget-cycle-modal__list-item {{ $budgetCycleValue === 'monthly' ? 'sprout-budget-cycle-modal__list-item--active' : '' }}" data-budget-cycle-option data-value="monthly" data-label="Monthly">
-                    <span>Monthly</span>
-                    <span class="sprout-budget-cycle-modal__check"></span>
-                </button>
+    const closeInfoModal = () => {
+        infoModal.classList.add('sprout-budget-info-modal--hidden')
+    }
 
-                <button type="button" class="sprout-budget-cycle-modal__list-item {{ $budgetCycleValue === 'quarterly' ? 'sprout-budget-cycle-modal__list-item--active' : '' }}" data-budget-cycle-option data-value="quarterly" data-label="Quarterly">
-                    <span>Quarterly</span>
-                    <span class="sprout-budget-cycle-modal__check"></span>
-                </button>
+    const updateReusedState = () => {
+        const isActive = reusedInput.value === '1'
 
-                <button type="button" class="sprout-budget-cycle-modal__list-item {{ $budgetCycleValue === 'yearly' ? 'sprout-budget-cycle-modal__list-item--active' : '' }}" data-budget-cycle-option data-value="yearly" data-label="Yearly">
-                    <span>Yearly</span>
-                    <span class="sprout-budget-cycle-modal__check"></span>
-                </button>
-            </div>
-        </div>
-    </div>
+        reusedToggle.classList.toggle('sprout-budget-form__toggle-switch--active', isActive)
+        reusedToggle.setAttribute('aria-pressed', isActive ? 'true' : 'false')
+    }
 
-    <script>
-        /* Budget Create Interactions */
-        document.addEventListener('DOMContentLoaded', function () {
-            const reusedToggleButton = document.querySelector('[data-budget-reused-toggle]')
-            const reusedInput = document.querySelector('[data-budget-reused-input]')
+    cycleTrigger?.addEventListener('click', openCycleModal)
+    cycleCloseButton?.addEventListener('click', closeCycleModal)
+    cycleCloseBackdrop?.addEventListener('click', closeCycleModal)
 
-            const infoTriggerButton = document.querySelector('[data-budget-info-trigger]')
-            const infoModal = document.querySelector('[data-budget-info-modal]')
-            const infoCloseButtons = document.querySelectorAll('[data-budget-info-close]')
+    infoOpen?.addEventListener('click', openInfoModal)
+    infoCloseButton?.addEventListener('click', closeInfoModal)
+    infoCloseBackdrop?.addEventListener('click', closeInfoModal)
 
-            const cycleTriggerButton = document.querySelector('[data-budget-cycle-trigger]')
-            const cycleModal = document.querySelector('[data-budget-cycle-modal]')
-            const cycleCloseButtons = document.querySelectorAll('[data-budget-cycle-close]')
-            const cycleOptions = document.querySelectorAll('[data-budget-cycle-option]')
-            const cycleInput = document.querySelector('[data-budget-cycle-input]')
-            const cycleDisplay = document.querySelector('[data-budget-cycle-display]')
+    reusedToggle?.addEventListener('click', () => {
+        reusedInput.value = reusedInput.value === '1' ? '0' : '1'
+        updateReusedState()
+    })
 
-            if (reusedToggleButton && reusedInput) {
-                reusedToggleButton.addEventListener('click', function () {
-                    const isActive = reusedInput.value === '1'
-                    const nextValue = isActive ? '0' : '1'
+    cycleOptions.forEach((option) => {
+        option.addEventListener('click', () => {
+            const selectedValue = option.getAttribute('data-cycle-value') || 'monthly'
+            const selectedLabel = option.getAttribute('data-cycle-label') || 'Monthly'
 
-                    reusedInput.value = nextValue
-                    reusedToggleButton.setAttribute('aria-pressed', nextValue === '1' ? 'true' : 'false')
-                    reusedToggleButton.classList.toggle('sprout-budget-form__toggle-switch--active', nextValue === '1')
-                })
-            }
+            cycleInput.value = selectedValue
+            cycleDisplay.textContent = selectedLabel
 
-            if (infoTriggerButton && infoModal) {
-                infoTriggerButton.addEventListener('click', function () {
-                    infoModal.classList.remove('sprout-budget-info-modal--hidden')
-                })
-            }
-
-            infoCloseButtons.forEach(function (closeButton) {
-                closeButton.addEventListener('click', function () {
-                    infoModal.classList.add('sprout-budget-info-modal--hidden')
-                })
+            cycleOptions.forEach((item) => {
+                item.classList.remove('sprout-budget-cycle-modal__list-item--active')
             })
 
-            if (cycleTriggerButton && cycleModal) {
-                cycleTriggerButton.addEventListener('click', function () {
-                    cycleModal.classList.remove('sprout-budget-cycle-modal--hidden')
-                })
-            }
-
-            cycleCloseButtons.forEach(function (closeButton) {
-                closeButton.addEventListener('click', function () {
-                    cycleModal.classList.add('sprout-budget-cycle-modal--hidden')
-                })
-            })
-
-            cycleOptions.forEach(function (cycleOption) {
-                cycleOption.addEventListener('click', function () {
-                    const nextValue = cycleOption.getAttribute('data-value') || 'monthly'
-                    const nextLabel = cycleOption.getAttribute('data-label') || 'Monthly'
-
-                    if (cycleInput) {
-                        cycleInput.value = nextValue
-                    }
-
-                    if (cycleDisplay) {
-                        cycleDisplay.textContent = nextLabel
-                    }
-
-                    cycleOptions.forEach(function (item) {
-                        item.classList.remove('sprout-budget-cycle-modal__list-item--active')
-                    })
-
-                    cycleOption.classList.add('sprout-budget-cycle-modal__list-item--active')
-                    cycleModal.classList.add('sprout-budget-cycle-modal--hidden')
-                })
-            })
+            option.classList.add('sprout-budget-cycle-modal__list-item--active')
+            closeCycleModal()
         })
-    </script>
+    })
+
+    updateReusedState()
+})
+</script>
 </body>
 </html>
