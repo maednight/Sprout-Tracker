@@ -154,62 +154,54 @@ class BudgetController extends Controller
             ])
             ->with('success', 'Budget allocation saved successfully.');
     }
-
-    /* Budget Categories */
-    private function getBudgetCategories(): array
-    {
-        return [
-            [
-                'key' => 'food',
-                'name' => 'Food',
-                'icon' => 'food&drinks.svg',
-                'color' => '#F2994A',
-            ],
-            [
-                'key' => 'transportation',
-                'name' => 'Transportation',
-                'icon' => 'transport.svg',
-                'color' => '#2D9CDB',
-            ],
-            [
-                'key' => 'household',
-                'name' => 'Household',
-                'icon' => 'homebills.svg',
-                'color' => '#BDBDBD',
-            ],
-            [
-                'key' => 'beauty',
-                'name' => 'Beauty',
-                'icon' => 'selfcare.svg',
-                'color' => '#BB6BD9',
-            ],
-            [
-                'key' => 'health',
-                'name' => 'Health',
-                'icon' => 'health.svg',
-                'color' => '#27AE60',
-            ],
-            [
-                'key' => 'salary',
-                'name' => 'Salary',
-                'icon' => 'salary.svg',
-                'color' => '#6FCF97',
-            ],
-            [
-                'key' => 'savings',
-                'name' => 'Savings',
-                'icon' => 'savings.svg',
-                'color' => '#F2C94C',
-            ],
-            [
-                'key' => 'others',
-                'name' => 'Others',
-                'icon' => 'others.svg',
-                'color' => '#D9D9D9',
-            ],
-        ];
-    }
-
+/* Budget Categories */
+private function getBudgetCategories(): array
+{
+    return [
+        [
+            'key' => 'food',
+            'name' => 'Food',
+            'icon' => 'food&drinks.svg',
+            'color' => '#F2994A',
+        ],
+        [
+            'key' => 'transportation',
+            'name' => 'Transportation',
+            'icon' => 'transport.svg',
+            'color' => '#EB5757',
+        ],
+        [
+            'key' => 'household',
+            'name' => 'Household',
+            'icon' => 'homebills.svg',
+            'color' => '#9B51E0',
+        ],
+        [
+            'key' => 'beauty',
+            'name' => 'Beauty',
+            'icon' => 'selfcare.svg',
+            'color' => '#FF6FAE',
+        ],
+        [
+            'key' => 'health',
+            'name' => 'Health',
+            'icon' => 'health.svg',
+            'color' => '#E74C3C',
+        ],
+        [
+            'key' => 'savings',
+            'name' => 'Savings',
+            'icon' => 'savings.svg',
+            'color' => '#2D9CDB',
+        ],
+        [
+            'key' => 'others',
+            'name' => 'Others',
+            'icon' => 'others.svg',
+            'color' => '#F2C94C',
+        ],
+    ];
+}
     /* Budget Rows */
     private function buildBudgetRows(?Budget $budget, array $categories): array
     {
