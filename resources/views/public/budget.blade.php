@@ -12,8 +12,6 @@
     rel="stylesheet"
 >
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="sprout-font">
@@ -65,6 +63,35 @@
                         </a>
                     </section>
                 @else
+                    @php
+                        $activeRows = collect($categoryRows)->filter(fn ($row) => (float) $row['amount'] > 0)->values();
+                        $gradientParts = [];
+                        $currentStop = 0;
+
+                        if ($activeRows->count() > 0 && $totalAllocated > 0) {
+                            foreach ($activeRows as $index => $row) {
+                                $slice = ((float) $row['amount'] / (float) $totalAllocated) * 100;
+                                $start = $currentStop;
+                                $end = $currentStop + $slice;
+
+                                $gradientParts[] = "{$row['color']} {$start}% {$end}%";
+
+                                if ($index < $activeRows->count() - 1) {
+                                    $separatorStart = max($end - 0.45, $start);
+                                    $separatorEnd = min($end + 0.45, 100);
+
+                                    $gradientParts[] = "#ffffff {$separatorStart}% {$separatorEnd}%";
+                                }
+
+                                $currentStop = $end;
+                            }
+
+                            $donutGradient = 'conic-gradient(' . implode(', ', $gradientParts) . ')';
+                        } else {
+                            $donutGradient = 'conic-gradient(#E4E4E4 0% 100%)';
+                        }
+                    @endphp
+
                     <section class="sprout-budget-card">
                         <div class="sprout-budget-card__topline">
                             <button
@@ -86,7 +113,11 @@
 
                         <div class="sprout-budget-card__summary">
                             <div class="sprout-budget-card__chart-wrap">
-                                <canvas id="budgetSummaryChart" width="132" height="132"></canvas>
+                                <div
+                                    class="sprout-budget-card__donut"
+                                    style="--budget-donut-gradient: {{ $donutGradient }};"
+                                    aria-label="Budget chart"
+                                ></div>
                             </div>
 
                             <div class="sprout-budget-card__amount-wrap">
@@ -198,18 +229,14 @@
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-    const summaryCanvas = document.getElementById('budgetSummaryChart')
+document.addEventListener('DOMContentLoaded', function () {
     const scheduleModal = document.getElementById('budget-schedule-modal')
     const scheduleOpen = document.getElementById('budget-schedule-open')
     const scheduleClose = document.getElementById('budget-schedule-close')
     const scheduleCloseBackdrop = document.getElementById('budget-schedule-close-backdrop')
     const scheduleFilter = document.getElementById('budget-schedule-filter')
     const scheduleRowsContainer = document.getElementById('budget-schedule-rows')
-
-    const rawRows = @json($categoryRows)
     const scheduleRows = @json($scheduleRows)
-    let summaryChart = null
 
     const formatCurrency = (value) => {
         const numericValue = Number(value || 0)
@@ -220,88 +247,67 @@ document.addEventListener('DOMContentLoaded', () => {
         }).format(numericValue)}`
     }
 
-    const rebuildSummaryChart = () => {
-        if (!summaryCanvas || typeof Chart === 'undefined') {
-            return
-        }
-
-        const activeRows = rawRows.filter((row) => Number(row.amount) > 0)
-        const hasData = activeRows.length > 0
-
-        const datasetValues = hasData ? activeRows.map((row) => Number(row.amount)) : [1]
-        const datasetColors = hasData ? activeRows.map((row) => row.color) : ['#E4E4E4']
-
-        if (summaryChart) {
-            summaryChart.destroy()
-        }
-
-        summaryChart = new Chart(summaryCanvas, {
-            type: 'doughnut',
-            data: {
-                datasets: [
-                    {
-                        data: datasetValues,
-                        backgroundColor: datasetColors,
-                        borderColor: hasData ? '#ffffff' : 'transparent',
-                        borderWidth: hasData ? 3 : 0,
-                        hoverOffset: 0
-                    }
-                ]
-            },
-            options: {
-                responsive: false,
-                cutout: '82%',
-                plugins: {
-                    legend: {
-                        display: false
-                    },
-                    tooltip: {
-                        enabled: false
-                    }
-                }
-            }
-        })
-    }
-
     const renderScheduleRows = (filterValue) => {
-        const rows = scheduleRows[filterValue] || []
-
         if (!scheduleRowsContainer) {
             return
         }
 
+        const rows = scheduleRows[filterValue] || []
+
         scheduleRowsContainer.innerHTML = rows.map((row) => {
+            const remainClass = Number(row.remain) < 0
+                ? 'sprout-budget-schedule-modal__remain--negative'
+                : 'sprout-budget-schedule-modal__remain--positive'
+
+            const currentClass = row.is_current
+                ? 'sprout-budget-schedule-modal__table-row sprout-budget-schedule-modal__table-row--current'
+                : 'sprout-budget-schedule-modal__table-row'
+
             return `
-                <div class="sprout-budget-schedule-modal__table-row ${row.is_current ? 'sprout-budget-schedule-modal__table-row--current' : ''}">
+                <div class="${currentClass}">
                     <span>${row.period}</span>
                     <span>${formatCurrency(row.plan)}</span>
                     <span>${formatCurrency(row.spent)}</span>
-                    <span class="${Number(row.remain) < 0 ? 'sprout-budget-schedule-modal__remain--negative' : 'sprout-budget-schedule-modal__remain--positive'}">
-                        ${formatCurrency(row.remain)}
-                    </span>
+                    <span class="${remainClass}">${formatCurrency(row.remain)}</span>
                 </div>
             `
         }).join('')
     }
 
     const openScheduleModal = () => {
-        scheduleModal?.classList.remove('sprout-budget-schedule-modal--hidden')
-        renderScheduleRows(scheduleFilter?.value || 'all')
+        if (!scheduleModal) {
+            return
+        }
+
+        scheduleModal.classList.remove('sprout-budget-schedule-modal--hidden')
+        renderScheduleRows(scheduleFilter ? scheduleFilter.value : 'all')
     }
 
     const closeScheduleModal = () => {
-        scheduleModal?.classList.add('sprout-budget-schedule-modal--hidden')
+        if (!scheduleModal) {
+            return
+        }
+
+        scheduleModal.classList.add('sprout-budget-schedule-modal--hidden')
     }
 
-    scheduleOpen?.addEventListener('click', openScheduleModal)
-    scheduleClose?.addEventListener('click', closeScheduleModal)
-    scheduleCloseBackdrop?.addEventListener('click', closeScheduleModal)
+    if (scheduleOpen) {
+        scheduleOpen.addEventListener('click', openScheduleModal)
+    }
 
-    scheduleFilter?.addEventListener('change', (event) => {
-        renderScheduleRows(event.target.value)
-    })
+    if (scheduleClose) {
+        scheduleClose.addEventListener('click', closeScheduleModal)
+    }
 
-    rebuildSummaryChart()
+    if (scheduleCloseBackdrop) {
+        scheduleCloseBackdrop.addEventListener('click', closeScheduleModal)
+    }
+
+    if (scheduleFilter) {
+        scheduleFilter.addEventListener('change', function (event) {
+            renderScheduleRows(event.target.value)
+        })
+    }
 })
 </script>
 @endif

@@ -3,7 +3,7 @@
   --sprout-budget-green-dark: #00c957;
   --sprout-budget-text: #2b2b2b;
   --sprout-budget-text-light: #8d8d8d;
-  --sprout-budget-card: rgba(255, 255, 255, 0.86);
+  --sprout-budget-card: rgba(255, 255, 255, 0.88);
   --sprout-budget-line: rgba(0, 0, 0, 0.06);
   --sprout-budget-pill: #f1f1f1;
   --sprout-budget-null: #e7e7e7;
@@ -29,6 +29,16 @@
     #ffffff 0%,
     #f7fbf8 60%,
     #b8f7c2 100%
+  );
+}
+
+/* Budget Form Phone */
+.sprout-phone.sprout-budget.sprout-budget--form {
+  background: linear-gradient(
+    to bottom,
+    #ffffff 0%,
+    #f7fbf8 58%,
+    #99f3ab 100%
   );
 }
 
@@ -133,8 +143,9 @@
 .sprout-budget-card {
   background: var(--sprout-budget-card);
   border-radius: 24px;
-  padding: 18px 18px 10px;
+  padding: 18px 18px 18px;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06);
+  min-height: calc(100vh - 220px);
 }
 
 /* Budget Card Topline */
@@ -158,6 +169,7 @@
   padding: 8px 14px;
   cursor: pointer;
 }
+
 /* Budget Edit Button */
 .sprout-budget-card__edit-button {
   width: 38px;
@@ -195,14 +207,22 @@
   flex-shrink: 0;
 }
 
-.sprout-budget-card__chart-wrap canvas,
-.sprout-budget-summary__chart-wrap canvas {
-  display: block;
+/* Budget Summary Donut */
+.sprout-budget-card__donut {
+  width: 132px;
+  height: 132px;
+  border-radius: 50%;
+  background: var(--budget-donut-gradient, conic-gradient(#E4E4E4 0% 100%));
+  position: relative;
+  flex-shrink: 0;
 }
 
-.sprout-budget-summary__reset-form {
-  width: 100%;
-  margin-top: 10px;
+.sprout-budget-card__donut::after {
+  content: '';
+  position: absolute;
+  inset: 18px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.96);
 }
 
 /* Budget Summary Amount Wrap */
@@ -311,6 +331,222 @@
   font-size: 15px;
   font-weight: 700;
   white-space: nowrap;
+}
+
+/* Budget Form Header */
+.sprout-budget-form__header {
+  display: grid;
+  grid-template-columns: 24px 1fr 24px;
+  align-items: center;
+  margin-bottom: 42px;
+  min-height: 28px;
+}
+
+/* Budget Form Close */
+.sprout-budget-form__close {
+  color: #1f1f1f;
+  font-size: 30px;
+  line-height: 1;
+  text-decoration: none;
+  text-align: left;
+}
+
+/* Budget Form Title */
+.sprout-budget-form__title {
+  margin: 0;
+  color: var(--sprout-budget-text);
+  font-family: 'Inter', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.1;
+}
+
+/* Budget Form Spacer */
+.sprout-budget-form__spacer {
+  width: 24px;
+  height: 24px;
+}
+
+/* Budget Form */
+.sprout-budget-form__form {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Budget Form Section */
+.sprout-budget-form__section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Budget Form Field Card */
+.sprout-budget-form__field-card {
+  width: 100%;
+  min-height: 80px;
+  background: rgba(255, 255, 255, 0.78);
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
+}
+
+/* Budget Form Button Card */
+.sprout-budget-form__field-card--button {
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  outline: none;
+}
+
+/* Budget Form Field Card Row */
+.sprout-budget-form__field-card--row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+/* Budget Form Toggle Card */
+.sprout-budget-form__field-card--toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+/* Budget Form Field Grow */
+.sprout-budget-form__field-grow {
+  flex: 1;
+}
+
+.sprout-budget-form__field-grow--left {
+  min-width: 0;
+}
+
+/* Budget Form Label */
+.sprout-budget-form__label {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--sprout-budget-text-light);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+/* Budget Form Input */
+.sprout-budget-form__input {
+  display: block;
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 0;
+  color: var(--sprout-budget-text);
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  outline: none;
+}
+
+.sprout-budget-form__input::placeholder {
+  color: #b5b5b5;
+}
+
+/* Budget Form Input Display */
+.sprout-budget-form__input-display {
+  display: block;
+  color: var(--sprout-budget-text);
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.2;
+}
+
+/* Budget Form Chevron */
+.sprout-budget-form__chevron {
+  color: #9a9a9a;
+  font-size: 24px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+/* Budget Toggle Copy */
+.sprout-budget-form__toggle-copy {
+  flex: 1;
+}
+
+/* Budget Toggle Label Button */
+.sprout-budget-form__toggle-label-button {
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+/* Budget Toggle Label */
+.sprout-budget-form__toggle-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--sprout-budget-text-light);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+/* Budget Toggle Info */
+.sprout-budget-form__info {
+  width: 15px;
+  height: 15px;
+  border: 1px solid var(--sprout-budget-green);
+  border-radius: 999px;
+  color: var(--sprout-budget-green);
+  font-size: 10px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Budget Toggle Switch */
+.sprout-budget-form__toggle-switch {
+  width: 38px;
+  height: 20px;
+  border: none;
+  border-radius: 999px;
+  background: #d9d9d9;
+  position: relative;
+  flex-shrink: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+/* Budget Toggle Active */
+.sprout-budget-form__toggle-switch--active {
+  background: var(--sprout-budget-green);
+}
+
+/* Budget Toggle Thumb */
+.sprout-budget-form__toggle-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: #ffffff;
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  transition: left 0.2s ease;
+}
+
+.sprout-budget-form__toggle-switch--active .sprout-budget-form__toggle-thumb {
+  left: 21px;
+}
+
+/* Budget Form Actions */
+.sprout-budget-form__actions {
+  margin-top: 26px;
 }
 
 /* Budget Summary Topbar */
@@ -531,6 +767,7 @@
 /* Reset Form */
 .sprout-budget-summary__reset-form {
   width: 100%;
+  margin-top: 10px;
 }
 
 /* Reset Button */
@@ -688,6 +925,181 @@
   margin-top: 2px;
 }
 
+/* Budget Info Modal */
+.sprout-budget-info-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.sprout-budget-info-modal--hidden {
+  display: none;
+}
+
+.sprout-budget-info-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  border: none;
+  background: rgba(0, 0, 0, 0.12);
+  padding: 0;
+  margin: 0;
+}
+
+.sprout-budget-info-modal__sheet {
+  position: relative;
+  width: 100%;
+  max-width: 340px;
+  background: #ffffff;
+  border-radius: 22px;
+  padding: 22px 20px;
+  box-sizing: border-box;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+}
+
+.sprout-budget-info-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.sprout-budget-info-modal__title {
+  margin: 0;
+  color: #1f1f1f;
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.sprout-budget-info-modal__close {
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  color: #1f1f1f;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.sprout-budget-info-modal__text {
+  margin: 0;
+  color: #5e5e5e;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* Budget Cycle Modal */
+.sprout-budget-cycle-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 95;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.sprout-budget-cycle-modal--hidden {
+  display: none;
+}
+
+.sprout-budget-cycle-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  border: none;
+  background: rgba(0, 0, 0, 0.12);
+  padding: 0;
+  margin: 0;
+}
+
+.sprout-budget-cycle-modal__sheet {
+  position: relative;
+  width: 100%;
+  max-width: 414px;
+  min-height: 64vh;
+  background: #ffffff;
+  border-radius: 26px 26px 0 0;
+  padding: 22px 20px 28px;
+  box-sizing: border-box;
+  box-shadow: 0 -12px 32px rgba(0, 0, 0, 0.08);
+}
+
+.sprout-budget-cycle-modal__header {
+  display: grid;
+  grid-template-columns: 28px 1fr 28px;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.sprout-budget-cycle-modal__header-close {
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  color: #1f1f1f;
+  font-size: 30px;
+  line-height: 1;
+  cursor: pointer;
+  text-align: left;
+}
+
+.sprout-budget-cycle-modal__header-space {
+  width: 28px;
+  height: 28px;
+}
+
+.sprout-budget-cycle-modal__title {
+  margin: 0;
+  color: #1f1f1f;
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.sprout-budget-cycle-modal__list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.sprout-budget-cycle-modal__list-item {
+  width: 100%;
+  height: 56px;
+  border-radius: 12px;
+  border: 1px solid #e7ece7;
+  background: #ffffff;
+  padding: 0 18px;
+  color: #6f6f6f;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.sprout-budget-cycle-modal__list-item:hover {
+  background: #f6faf6;
+}
+
+.sprout-budget-cycle-modal__list-item--active {
+  background: #00f36b;
+  border-color: #00f36b;
+  color: #ffffff;
+  font-weight: 600;
+}
+
 /* Budget Schedule Modal */
 .sprout-budget-schedule-modal {
   position: fixed;
@@ -805,7 +1217,8 @@
   }
 
   .sprout-budget-card {
-    padding: 16px 16px 8px;
+    padding: 16px 16px 16px;
+    min-height: calc(100vh - 210px);
   }
 
   .sprout-budget-card__summary {
@@ -815,6 +1228,15 @@
   .sprout-budget-card__chart-wrap {
     width: 120px;
     height: 120px;
+  }
+
+  .sprout-budget-card__donut {
+    width: 120px;
+    height: 120px;
+  }
+
+  .sprout-budget-card__donut::after {
+    inset: 16px;
   }
 
   .sprout-budget-card__total {
