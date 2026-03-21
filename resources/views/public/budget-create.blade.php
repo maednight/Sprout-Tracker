@@ -48,8 +48,15 @@
                     @csrf
 
                     <input type="hidden" name="month" value="{{ $selectedMonthValue }}">
-                    <input type="hidden" name="cycle" id="budget-cycle-input" value="{{ old('cycle', 'monthly') }}">
-                    <input type="hidden" name="is_reused" id="budget-reused-input" value="{{ old('is_reused', '1') }}">
+                    <input type="hidden" name="source_budget_id" value="{{ $sourceBudget?->id }}">
+                    <input type="hidden" name="cycle" id="budget-cycle-input" value="{{ old('cycle', $sourceBudget?->cycle ?? 'monthly') }}">
+                    <input type="hidden" name="is_reused" id="budget-reused-input" value="{{ old('is_reused', $sourceBudget ? ($sourceBudget->is_reused ? '1' : '0') : '1') }}">
+
+                    @if ($isOverrideMode)
+                        <div class="sprout-budget-form__alert sprout-budget-form__alert--success">
+                            Creating a custom budget for {{ $selectedMonthLabel }} using your reusable budget as a starting point.
+                        </div>
+                    @endif
 
                     <section class="sprout-budget-form__section">
                         <div class="sprout-budget-form__field-card">
@@ -60,7 +67,7 @@
                                 type="text"
                                 name="name"
                                 class="sprout-budget-form__input"
-                                value="{{ old('name') }}"
+                                value="{{ old('name', $sourceBudget?->name) }}"
                                 placeholder="Enter budget name"
                                 maxlength="80"
                                 autocomplete="off"
@@ -76,7 +83,7 @@
                             <div class="sprout-budget-form__field-grow sprout-budget-form__field-grow--left">
                                 <span class="sprout-budget-form__label">Budget Cycle</span>
                                 <span class="sprout-budget-form__input-display" id="budget-cycle-display">
-                                    {{ $cycleOptions[old('cycle', 'monthly')] }}
+                                    {{ $cycleOptions[old('cycle', $sourceBudget?->cycle ?? 'monthly')] }}
                                 </span>
                             </div>
 
@@ -99,10 +106,10 @@
 
                             <button
                                 type="button"
-                                class="sprout-budget-form__toggle-switch {{ old('is_reused', '1') === '1' ? 'sprout-budget-form__toggle-switch--active' : '' }}"
+                                class="sprout-budget-form__toggle-switch {{ old('is_reused', $sourceBudget ? ($sourceBudget->is_reused ? '1' : '0') : '1') === '1' ? 'sprout-budget-form__toggle-switch--active' : '' }}"
                                 id="budget-reused-toggle"
                                 aria-label="Toggle reused budget"
-                                aria-pressed="{{ old('is_reused', '1') === '1' ? 'true' : 'false' }}"
+                                aria-pressed="{{ old('is_reused', $sourceBudget ? ($sourceBudget->is_reused ? '1' : '0') : '1') === '1' ? 'true' : 'false' }}"
                             >
                                 <span class="sprout-budget-form__toggle-thumb"></span>
                             </button>
@@ -161,7 +168,7 @@
             @foreach ($cycleOptions as $cycleValue => $cycleLabel)
                 <button
                     type="button"
-                    class="sprout-budget-cycle-modal__list-item {{ old('cycle', 'monthly') === $cycleValue ? 'sprout-budget-cycle-modal__list-item--active' : '' }}"
+                    class="sprout-budget-cycle-modal__list-item {{ old('cycle', $sourceBudget?->cycle ?? 'monthly') === $cycleValue ? 'sprout-budget-cycle-modal__list-item--active' : '' }}"
                     data-cycle-option
                     data-cycle-value="{{ $cycleValue }}"
                     data-cycle-label="{{ $cycleLabel }}"

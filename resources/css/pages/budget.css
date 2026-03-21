@@ -7,8 +7,10 @@
   --sprout-budget-line: rgba(0, 0, 0, 0.06);
   --sprout-budget-pill: #f1f1f1;
   --sprout-budget-null: #e7e7e7;
-  --sprout-budget-schedule-lavender: #dcd8fb;
-  --sprout-budget-schedule-text: #4b50a5;
+  --sprout-budget-schedule-soft: #ecfff3;
+  --sprout-budget-schedule-soft-strong: #dff9e8;
+  --sprout-budget-schedule-border: rgba(0, 243, 107, 0.16);
+  --sprout-budget-schedule-text: #00f36b;
 }
 
 /* Budget Page Shell Override */
@@ -145,7 +147,7 @@
   border-radius: 24px;
   padding: 18px 18px 18px;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06);
-  min-height: calc(100vh - 220px);
+  position: relative;
 }
 
 /* Budget Card Topline */
@@ -154,7 +156,21 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
+}
+
+.sprout-budget-card__topline-actions {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.sprout-budget-card__topline-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex: 1;
+  min-height: 34px;
 }
 
 /* Budget Schedule Button */
@@ -166,8 +182,12 @@
   font-family: 'Inter', sans-serif;
   font-size: 13px;
   font-weight: 600;
-  padding: 8px 14px;
+  min-height: 34px;
+  padding: 0 14px;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Budget Edit Button */
@@ -182,6 +202,13 @@
   text-decoration: none;
 }
 
+.sprout-budget-card__edit-button--inline {
+  width: 20px;
+  height: 20px;
+  background: transparent;
+  margin-bottom: 3px;
+}
+
 .sprout-budget-card__edit-button img {
   width: 16px;
   height: 16px;
@@ -189,11 +216,53 @@
   filter: brightness(0) saturate(100%) invert(57%) sepia(95%) saturate(1820%) hue-rotate(95deg) brightness(98%) contrast(102%);
 }
 
+.sprout-budget-card__edit-button--inline img {
+  width: 13px;
+  height: 13px;
+  opacity: 0.45;
+  filter: grayscale(1);
+}
+
+.sprout-budget-card__override-link {
+  color: var(--sprout-budget-green-dark);
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-decoration: none;
+  min-height: 34px;
+  box-sizing: border-box;
+}
+
+.sprout-budget-card__override-link--danger {
+  padding: 0 14px;
+  border-radius: 999px;
+  background: #fff3f3;
+  border: 1px solid #ffd7d7;
+  color: #e65b5b;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.sprout-budget-card__status-center {
+  position: absolute;
+  left: 158px;
+  top: 156px;
+  display: flex;
+  justify-content: flex-start;
+  margin: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
 /* Budget Summary */
 .sprout-budget-card__summary {
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 16px;
   margin-bottom: 18px;
 }
 
@@ -220,14 +289,77 @@
 .sprout-budget-card__donut::after {
   content: '';
   position: absolute;
-  inset: 18px;
+  inset: 10px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.96);
 }
 
 /* Budget Summary Amount Wrap */
 .sprout-budget-card__amount-wrap {
+  flex: 1;
   min-width: 0;
+  height: 132px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  padding: 10px 0 8px;
+  box-sizing: border-box;
+  position: relative;
+  gap: 3px;
+}
+
+.sprout-budget-card__state-badge {
+  min-height: 26px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sprout-budget-card__state-badge--success {
+  background: rgba(0, 243, 107, 0.12);
+  color: #00c957;
+}
+
+.sprout-budget-card__state-badge--danger {
+  background: #fff1f1;
+  color: #e65b5b;
+}
+
+.sprout-budget-card__state-badge--neutral {
+  background: #f2f2f2;
+  color: #8f8f8f;
+}
+
+.sprout-budget-card__revert-form {
+  margin: 0;
+}
+
+.sprout-budget-card__revert-button {
+  border: none;
+  background: transparent;
+  padding: 0;
+  color: #e05a5a;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.sprout-budget-card__name {
+  margin: 0;
+  color: #2b2b2b;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.15;
 }
 
 /* Budget Summary Cycle */
@@ -235,8 +367,16 @@
   margin: 0 0 2px;
   color: #9f9f9f;
   font-family: 'Inter', sans-serif;
-  font-size: 16px;
+  font-size: 12px;
   font-weight: 400;
+  line-height: 1.15;
+}
+
+.sprout-budget-card__amount-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 5px;
+  margin-top: 1px;
 }
 
 /* Budget Summary Total */
@@ -244,18 +384,19 @@
   margin: 0;
   color: #111111;
   font-family: 'Inter', sans-serif;
-  font-size: 34px;
+  font-size: 24px;
   font-weight: 700;
-  line-height: 1.05;
+  line-height: 1;
 }
 
 /* Budget Summary Per Day */
 .sprout-budget-card__per-day {
-  margin: 6px 0 0;
+  margin: 1px 0 0;
   color: #9f9f9f;
   font-family: 'Inter', sans-serif;
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 400;
+  line-height: 1.2;
 }
 
 /* Budget Category List */
@@ -331,6 +472,73 @@
   font-size: 15px;
   font-weight: 700;
   white-space: nowrap;
+}
+
+.sprout-budget-category-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.sprout-budget-category-card {
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 22px;
+  padding: 14px 16px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sprout-budget-category-card__left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.sprout-budget-category-card__icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  background: var(--budget-category-card-color, #e7e7e7);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sprout-budget-category-card__icon img {
+  width: 19px;
+  height: 19px;
+  display: block;
+  filter: brightness(0) invert(1);
+}
+
+.sprout-budget-category-card__name {
+  color: #171717;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.sprout-budget-category-card__amount {
+  min-width: 84px;
+  height: 38px;
+  border-radius: 999px;
+  background: #f4f4f4;
+  color: #111111;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* Budget Form Header */
@@ -583,10 +791,12 @@
 
 /* Budget Summary Hero */
 .sprout-budget-summary__hero {
+  position: relative;
   display: flex;
-  align-items: center;
-  gap: 22px;
-  margin-bottom: 22px;
+  align-items: flex-start;
+  gap: 18px;
+  margin-bottom: 24px;
+  padding-top: 34px;
   padding-left: 4px;
 }
 
@@ -598,25 +808,76 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  margin-top: 6px;
 }
 
 /* Budget Summary Amount Block */
 .sprout-budget-summary__amount-block {
   display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 4px 5px;
-  padding-top: 2px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+  flex: 1;
+  min-width: 0;
+  padding-top: 16px;
+}
+
+.sprout-budget-summary__amount-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 7px;
+  margin-top: 10px;
 }
 
 /* Budget Summary Cycle */
+.sprout-budget-summary__name {
+  width: 100%;
+  margin: 0 0 4px;
+  color: #2b2b2b;
+  font-family: 'Inter', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
 .sprout-budget-summary__cycle {
   width: 100%;
   margin: 0;
   color: #ababab;
   font-family: 'Inter', sans-serif;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 400;
+  line-height: 1.15;
+}
+
+/* Budget Summary Repeat Indicator */
+.sprout-budget-summary__repeat-indicator {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  margin: 0;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.sprout-budget-summary__repeat-indicator--reused {
+  background: rgba(0, 243, 107, 0.12);
+  color: #00c957;
+}
+
+.sprout-budget-summary__repeat-indicator--one-time {
+  background: #f3f3f3;
+  color: #8f8f8f;
+}
+
+.sprout-budget-summary__repeat-indicator--corner {
+  position: absolute;
+  top: 0;
+  right: 4px;
 }
 
 /* Budget Summary Amount */
@@ -624,23 +885,29 @@
   margin: 0;
   color: #111111;
   font-family: 'Inter', sans-serif;
-  font-size: 27px;
+  font-size: 25px;
   font-weight: 700;
   line-height: 1;
 }
 
-/* Budget Summary Edit */
-.sprout-budget-summary__edit {
+.sprout-budget-summary__edit-button {
+  width: 18px;
+  height: 18px;
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin-bottom: 4px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
 }
 
-.sprout-budget-summary__edit img {
+.sprout-budget-summary__edit-button img {
   width: 13px;
   height: 13px;
   display: block;
-  opacity: 0.45;
+  opacity: 0.5;
   filter: grayscale(1);
 }
 
@@ -703,6 +970,24 @@
 /* Budget Allocation */
 .sprout-budget-allocation {
   padding-bottom: 18px;
+}
+
+.sprout-budget-allocation__card {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 26px;
+  padding: 18px 18px 16px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06);
+}
+
+.sprout-budget-allocation__override-link {
+  display: inline-flex;
+  margin-top: 12px;
+  color: var(--sprout-budget-green-dark);
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+  text-decoration: none;
 }
 
 /* Budget Summary Editable Item */
@@ -1063,34 +1348,78 @@
   text-align: center;
 }
 
+.sprout-budget-cycle-modal__field {
+  margin: 12px 0 18px;
+}
+
+.sprout-budget-cycle-modal__field-label {
+  display: block;
+  margin-bottom: 10px;
+  color: #8a978b;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.sprout-budget-cycle-modal__field-label--section {
+  margin-top: 8px;
+  margin-bottom: 12px;
+  color: var(--sprout-budget-green);
+}
+
+.sprout-budget-cycle-modal__field-input {
+  width: 100%;
+  height: 50px;
+  border: 1.5px solid rgba(0, 243, 107, 0.28);
+  border-radius: 14px;
+  background: rgba(0, 243, 107, 0.04);
+  padding: 0 18px;
+  box-sizing: border-box;
+  color: #2f2f2f;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  outline: none;
+  box-shadow: none;
+}
+
+.sprout-budget-cycle-modal__field-input:focus {
+  border-color: rgba(0, 243, 107, 0.55);
+  background: #ffffff;
+}
+
 .sprout-budget-cycle-modal__list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-top: 8px;
+  gap: 10px;
+  margin-top: 4px;
 }
 
 .sprout-budget-cycle-modal__list-item {
   width: 100%;
-  height: 56px;
-  border-radius: 12px;
-  border: 1px solid #e7ece7;
+  height: 50px;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.09);
   background: #ffffff;
   padding: 0 18px;
-  color: #6f6f6f;
+  color: #7a877b;
   font-family: 'Inter', sans-serif;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;
   cursor: pointer;
   transition: all 0.2s ease;
   box-sizing: border-box;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.02);
 }
 
 .sprout-budget-cycle-modal__list-item:hover {
-  background: #f6faf6;
+  background: #fbfffc;
+  border-color: rgba(0, 243, 107, 0.3);
 }
 
 .sprout-budget-cycle-modal__list-item--active {
@@ -1098,6 +1427,7 @@
   border-color: #00f36b;
   color: #ffffff;
   font-weight: 600;
+  box-shadow: 0 10px 20px rgba(0, 243, 107, 0.2);
 }
 
 /* Budget Schedule Modal */
@@ -1128,55 +1458,160 @@
   width: 100%;
   max-width: 414px;
   min-height: 100vh;
-  background: #ffffff;
-  padding: 22px 0 24px;
+  background: linear-gradient(
+    to bottom,
+    #8fffa2 0%,
+    #f3fff5 18%,
+    #ffffff 42%
+  );
+  padding: 18px 0 24px;
   box-sizing: border-box;
 }
 
 .sprout-budget-schedule-modal__header {
-  padding: 0 24px 18px;
-  display: flex;
+  padding: 0 20px 18px;
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) 40px;
   align-items: center;
-  justify-content: space-between;
+  gap: 8px;
 }
 
 .sprout-budget-schedule-modal__close {
   border: none;
   background: transparent;
   color: #1f1f1f;
-  font-size: 38px;
+  width: 40px;
+  height: 40px;
+  font-size: 34px;
   line-height: 1;
   cursor: pointer;
   padding: 0;
   margin: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .sprout-budget-schedule-modal__filter-wrap {
   display: flex;
   justify-content: center;
-  flex: 1;
+}
+
+.sprout-budget-schedule-modal__filter-shell {
+  position: relative;
+  width: 100%;
+  max-width: 160px;
+}
+
+.sprout-budget-schedule-modal__header-space {
+  width: 40px;
+  height: 40px;
 }
 
 .sprout-budget-schedule-modal__filter {
-  border: none;
-  background: transparent;
-  color: var(--sprout-budget-schedule-text);
+  width: 100%;
+  height: 36px;
+  border: 1px solid var(--sprout-budget-schedule-border);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #00f36b;
   font-family: 'Inter', sans-serif;
-  font-size: 18px;
-  font-weight: 500;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
   outline: none;
+  padding: 0 32px 0 16px;
+  box-shadow: 0 10px 22px rgba(0, 243, 107, 0.08);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.sprout-budget-schedule-modal__filter--open {
+  background: #ffffff;
+  box-shadow: 0 14px 28px rgba(0, 243, 107, 0.12);
+}
+
+.sprout-budget-schedule-modal__filter-label {
+  display: block;
+  width: 100%;
+  pointer-events: none;
+  text-align: center;
+  transform: translateY(-0.5px);
+}
+
+.sprout-budget-schedule-modal__filter-chevron {
+  position: absolute;
+  top: 50%;
+  right: 13px;
+  transform: translateY(-50%);
+  color: #00f36b;
+  font-size: 8px;
+  pointer-events: none;
+  transition: transform 0.2s ease;
+}
+
+.sprout-budget-schedule-modal__filter--open + .sprout-budget-schedule-modal__filter-chevron {
+  transform: translateY(-50%) rotate(180deg);
+}
+
+.sprout-budget-schedule-modal__filter-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid var(--sprout-budget-schedule-border);
+  border-radius: 20px;
+  box-shadow: 0 18px 34px rgba(0, 0, 0, 0.08);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  z-index: 4;
+}
+
+.sprout-budget-schedule-modal__filter-menu--hidden {
+  display: none;
+}
+
+.sprout-budget-schedule-modal__filter-option {
+  width: 100%;
+  min-height: 34px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: #00f36b;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  padding: 0 14px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.sprout-budget-schedule-modal__filter-option--active {
+  background: #00f36b;
+  color: #ffffff;
 }
 
 .sprout-budget-schedule-modal__table-head {
   display: grid;
-  grid-template-columns: 1.2fr 1fr 1fr 1fr;
-  gap: 8px;
-  background: var(--sprout-budget-schedule-lavender);
-  color: var(--sprout-budget-schedule-text);
+  grid-template-columns: minmax(96px, 1.5fr) minmax(56px, 0.82fr) minmax(56px, 0.82fr) minmax(66px, 0.96fr);
+  gap: 12px;
+  background: var(--sprout-budget-schedule-soft-strong);
+  color: #00f36b;
   font-family: 'Inter', sans-serif;
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 600;
-  padding: 16px 24px;
+  padding: 15px 20px;
+  align-items: center;
+  text-align: center;
+  border-top: 1px solid var(--sprout-budget-schedule-border);
+  border-bottom: 1px solid var(--sprout-budget-schedule-border);
 }
 
 .sprout-budget-schedule-modal__rows {
@@ -1186,22 +1621,57 @@
 
 .sprout-budget-schedule-modal__table-row {
   display: grid;
-  grid-template-columns: 1.2fr 1fr 1fr 1fr;
-  gap: 8px;
+  grid-template-columns: minmax(96px, 1.5fr) minmax(56px, 0.82fr) minmax(56px, 0.82fr) minmax(66px, 0.96fr);
+  gap: 12px;
   align-items: center;
-  padding: 18px 24px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(0, 201, 87, 0.08);
   font-family: 'Inter', sans-serif;
-  font-size: 15px;
-  color: #1d1d1d;
+  font-size: 14px;
+  color: #2b2b2b;
+  background: rgba(255, 255, 255, 0.9);
 }
 
 .sprout-budget-schedule-modal__table-row--current {
-  background: #f4f0d8;
+  background: #f3fff5;
+}
+
+.sprout-budget-schedule-modal__cell {
+  min-width: 0;
+  text-align: center;
+}
+
+.sprout-budget-schedule-modal__cell--period {
+  font-weight: 500;
+  color: #3c3c3c;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.sprout-budget-schedule-modal__cell--amount {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: #2b2b2b;
+}
+
+.sprout-budget-schedule-modal__period-main {
+  display: block;
+  line-height: 1.2;
+}
+
+.sprout-budget-schedule-modal__budget-name {
+  display: block;
+  color: #8fa08f;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.2;
+  text-align: center;
 }
 
 .sprout-budget-schedule-modal__remain--positive {
-  color: #6ec690;
+  color: #69c985;
   font-weight: 700;
 }
 
@@ -1218,7 +1688,6 @@
 
   .sprout-budget-card {
     padding: 16px 16px 16px;
-    min-height: calc(100vh - 210px);
   }
 
   .sprout-budget-card__summary {
@@ -1236,22 +1705,48 @@
   }
 
   .sprout-budget-card__donut::after {
-    inset: 16px;
+    inset: 9px;
   }
 
   .sprout-budget-card__total {
     font-size: 30px;
   }
 
+  .sprout-budget-category-cards {
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .sprout-budget-category-card {
+    padding: 12px 14px;
+    border-radius: 20px;
+  }
+
+  .sprout-budget-category-card__amount {
+    min-width: 78px;
+    height: 36px;
+    font-size: 13px;
+  }
+
   .sprout-budget-schedule-modal__header,
   .sprout-budget-schedule-modal__table-head,
   .sprout-budget-schedule-modal__table-row {
-    padding-left: 18px;
-    padding-right: 18px;
+    padding-left: 16px;
+    padding-right: 16px;
   }
 
   .sprout-budget-schedule-modal__table-head,
   .sprout-budget-schedule-modal__table-row {
+    font-size: 13px;
+    gap: 8px;
+    grid-template-columns: minmax(82px, 1.2fr) minmax(48px, 0.8fr) minmax(48px, 0.8fr) minmax(60px, 0.95fr);
+  }
+
+  .sprout-budget-schedule-modal__filter-shell {
+    max-width: 150px;
+  }
+
+  .sprout-budget-schedule-modal__filter {
     font-size: 13px;
   }
 }

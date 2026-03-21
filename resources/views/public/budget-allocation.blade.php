@@ -24,7 +24,7 @@
 
                 <header class="sprout-budget-summary__topbar">
                     <a
-                        href="{{ route('budget.index', ['month' => optional($budget->period_date)->format('Y-m')]) }}"
+                        href="{{ route('budget.index', ['month' => $selectedMonthValue]) }}"
                         class="sprout-budget-summary__back"
                         aria-label="Back to budget page"
                     >
@@ -48,28 +48,48 @@
                     </div>
                 @endif
 
+                <div class="sprout-budget-allocation__card">
                 <form action="{{ route('budget.allocate.update', $budget) }}" method="POST" id="budget-allocation-form">
                     @csrf
                     @method('PUT')
+                    <input type="hidden" name="month" value="{{ $selectedMonthValue }}">
+                    <input type="hidden" name="name" id="budget-name-input" value="{{ old('name', $budget->name) }}">
+                    <input type="hidden" name="cycle" id="budget-cycle-input" value="{{ old('cycle', $budget->cycle) }}">
 
                     <div class="sprout-budget-summary__hero">
+                        <p class="sprout-budget-summary__repeat-indicator sprout-budget-summary__repeat-indicator--corner {{ $budget->is_reused ? 'sprout-budget-summary__repeat-indicator--reused' : 'sprout-budget-summary__repeat-indicator--one-time' }}">
+                            {{ $budget->is_reused ? 'Repeats next cycle' : 'One-time budget' }}
+                        </p>
+
                         <div class="sprout-budget-summary__chart-wrap">
                             <canvas id="budgetAllocationChart" width="120" height="120"></canvas>
                         </div>
 
                         <div class="sprout-budget-summary__amount-block">
-                            <p class="sprout-budget-summary__cycle">
-                                {{ ucfirst($budget->cycle) }}
+                            <p class="sprout-budget-summary__name" id="budget-name-display">
+                                {{ $budget->name }}
                             </p>
 
+                            <p class="sprout-budget-summary__cycle">
+                                <span id="budget-cycle-display">{{ ucfirst($budget->cycle) }}</span>
+                            </p>
+
+
+                            <div class="sprout-budget-summary__amount-row">
                             <p class="sprout-budget-summary__amount" id="budget-total-amount">
                                 ₱{{ number_format($totalAllocated, 0) }}
                             </p>
-
-                            <span class="sprout-budget-summary__edit">
+                            <button
+                                type="button"
+                                class="sprout-budget-summary__edit-button"
+                                id="budget-edit-trigger"
+                                aria-label="Edit budget details"
+                            >
                                 <img src="{{ asset('projectassets/icons/edit.svg') }}" alt="Edit budget">
-                            </span>
+                            </button>
                         </div>
+                    </div>
+
                     </div>
 
                     <div class="sprout-budget-summary__list sprout-budget-summary__list--allocation">
@@ -141,14 +161,75 @@
                 >
                     @csrf
                     @method('DELETE')
+                    <input type="hidden" name="month" value="{{ $selectedMonthValue }}">
 
                     <button type="submit" class="sprout-budget-summary__reset-button">
                         Reset Budget
                     </button>
                 </form>
+                </div>
+
+                @if ($isInheritedView)
+                    <a
+                        href="{{ route('budget.create', ['month' => $selectedMonthValue, 'source_budget_id' => $budget->id]) }}"
+                        class="sprout-budget-allocation__override-link"
+                    >
+                        Customize only this month
+                    </a>
+                @endif
 
             </div>
         </main>
+    </div>
+</div>
+
+<div class="sprout-budget-cycle-modal sprout-budget-cycle-modal--hidden" id="budget-cycle-modal">
+    <button type="button" class="sprout-budget-cycle-modal__backdrop" id="budget-cycle-close-backdrop"></button>
+
+    <div class="sprout-budget-cycle-modal__sheet">
+        <div class="sprout-budget-cycle-modal__header">
+            <button
+                type="button"
+                class="sprout-budget-cycle-modal__header-close"
+                id="budget-cycle-close-button"
+            >
+                &times;
+            </button>
+
+            <h2 class="sprout-budget-cycle-modal__title">Edit Budget</h2>
+
+            <span class="sprout-budget-cycle-modal__header-space"></span>
+        </div>
+
+        <div class="sprout-budget-cycle-modal__field">
+            <label class="sprout-budget-cycle-modal__field-label" for="budget-name-modal-input">Budget Name</label>
+            <input
+                type="text"
+                id="budget-name-modal-input"
+                class="sprout-budget-cycle-modal__field-input"
+                value="{{ old('name', $budget->name) }}"
+                maxlength="80"
+                autocomplete="off"
+            >
+        </div>
+
+        <p class="sprout-budget-cycle-modal__field-label sprout-budget-cycle-modal__field-label--section">
+            Budget Cycle
+        </p>
+
+        <div class="sprout-budget-cycle-modal__list">
+            @foreach ($cycleOptions as $cycleValue => $cycleLabel)
+                <button
+                    type="button"
+                    class="sprout-budget-cycle-modal__list-item {{ old('cycle', $budget->cycle) === $cycleValue ? 'sprout-budget-cycle-modal__list-item--active' : '' }}"
+                    data-cycle-option
+                    data-cycle-value="{{ $cycleValue }}"
+                    data-cycle-label="{{ $cycleLabel }}"
+                >
+                    {{ $cycleLabel }}
+                </button>
+            @endforeach
+        </div>
     </div>
 </div>
 
@@ -215,6 +296,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const amountModalSave = document.getElementById('budget-amount-modal-save')
     const amountModalInput = document.getElementById('budget-amount-modal-input')
     const amountModalTitle = document.getElementById('budget-amount-modal-title')
+    const cycleModal = document.getElementById('budget-cycle-modal')
+    const budgetEditTrigger = document.getElementById('budget-edit-trigger')
+    const cycleDisplay = document.getElementById('budget-cycle-display')
+    const budgetNameDisplay = document.getElementById('budget-name-display')
+    const budgetNameInput = document.getElementById('budget-name-input')
+    const budgetNameModalInput = document.getElementById('budget-name-modal-input')
+    const cycleInput = document.getElementById('budget-cycle-input')
+    const cycleOptions = document.querySelectorAll('[data-cycle-option]')
+    const cycleCloseButton = document.getElementById('budget-cycle-close-button')
+    const cycleCloseBackdrop = document.getElementById('budget-cycle-close-backdrop')
 
     let budgetChart = null
     let activeRow = null
@@ -343,6 +434,18 @@ document.addEventListener('DOMContentLoaded', () => {
         activeRow = null
     }
 
+    const openCycleModal = () => {
+        if (budgetNameInput && budgetNameModalInput) {
+            budgetNameModalInput.value = budgetNameInput.value
+        }
+
+        cycleModal?.classList.remove('sprout-budget-cycle-modal--hidden')
+    }
+
+    const closeCycleModal = () => {
+        cycleModal?.classList.add('sprout-budget-cycle-modal--hidden')
+    }
+
     const saveAmountModal = () => {
         if (!activeRow) {
             closeAmountModal()
@@ -378,6 +481,43 @@ document.addEventListener('DOMContentLoaded', () => {
     amountModalSave?.addEventListener('click', saveAmountModal)
     amountModalClose?.addEventListener('click', closeAmountModal)
     amountModalBackdrop?.addEventListener('click', closeAmountModal)
+    budgetEditTrigger?.addEventListener('click', openCycleModal)
+    cycleCloseButton?.addEventListener('click', closeCycleModal)
+    cycleCloseBackdrop?.addEventListener('click', closeCycleModal)
+
+    budgetNameModalInput?.addEventListener('input', () => {
+        if (!budgetNameInput || !budgetNameModalInput) {
+            return
+        }
+
+        budgetNameInput.value = budgetNameModalInput.value
+
+        if (budgetNameDisplay) {
+            budgetNameDisplay.textContent = budgetNameModalInput.value || 'Budget'
+        }
+    })
+
+    cycleOptions.forEach((option) => {
+        option.addEventListener('click', () => {
+            const selectedValue = option.getAttribute('data-cycle-value') || 'monthly'
+            const selectedLabel = option.getAttribute('data-cycle-label') || 'Monthly'
+
+            if (cycleInput) {
+                cycleInput.value = selectedValue
+            }
+
+            if (cycleDisplay) {
+                cycleDisplay.textContent = selectedLabel
+            }
+
+            cycleOptions.forEach((item) => {
+                item.classList.remove('sprout-budget-cycle-modal__list-item--active')
+            })
+
+            option.classList.add('sprout-budget-cycle-modal__list-item--active')
+            closeCycleModal()
+        })
+    })
 
     amountModalInput?.addEventListener('keydown', (event) => {
         if (event.key === 'Enter') {

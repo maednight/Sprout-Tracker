@@ -24,7 +24,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/home', [SproutAuthController::class, 'home'])->name('home');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    Route::get('/transactions', fn () => 'Transactions page')->name('transaction.index');
+    Route::get('/transactions', [TransactionController::class, 'index'])->name('transaction.index');
 
     /* Budget Routes */
     Route::get('/budget', [BudgetController::class, 'index'])->name('budget.index');
@@ -33,6 +33,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/budget/{budget}/allocate', [BudgetController::class, 'allocate'])->name('budget.allocate');
     Route::put('/budget/{budget}/allocate', [BudgetController::class, 'updateAllocation'])->name('budget.allocate.update');
     Route::delete('/budget/{budget}', [BudgetController::class, 'destroy'])->name('budget.destroy');
+    Route::post('/budget/{budget}/revert-override', [BudgetController::class, 'revertOverride'])->name('budget.override.revert');
 
     Route::get('/savings', fn () => 'Savings page')->name('savings.index');
 
