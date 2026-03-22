@@ -9,6 +9,7 @@
 @import './pages/dashboard-layout.css';
 @import './pages/transaction-create.css';
 @import './pages/budget.css';
+@import './pages/savings.css';
 @import './pages/settings.css';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';

@@ -3,6 +3,9 @@ const transactionSelectors = {
     tabs: '[data-transaction-tab]',
     transactionTitle: '[data-transaction-title]',
     transactionTypeInput: '[data-transaction-type-input]',
+    form: '[data-transaction-form]',
+    submitButton: '[data-transaction-submit]',
+    validationMessage: '[data-transaction-validation]',
 
     dateTrigger: '[data-date-trigger]',
     dateInput: '#transaction_date',
@@ -78,10 +81,16 @@ const transactionClasses = {
     hiddenPhotoViewer: 'sprout-photo-viewer--hidden'
 }
 
+/* Storage Key Scope */
+const transactionStorageScope = (() => {
+    const rootElement = document.querySelector('[data-auth-user-id]')
+    return rootElement?.getAttribute('data-auth-user-id') || 'guest'
+})()
+
 /* Storage Keys */
 const transactionStorageKeys = {
-    categories: 'sprout_custom_categories',
-    accounts: 'sprout_custom_accounts'
+    categories: `sprout_custom_categories_${transactionStorageScope}`,
+    accounts: `sprout_custom_accounts_${transactionStorageScope}`
 }
 
 /* Category Options Per Transaction Type */
@@ -160,9 +169,35 @@ const defaultAccountOptionsByType = {
 
 /* Current Transaction Type */
 let currentTransactionType = 'expense'
+let budgetWarningBypass = false
 
 /* Calendar State */
 let currentCalendarDate = new Date()
+
+/* Budget Guard Payload */
+const budgetGuardPayload = (() => {
+    const rootElement = document.querySelector('.sprout-phone.sprout-transaction')
+
+    if (!rootElement) {
+        return {
+            budgetSnapshots: {},
+            spentByMonthCategory: {},
+        }
+    }
+
+    try {
+        const rawPayload = rootElement.getAttribute('data-budget-guard')
+
+        return rawPayload
+            ? JSON.parse(rawPayload)
+            : { budgetSnapshots: {}, spentByMonthCategory: {} }
+    } catch (error) {
+        return {
+            budgetSnapshots: {},
+            spentByMonthCategory: {},
+        }
+    }
+})()
 
 /* Format Peso Currency */
 const formatPesoCurrency = (digits) => {
@@ -177,6 +212,13 @@ const formatPesoCurrency = (digits) => {
     }
 
     return `₱${number.toLocaleString('en-PH')}.00`
+}
+
+/* Format Whole Peso Amount */
+const formatWholePesoCurrency = (amount) => {
+    const numericAmount = Number(amount || 0)
+
+    return `₱${numericAmount.toLocaleString('en-PH')}`
 }
 
 /* Parse Whole Amount Digits */
@@ -201,6 +243,144 @@ const parseWholeAmountDigits = (value) => {
     }
 
     return cleanedValue.replace(/[^\d]/g, '')
+}
+
+/* Resolve Budget Category Key */
+const resolveBudgetCategoryKey = (categoryName) => {
+    const normalizedName = String(categoryName || '')
+        .toLowerCase()
+        .trim()
+        .replace(/&/g, 'and')
+        .replace(/[/-]/g, ' ')
+        .replace(/\s+/g, ' ')
+
+    if (!normalizedName) {
+        return 'others'
+    }
+
+    if (normalizedName === 'food') return 'food'
+    if (normalizedName === 'transportation') return 'transportation'
+    if (normalizedName === 'household') return 'household'
+    if (normalizedName === 'beauty') return 'beauty'
+    if (normalizedName === 'health') return 'health'
+
+    return 'others'
+}
+
+/* Resolve Budget Warning Data */
+const getBudgetWarningState = () => {
+    const dateInput = document.querySelector(transactionSelectors.dateInput)
+    const amountInput = document.querySelector(transactionSelectors.amountInput)
+    const categoryInput = document.querySelector(transactionSelectors.categoryInput)
+    const typeInput = document.querySelector(transactionSelectors.transactionTypeInput)
+
+    if ((typeInput?.value ?? currentTransactionType) !== 'expense') {
+        return null
+    }
+
+    const parsedDate = parseInputDate(dateInput?.value ?? '')
+    const amountDigits = parseWholeAmountDigits(amountInput?.value ?? '')
+    const categoryName = categoryInput?.value?.trim() ?? ''
+
+    if (!parsedDate || !amountDigits || !categoryName) {
+        return null
+    }
+
+    const monthKey = `${parsedDate.getFullYear()}-${String(parsedDate.getMonth() + 1).padStart(2, '0')}`
+    const categoryKey = resolveBudgetCategoryKey(categoryName)
+    const budgetBucket = budgetGuardPayload.budgetSnapshots?.[monthKey]?.[categoryKey] || null
+    const allocatedAmount = Number(budgetBucket?.allocatedAmount || 0)
+    const currentSpentAmount = Number(budgetGuardPayload.spentByMonthCategory?.[monthKey]?.[categoryKey] || 0)
+    const nextExpenseAmount = Number(amountDigits || 0)
+    const projectedAmount = currentSpentAmount + nextExpenseAmount
+    const exceededAmount = projectedAmount - allocatedAmount
+
+    if (allocatedAmount <= 0 || exceededAmount <= 0) {
+        return null
+    }
+
+    return {
+        categoryName,
+        budgetCategoryName: budgetBucket?.categoryName || 'Others',
+        allocatedAmount,
+        currentSpentAmount,
+        nextExpenseAmount,
+        exceededAmount,
+    }
+}
+
+/* Open Budget Warning */
+const openBudgetWarning = (warningState) => {
+    const modalElement = document.querySelector('[data-budget-warning-modal]')
+    const messageElement = document.querySelector('[data-budget-warning-message]')
+
+    if (!modalElement || !messageElement) {
+        return
+    }
+
+    messageElement.textContent = warningState.budgetCategoryName !== warningState.categoryName
+        ? `This expense for "${warningState.categoryName}" will exceed the ${formatWholePesoCurrency(warningState.allocatedAmount)} budget under "${warningState.budgetCategoryName}". Do you want to continue?`
+        : `This expense will exceed the ${formatWholePesoCurrency(warningState.allocatedAmount)} budget for "${warningState.categoryName}". Do you want to continue?`
+    modalElement.classList.remove('sprout-budget-warning--hidden')
+}
+
+/* Close Budget Warning */
+const closeBudgetWarning = () => {
+    const modalElement = document.querySelector('[data-budget-warning-modal]')
+
+    if (!modalElement) {
+        return
+    }
+
+    modalElement.classList.add('sprout-budget-warning--hidden')
+}
+
+/* Required Transaction Fields Complete */
+const hasRequiredTransactionFields = () => {
+    const dateInput = document.querySelector(transactionSelectors.dateInput)
+    const amountInput = document.querySelector(transactionSelectors.amountInput)
+    const categoryInput = document.querySelector(transactionSelectors.categoryInput)
+    const accountInput = document.querySelector(transactionSelectors.accountInput)
+
+    return Boolean(dateInput?.value?.trim())
+        && Boolean(parseWholeAmountDigits(amountInput?.value ?? ''))
+        && Boolean(categoryInput?.value?.trim())
+        && Boolean(accountInput?.value?.trim())
+}
+
+/* Sync Submit Button State */
+const syncTransactionSubmitState = () => {
+    const submitButton = document.querySelector(transactionSelectors.submitButton)
+
+    if (!submitButton) {
+        return
+    }
+
+    submitButton.disabled = !hasRequiredTransactionFields()
+}
+
+/* Show Validation Message */
+const showTransactionValidationMessage = (message) => {
+    const validationElement = document.querySelector(transactionSelectors.validationMessage)
+
+    if (!validationElement) {
+        return
+    }
+
+    validationElement.textContent = message
+    validationElement.classList.remove('sprout-transaction__validation--hidden')
+}
+
+/* Hide Validation Message */
+const hideTransactionValidationMessage = () => {
+    const validationElement = document.querySelector(transactionSelectors.validationMessage)
+
+    if (!validationElement) {
+        return
+    }
+
+    validationElement.textContent = ''
+    validationElement.classList.add('sprout-transaction__validation--hidden')
 }
 
 /* Read Storage JSON */
@@ -437,6 +617,7 @@ const createCalendarDayButton = (
             inputElement.value = formatDateForInput(date)
         }
 
+        syncTransactionSubmitState()
         closeDateModal(modalElement, triggerElement)
     })
 
@@ -608,6 +789,9 @@ const initializeAmountFormatter = () => {
         const currentDigits = amountInput.dataset.rawDigits ?? ''
         amountInput.value = formatPesoCurrency(currentDigits)
     })
+
+    amountInput.addEventListener('input', syncTransactionSubmitState)
+    amountInput.addEventListener('change', syncTransactionSubmitState)
 }
 
 /* Category Title Per Transaction Type */
@@ -811,6 +995,8 @@ const clearSelectedCategory = (inputElement, textElement) => {
         textElement.textContent = ''
         textElement.classList.add(transactionClasses.emptyPickerText)
     }
+
+    syncTransactionSubmitState()
 }
 
 /* Clear Selected Account */
@@ -823,6 +1009,8 @@ const clearSelectedAccount = (inputElement, textElement) => {
         textElement.textContent = ''
         textElement.classList.add(transactionClasses.emptyPickerText)
     }
+
+    syncTransactionSubmitState()
 }
 
 /* Update Selected Category */
@@ -843,6 +1031,7 @@ const updateSelectedCategory = (selectedItem, categoryItems, inputElement, textE
     })
 
     selectedItem.classList.add(transactionClasses.selectedCategoryItem)
+    syncTransactionSubmitState()
 }
 
 /* Update Selected Account */
@@ -863,6 +1052,7 @@ const updateSelectedAccount = (selectedItem, accountItems, inputElement, textEle
     })
 
     selectedItem.classList.add(transactionClasses.selectedAccountItem)
+    syncTransactionSubmitState()
 }
 
 /* Create Category Button */
@@ -1088,6 +1278,8 @@ const initializeExistingPickerValues = () => {
         accountTextElement.textContent = accountInputElement.value
         accountTextElement.classList.remove(transactionClasses.emptyPickerText)
     }
+
+    syncTransactionSubmitState()
 }
 
 /* Photo File State */
@@ -1478,9 +1670,122 @@ const initializeDateModal = () => {
             currentCalendarDate = new Date(today.getFullYear(), today.getMonth(), 1)
 
             renderCurrentCalendar()
+            syncTransactionSubmitState()
             closeDateModal(modalElement, triggerElement)
         })
     }
+}
+
+/* Initialize Transaction Form Validation */
+const initializeTransactionFormValidation = () => {
+    const formElement = document.querySelector(transactionSelectors.form)
+    const dateInput = document.querySelector(transactionSelectors.dateInput)
+    const amountInput = document.querySelector(transactionSelectors.amountInput)
+    const categoryInput = document.querySelector(transactionSelectors.categoryInput)
+    const accountInput = document.querySelector(transactionSelectors.accountInput)
+
+    if (!formElement) {
+        return
+    }
+
+    ;[dateInput, amountInput, categoryInput, accountInput].forEach((fieldElement) => {
+        fieldElement?.addEventListener('input', () => {
+            syncTransactionSubmitState()
+            if (hasRequiredTransactionFields()) {
+                hideTransactionValidationMessage()
+            }
+        })
+        fieldElement?.addEventListener('change', () => {
+            syncTransactionSubmitState()
+            if (hasRequiredTransactionFields()) {
+                hideTransactionValidationMessage()
+            }
+        })
+    })
+
+    formElement.addEventListener('submit', (event) => {
+        if (budgetWarningBypass) {
+            budgetWarningBypass = false
+            hideTransactionValidationMessage()
+            return
+        }
+
+        if (hasRequiredTransactionFields()) {
+            const budgetWarningState = getBudgetWarningState()
+
+            if (!budgetWarningState) {
+                hideTransactionValidationMessage()
+                return
+            }
+
+            event.preventDefault()
+            const remainingAmount = Math.max(
+                budgetWarningState.allocatedAmount - budgetWarningState.currentSpentAmount,
+                0
+            )
+            openBudgetWarning({
+                ...budgetWarningState,
+                remainingAmount,
+            })
+            return
+        }
+
+        event.preventDefault()
+
+        const missingFields = []
+
+        if (!dateInput?.value?.trim()) {
+            missingFields.push('date')
+        }
+
+        if (!parseWholeAmountDigits(amountInput?.value ?? '')) {
+            missingFields.push('amount')
+        }
+
+        if (!categoryInput?.value?.trim()) {
+            missingFields.push('category')
+        }
+
+        if (!accountInput?.value?.trim()) {
+            missingFields.push('account')
+        }
+
+        showTransactionValidationMessage(
+            `Please fill in the required field${missingFields.length > 1 ? 's' : ''}: ${missingFields.join(', ')}.`
+        )
+
+        if (!dateInput?.value?.trim()) {
+            dateInput?.focus()
+            return
+        }
+
+        if (!parseWholeAmountDigits(amountInput?.value ?? '')) {
+            amountInput?.focus()
+        }
+    })
+
+    syncTransactionSubmitState()
+}
+
+/* Initialize Budget Warning */
+const initializeBudgetWarning = () => {
+    const closeButtons = document.querySelectorAll('[data-budget-warning-close]')
+    const confirmButton = document.querySelector('[data-budget-warning-confirm]')
+    const formElement = document.querySelector(transactionSelectors.form)
+
+    closeButtons.forEach((closeButton) => {
+        closeButton.addEventListener('click', closeBudgetWarning)
+    })
+
+    confirmButton?.addEventListener('click', () => {
+        if (!formElement) {
+            return
+        }
+
+        budgetWarningBypass = true
+        closeBudgetWarning()
+        formElement.requestSubmit()
+    })
 }
 
 /* Initialize Transaction Tabs */
@@ -1727,6 +2032,7 @@ const initializeAddCategoryOverlay = (
         categoryInputElement.value = newCategoryName
         categoryTextElement.textContent = newCategoryName
         categoryTextElement.classList.remove(transactionClasses.emptyPickerText)
+        syncTransactionSubmitState()
 
         closeAddOverlay(overlayElement)
         openCategoryModal(categoryModalElement, categoryTriggerElement)
@@ -1803,6 +2109,7 @@ const initializeAddAccountOverlay = (
         accountInputElement.value = newAccountName
         accountTextElement.textContent = newAccountName
         accountTextElement.classList.remove(transactionClasses.emptyPickerText)
+        syncTransactionSubmitState()
 
         closeAddOverlay(overlayElement)
         openAccountModal(accountModalElement, accountTriggerElement)
@@ -1825,6 +2132,8 @@ const initializeTransactionCreatePage = () => {
     initializeAmountFormatter()
     initializeDateModal()
     initializeExistingPickerValues()
+    initializeTransactionFormValidation()
+    initializeBudgetWarning()
     initializePhotoUpload()
     bindPhotoPreviewViewerEvents()
 

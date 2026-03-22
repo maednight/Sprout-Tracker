@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\SproutAuthController;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\SavingsController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\TransactionController;
 use Illuminate\Support\Facades\Route;
@@ -35,7 +36,8 @@ Route::middleware('auth')->group(function () {
     Route::delete('/budget/{budget}', [BudgetController::class, 'destroy'])->name('budget.destroy');
     Route::post('/budget/{budget}/revert-override', [BudgetController::class, 'revertOverride'])->name('budget.override.revert');
 
-    Route::get('/savings', fn () => 'Savings page')->name('savings.index');
+    Route::get('/savings', [SavingsController::class, 'index'])->name('savings.index');
+    Route::post('/savings/transfer', [SavingsController::class, 'transfer'])->name('savings.transfer');
 
     /* Settings Routes */
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');

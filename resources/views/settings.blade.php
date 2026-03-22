@@ -19,6 +19,7 @@ $mobileNavItems = [
     ['label' => 'Home', 'route' => 'dashboard', 'icon' => '/projectassets/icons/home.svg'],
     ['label' => 'Transaction', 'route' => 'transaction.index', 'icon' => '/projectassets/icons/transactions.svg'],
     ['label' => 'Budget', 'route' => 'budget.index', 'icon' => '/projectassets/icons/budget.svg'],
+    ['label' => 'Savings', 'route' => 'savings.index', 'icon' => '/projectassets/icons/savings.svg'],
     ['label' => 'Settings', 'route' => 'settings.index', 'icon' => '/projectassets/icons/settings.svg'],
 ];
 
@@ -28,6 +29,7 @@ $desktopNavItems = [
     ['label' => 'Home', 'route' => 'dashboard', 'icon' => '/projectassets/icons/home.svg'],
     ['label' => 'Transaction', 'route' => 'transaction.index', 'icon' => '/projectassets/icons/transactions.svg'],
     ['label' => 'Budget', 'route' => 'budget.index', 'icon' => '/projectassets/icons/budget.svg'],
+    ['label' => 'Savings', 'route' => 'savings.index', 'icon' => '/projectassets/icons/savings.svg'],
     ['label' => 'Settings', 'route' => 'settings.index', 'icon' => '/projectassets/icons/settings.svg'],
 ];
 
@@ -44,11 +46,6 @@ $passwordSectionHasError = $errors->has('current_password') || $errors->has('new
 <div class="sprout-settings-page">
     <div class="sprout-settings-page__mobile">
         <main class="sprout-settings-mobile">
-            <header class="sprout-settings-mobile__header">
-                <p class="sprout-settings-mobile__eyebrow">Settings</p>
-                <h1 class="sprout-settings-mobile__title">Profile & Account</h1>
-            </header>
-
             @if (session('settings_success'))
                 <div class="sprout-settings-mobile__alert sprout-settings-mobile__alert--success">
                     {{ session('settings_success') }}
@@ -430,11 +427,6 @@ $passwordSectionHasError = $errors->has('current_password') || $errors->has('new
             </aside>
 
             <main class="sprout-settings-desktop__content">
-                <header class="sprout-settings-desktop__header">
-                    <p class="sprout-settings-desktop__eyebrow">Settings</p>
-                    <h1 class="sprout-settings-desktop__title">Profile & Account</h1>
-                </header>
-
                 @if (session('settings_success'))
                     <div class="sprout-settings-mobile__alert sprout-settings-mobile__alert--success sprout-settings-desktop__alert">
                         {{ session('settings_success') }}

@@ -3,9 +3,23 @@
 
   $pageTitle = $isEditMode ? 'Edit Transaction - Sprout' : 'Add Transaction - Sprout';
   $formAction = $isEditMode ? route('transaction.update', $transaction) : route('transaction.store');
+  $requestedDateValue = request()->query('date');
+  $prefilledCreateDateValue = '';
+
+  if (!$isEditMode && is_string($requestedDateValue) && $requestedDateValue !== '') {
+      try {
+          $prefilledCreateDateValue = \Carbon\Carbon::createFromFormat('Y-m-d', $requestedDateValue)
+              ->format('m/d/Y');
+      } catch (\Throwable $exception) {
+          $prefilledCreateDateValue = '';
+      }
+  }
 
   $transactionTypeValue = old('transaction_type', $transaction->type ?? 'expense');
-  $transactionDateValue = old('transaction_date', $isEditMode ? $transaction->occurred_at->format('m/d/Y') : '');
+  $transactionDateValue = old(
+      'transaction_date',
+      $isEditMode ? $transaction->occurred_at->format('m/d/Y') : $prefilledCreateDateValue
+  );
   $amountValue = old('amount', $isEditMode ? number_format((float) $transaction->amount, 2, '.', ',') : '');
   $categoryValue = old('category', $isEditMode ? $transaction->category?->name : '');
   $accountValue = old('account', $isEditMode ? $transaction->account?->name : '');
@@ -56,9 +70,14 @@
   @vite(['resources/css/app.css', 'resources/js/app.js'])
   </head>
   <body class="sprout-font">
+  @php $authUserId = auth()->id() ?? 'guest'; @endphp
 
   <div class="sprout-shell">
-  <div class="sprout-phone sprout-transaction">
+  <div
+    class="sprout-phone sprout-transaction"
+    data-auth-user-id="{{ $authUserId }}"
+    data-budget-guard='@json($budgetGuardPayload ?? ["budgetSnapshots" => [], "spentByMonthCategory" => []])'
+  >
 
   <main class="sprout-transaction__page">
     <div class="sprout-transaction__content">
@@ -92,6 +111,8 @@
                 {{ session('success') }}
             </div>
         @endif
+
+        <div class="sprout-transaction__validation sprout-transaction__validation--hidden" data-transaction-validation></div>
 
         <div class="sprout-transaction__tabs">
             <button
@@ -127,9 +148,11 @@
 
         <form
             class="sprout-transaction__form"
+            data-transaction-form
             method="POST"
             action="{{ $formAction }}"
             enctype="multipart/form-data"
+            novalidate
         >
             @csrf
             @if ($isEditMode)
@@ -309,7 +332,7 @@
             </section>
 
             <div class="sprout-transaction__actions">
-                <button type="submit" class="sprout-transaction__button sprout-transaction__button--primary">
+                <button type="submit" class="sprout-transaction__button sprout-transaction__button--primary" data-transaction-submit>
                     {{ $isEditMode ? 'Update' : 'Save' }}
                 </button>
             </div>
@@ -779,6 +802,58 @@
         >
     </div>
   </div>
+  </div>
+
+  <div
+    class="sprout-budget-warning sprout-budget-warning--hidden"
+    data-budget-warning-modal
+  >
+    <button
+      type="button"
+      class="sprout-budget-warning__backdrop"
+      data-budget-warning-close
+      aria-label="Close budget warning"
+    ></button>
+
+    <div
+      class="sprout-budget-warning__sheet"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="sproutBudgetWarningTitle"
+    >
+      <div class="sprout-budget-warning__header">
+        <h2
+          id="sproutBudgetWarningTitle"
+          class="sprout-budget-warning__title"
+        >
+          Budget Reminder
+        </h2>
+      </div>
+
+      <div class="sprout-budget-warning__message">
+        <p class="sprout-budget-warning__intro" data-budget-warning-message>
+          Are you sure you want to continue?
+        </p>
+      </div>
+
+      <div class="sprout-budget-warning__actions">
+        <button
+          type="button"
+          class="sprout-budget-warning__button sprout-budget-warning__button--secondary"
+          data-budget-warning-close
+        >
+          Cancel
+        </button>
+
+        <button
+          type="button"
+          class="sprout-budget-warning__button sprout-budget-warning__button--primary"
+          data-budget-warning-confirm
+        >
+          Save Anyway
+        </button>
+      </div>
+    </div>
   </div>
 
   </body>

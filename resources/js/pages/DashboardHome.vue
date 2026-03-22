@@ -16,7 +16,7 @@
         @click.stop="toggleFilterMenu"
       >
         {{ selectedFilter }}
-        <span class="sprout-dashboard-mobile__filter-caret">▼</span>
+        <span class="sprout-dashboard-mobile__filter-caret">&#9662;</span>
       </button>
 
       <div class="sprout-dashboard-mobile__period">
@@ -26,7 +26,7 @@
           @click="goPreviousPeriod"
           aria-label="Previous period"
         >
-          ‹
+          &lsaquo;
         </button>
 
         <button
@@ -43,7 +43,7 @@
           @click="goNextPeriod"
           aria-label="Next period"
         >
-          ›
+          &rsaquo;
         </button>
       </div>
 
@@ -115,24 +115,54 @@
         v-if="selectedPeriodView === 'week'"
         class="sprout-dashboard-mobile__week-panel"
       >
-        <div class="sprout-dashboard-mobile__week-strip">
+        <div class="sprout-dashboard-mobile__week-head">
           <button
-            v-for="weekCell in weekCalendarCells"
-            :key="weekCell.key"
             type="button"
-            class="sprout-dashboard-mobile__week-option"
+            class="sprout-dashboard-mobile__week-arrow"
+            @click="shiftWeekPanelMonth(-1)"
+            aria-label="Previous month"
+          >
+            &#8249;
+          </button>
+
+          <div class="sprout-dashboard-mobile__week-value">
+            {{ weekPanelLabel }}
+          </div>
+
+          <button
+            type="button"
+            class="sprout-dashboard-mobile__week-arrow"
+            @click="shiftWeekPanelMonth(1)"
+            aria-label="Next month"
+          >
+            &#8250;
+          </button>
+        </div>
+
+        <div class="sprout-dashboard-mobile__week-weekdays">
+          <span
+            v-for="weekdayLabel in weekdayLabels"
+            :key="`week-picker-${weekdayLabel}`"
+          >
+            {{ weekdayLabel }}
+          </span>
+        </div>
+
+        <div class="sprout-dashboard-mobile__week-picker-grid">
+          <button
+            v-for="weekCell in weekPickerCells"
+            :key="`picker-${weekCell.key}`"
+            type="button"
+            class="sprout-dashboard-mobile__week-date"
             :class="{
-              'sprout-dashboard-mobile__week-option--active': weekCell.isSelected
+              'sprout-dashboard-mobile__week-date--muted': !weekCell.isCurrentMonth,
+              'sprout-dashboard-mobile__week-date--week': weekCell.isInActiveWeek,
+              'sprout-dashboard-mobile__week-date--start': weekCell.isWeekStart,
+              'sprout-dashboard-mobile__week-date--end': weekCell.isWeekEnd
             }"
             @click="selectDate(weekCell.date)"
           >
-            <span class="sprout-dashboard-mobile__week-option-label">
-              {{ weekCell.weekdayShort }}
-            </span>
-
-            <span class="sprout-dashboard-mobile__week-option-number">
-              {{ weekCell.day }}
-            </span>
+            {{ weekCell.day }}
           </button>
         </div>
       </div>
@@ -142,6 +172,30 @@
         v-if="selectedPeriodView === 'month'"
         class="sprout-dashboard-mobile__month-panel"
       >
+        <div class="sprout-dashboard-mobile__year-switcher sprout-dashboard-mobile__year-switcher--month">
+          <button
+            type="button"
+            class="sprout-dashboard-mobile__year-arrow"
+            @click="shiftMonthPanelYear(-1)"
+            aria-label="Previous year"
+          >
+            &lsaquo;
+          </button>
+
+          <div class="sprout-dashboard-mobile__year-value">
+            {{ currentDisplayDate.getFullYear() }}
+          </div>
+
+          <button
+            type="button"
+            class="sprout-dashboard-mobile__year-arrow"
+            @click="shiftMonthPanelYear(1)"
+            aria-label="Next year"
+          >
+            &rsaquo;
+          </button>
+        </div>
+
         <div class="sprout-dashboard-mobile__month-selector">
           <button
             v-for="monthOption in monthOptions"
@@ -171,7 +225,7 @@
             @click="displayYear -= 1"
             aria-label="Previous year"
           >
-            ‹
+            &lsaquo;
           </button>
 
           <div class="sprout-dashboard-mobile__year-value">
@@ -184,7 +238,7 @@
             @click="displayYear += 1"
             aria-label="Next year"
           >
-            ›
+            &rsaquo;
           </button>
         </div>
 
@@ -465,7 +519,7 @@
     <!-- Dashboard History List -->
     <section class="sprout-dashboard-mobile__history-list">
       <article
-        v-for="transactionGroup in filteredTransactionGroups"
+        v-for="transactionGroup in visiblePeriodGroups"
         :key="transactionGroup.dateKey"
         :ref="(element) => setTransactionGroupRef(element, transactionGroup.dateKey)"
         class="sprout-dashboard-mobile__history-card"
@@ -558,7 +612,7 @@
 
     <!-- Dashboard Floating Action Button -->
     <a
-      href="/transactions/create"
+      :href="createTransactionHref"
       class="sprout-dashboard-mobile__fab"
       aria-label="Add transaction"
     >
@@ -816,6 +870,12 @@ const isViewModalVisible = ref(false)
 const activeTransaction = ref(null)
 const activeTransactionDateLabel = ref('')
 
+/* Dashboard Create Transaction Href */
+const createTransactionHref = computed(() => {
+  const selectedDateKey = formatDateKey(selectedDate.value)
+  return `/transactions/create?date=${selectedDateKey}`
+})
+
 /* Dashboard Transaction Data */
 const transactionGroups = ref(props.initialTransactionGroups)
 
@@ -833,6 +893,14 @@ const currentPeriodLabel = computed(() => {
   }
 
   return 'This Month'
+})
+
+/* Dashboard Week Panel Label */
+const weekPanelLabel = computed(() => {
+  return currentDisplayDate.value.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short'
+  })
 })
 
 /* Dashboard Calendar Heading */
@@ -1059,6 +1127,38 @@ const weekCalendarCells = computed(() => {
   })
 })
 
+/* Dashboard Week Picker Cells */
+const weekPickerCells = computed(() => {
+  const monthStart = new Date(
+    currentDisplayDate.value.getFullYear(),
+    currentDisplayDate.value.getMonth(),
+    1
+  )
+  const startIndex = (monthStart.getDay() + 6) % 7
+  const firstVisibleDate = new Date(monthStart)
+
+  firstVisibleDate.setDate(monthStart.getDate() - startIndex)
+
+  const activeWeekStart = startOfWeek(selectedDate.value)
+  const activeWeekEnd = endOfWeek(selectedDate.value)
+
+  return Array.from({ length: 42 }, (_, index) => {
+    const cellDate = new Date(firstVisibleDate)
+
+    cellDate.setDate(firstVisibleDate.getDate() + index)
+
+    return {
+      key: formatDateKey(cellDate),
+      date: cellDate,
+      day: cellDate.getDate(),
+      isCurrentMonth: cellDate.getMonth() === currentDisplayDate.value.getMonth(),
+      isInActiveWeek: cellDate >= activeWeekStart && cellDate <= activeWeekEnd,
+      isWeekStart: isSameDate(cellDate, activeWeekStart),
+      isWeekEnd: isSameDate(cellDate, activeWeekEnd)
+    }
+  })
+})
+
 /* Dashboard Year Month Summaries */
 const yearMonthSummaries = computed(() => {
   return monthOptions.map((monthOption) => {
@@ -1158,6 +1258,10 @@ const selectFilter = (filterOption) => {
 /* Dashboard Set Period View */
 const setPeriodView = (periodView) => {
   selectedPeriodView.value = periodView
+
+  if (periodView === 'year') {
+    displayYear.value = currentDisplayDate.value.getFullYear()
+  }
 }
 
 /* Dashboard Select Date */
@@ -1186,6 +1290,32 @@ const selectMonth = (monthIndex) => {
 
   displayYear.value = currentDisplayDate.value.getFullYear()
   isPeriodMenuVisible.value = false
+}
+
+/* Dashboard Shift Month Panel Year */
+const shiftMonthPanelYear = (shift) => {
+  currentDisplayDate.value = new Date(
+    currentDisplayDate.value.getFullYear() + shift,
+    currentDisplayDate.value.getMonth(),
+    1
+  )
+
+  selectedDate.value = new Date(
+    currentDisplayDate.value.getFullYear(),
+    currentDisplayDate.value.getMonth(),
+    1
+  )
+
+  displayYear.value = currentDisplayDate.value.getFullYear()
+}
+
+/* Dashboard Shift Week Panel Month */
+const shiftWeekPanelMonth = (shift) => {
+  currentDisplayDate.value = new Date(
+    currentDisplayDate.value.getFullYear(),
+    currentDisplayDate.value.getMonth() + shift,
+    1
+  )
 }
 
 /* Dashboard Select Month From Year */
@@ -1300,6 +1430,27 @@ const buildDateFromKey = (dateKey) => {
   const [year, month, day] = dateKey.split('-').map(Number)
 
   return new Date(year, month - 1, day)
+}
+
+/* Dashboard Start Of Week */
+const startOfWeek = (date) => {
+  const nextDate = new Date(date)
+  const startIndex = (nextDate.getDay() + 6) % 7
+
+  nextDate.setDate(nextDate.getDate() - startIndex)
+  nextDate.setHours(0, 0, 0, 0)
+
+  return nextDate
+}
+
+/* Dashboard End Of Week */
+const endOfWeek = (date) => {
+  const nextDate = startOfWeek(date)
+
+  nextDate.setDate(nextDate.getDate() + 6)
+  nextDate.setHours(23, 59, 59, 999)
+
+  return nextDate
 }
 
 /* Dashboard Format Date Key */

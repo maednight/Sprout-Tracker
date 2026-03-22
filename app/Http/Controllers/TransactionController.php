@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Account;
+use App\Models\Budget;
 use App\Models\Category;
 use App\Models\Transaction;
 use Carbon\Carbon;
@@ -34,14 +35,29 @@ class TransactionController extends Controller
             'transactionAnalyticsPayload' => [
                 'transactionGroups' => $this->buildTransactionGroups($transactions),
                 'initialDisplayDate' => $initialDisplayDate,
+                'categoryMeta' => $this->buildCategoryMetaPayload($transactions, $user->id),
+                'budgetSnapshots' => $this->buildBudgetSnapshotsPayload($transactions, $user->id),
             ],
         ]);
     }
 
     public function create(): View
     {
+        $user = auth()->user();
+        $transactions = $user
+            ? Transaction::query()
+                ->with(['category', 'account'])
+                ->where('user_id', $user->id)
+                ->orderByDesc('occurred_at')
+                ->orderByDesc('id')
+                ->get()
+            : collect();
+
         return view('public.transaction-create', [
             'transaction' => null,
+            'budgetGuardPayload' => $user
+                ? $this->buildBudgetGuardPayload($transactions, $user->id)
+                : ['budgetSnapshots' => [], 'spentByMonthCategory' => []],
         ]);
     }
 
@@ -50,9 +66,17 @@ class TransactionController extends Controller
         $this->authorizeTransaction($transaction);
 
         $transaction->load(['category', 'account']);
+        $transactions = Transaction::query()
+            ->with(['category', 'account'])
+            ->where('user_id', $transaction->user_id)
+            ->where('id', '!=', $transaction->id)
+            ->orderByDesc('occurred_at')
+            ->orderByDesc('id')
+            ->get();
 
         return view('public.transaction-create', [
             'transaction' => $transaction,
+            'budgetGuardPayload' => $this->buildBudgetGuardPayload($transactions, $transaction->user_id),
         ]);
     }
 
@@ -183,8 +207,8 @@ class TransactionController extends Controller
             'transaction_type' => ['required', 'in:income,expense,savings'],
             'transaction_date' => ['required', 'date_format:m/d/Y'],
             'amount' => ['required', 'string'],
-            'category' => ['nullable', 'string', 'max:80'],
-            'account' => ['nullable', 'string', 'max:80'],
+            'category' => ['required', 'string', 'max:80'],
+            'account' => ['required', 'string', 'max:80'],
             'description' => ['nullable', 'string', 'max:255'],
             'receipt_photos' => ['nullable', 'array'],
             'receipt_photos.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
@@ -353,16 +377,26 @@ class TransactionController extends Controller
                                 ?? Str::headline($transaction->type);
 
                             $accountName = $transaction->account?->name ?? '';
+                            $categoryKey = $this->resolveCategoryKey($categoryName, $transaction->type);
 
                             return [
                                 'id' => $transaction->id,
                                 'type' => $transaction->type,
                                 'category' => $categoryName,
+                                'categoryKey' => $categoryKey,
                                 'account' => $accountName,
                                 'amount' => (float) $transaction->amount,
                                 'time' => $transaction->occurred_at->format('g:ia'),
                                 'description' => $transaction->description ?? '',
-                                'iconPath' => $this->resolveTransactionIconPath($categoryName, $accountName),
+                                'iconPath' => $this->resolveTransactionIconPath(
+                                    $categoryName,
+                                    $accountName,
+                                    $transaction->type
+                                ),
+                                'receiptPhotoUrls' => collect($this->getTransactionPhotoPaths($transaction))
+                                    ->map(fn (string $photoPath) => Storage::url($photoPath))
+                                    ->values()
+                                    ->all(),
                             ];
                         })
                         ->values()
@@ -373,7 +407,234 @@ class TransactionController extends Controller
             ->all();
     }
 
-    private function resolveTransactionIconPath(string $categoryName, string $accountName = ''): string
+    private function buildCategoryMetaPayload(Collection $transactions, int $userId): array
+    {
+        $categoryMeta = collect($this->defaultCategoryCatalog())
+            ->keyBy('key');
+
+        $transactionCategories = $transactions
+            ->filter(fn (Transaction $transaction) => $transaction->type === 'expense')
+            ->map(function (Transaction $transaction) {
+                $categoryName = $transaction->category?->name ?? 'Others';
+                $categoryKey = $this->resolveCategoryKey($categoryName, 'expense');
+
+                return [
+                    'key' => $categoryKey,
+                    'name' => $categoryName,
+                    'color' => $this->resolveCategoryColor($categoryKey),
+                    'iconPath' => $this->resolveTransactionIconPath($categoryName),
+                ];
+            })
+            ->unique('key')
+            ->values();
+
+        foreach ($transactionCategories as $category) {
+            if ($categoryMeta->has($category['key'])) {
+                continue;
+            }
+
+            $categoryMeta->put($category['key'], $category);
+        }
+
+        $budgetItems = Budget::query()
+            ->with('items')
+            ->where('user_id', $userId)
+            ->get()
+            ->flatMap(fn (Budget $budget) => $budget->items ?? collect());
+
+        foreach ($budgetItems as $item) {
+            $categoryName = $item->category_name ?: 'Others';
+            $categoryKey = $this->resolveCategoryKey($categoryName, 'expense');
+
+            if ($categoryMeta->has($categoryKey)) {
+                continue;
+            }
+
+            $categoryMeta->put($categoryKey, [
+                'key' => $categoryKey,
+                'name' => $categoryName,
+                'color' => $this->resolveCategoryColor($categoryKey),
+                'iconPath' => $this->resolveTransactionIconPath($categoryName),
+            ]);
+        }
+
+        return $categoryMeta
+            ->sortBy('name')
+            ->values()
+            ->all();
+    }
+
+    private function buildBudgetSnapshotsPayload(Collection $transactions, int $userId): array
+    {
+        $budgetMonthKeys = Budget::query()
+            ->where('user_id', $userId)
+            ->pluck('period_date')
+            ->filter()
+            ->map(fn ($periodDate) => Carbon::parse($periodDate)->format('Y-m'));
+
+        $months = $transactions
+            ->map(fn (Transaction $transaction) => $transaction->occurred_at->format('Y-m'))
+            ->merge($budgetMonthKeys)
+            ->push(now()->format('Y-m'))
+            ->unique()
+            ->values();
+
+        return $months
+            ->mapWithKeys(function (string $monthKey) use ($userId) {
+                $monthDate = Carbon::createFromFormat('Y-m', $monthKey)->startOfMonth();
+                $budget = $this->resolveBudgetForMonth($userId, $monthDate);
+
+                if (!$budget) {
+                    return [$monthKey => []];
+                }
+
+                $items = $budget->items
+                    ? $budget->items->mapWithKeys(function ($item) {
+                        $categoryKey = $this->resolveCategoryKey($item->category_name ?: 'Others', 'expense');
+
+                        return [
+                            $categoryKey => [
+                                'categoryKey' => $categoryKey,
+                                'categoryName' => $item->category_name ?: 'Others',
+                                'allocatedAmount' => (float) $item->allocated_amount,
+                            ],
+                        ];
+                    })->all()
+                    : [];
+
+                return [$monthKey => $items];
+            })
+            ->all();
+    }
+
+    private function buildBudgetGuardPayload(Collection $transactions, int $userId): array
+    {
+        return [
+            'budgetSnapshots' => $this->buildBudgetSnapshotsPayload($transactions, $userId),
+            'spentByMonthCategory' => $transactions
+                ->filter(fn (Transaction $transaction) => $transaction->type === 'expense')
+                ->groupBy(fn (Transaction $transaction) => $transaction->occurred_at->format('Y-m'))
+                ->map(function (Collection $monthTransactions) {
+                    return $monthTransactions
+                        ->groupBy(function (Transaction $transaction) {
+                            $categoryName = $transaction->category?->name ?? 'Others';
+                            return $this->resolveCategoryKey($categoryName, 'expense');
+                        })
+                        ->map(fn (Collection $categoryTransactions) => (float) $categoryTransactions->sum('amount'))
+                        ->all();
+                })
+                ->all(),
+        ];
+    }
+
+    private function resolveBudgetForMonth(int $userId, Carbon $monthDate): ?Budget
+    {
+        $exactBudget = Budget::query()
+            ->with('items')
+            ->where('user_id', $userId)
+            ->whereDate('period_date', $monthDate->toDateString())
+            ->first();
+
+        if ($exactBudget) {
+            return $exactBudget;
+        }
+
+        return Budget::query()
+            ->with('items')
+            ->where('user_id', $userId)
+            ->where('is_reused', true)
+            ->whereDate('period_date', '<=', $monthDate->toDateString())
+            ->orderByDesc('period_date')
+            ->first();
+    }
+
+    private function defaultCategoryCatalog(): array
+    {
+        return [
+            [
+                'key' => 'transportation',
+                'name' => 'Transportation',
+                'color' => '#EB5757',
+                'iconPath' => '/projectassets/icons/transport.svg',
+            ],
+            [
+                'key' => 'food',
+                'name' => 'Food',
+                'color' => '#F2994A',
+                'iconPath' => '/projectassets/icons/food&drinks.svg',
+            ],
+            [
+                'key' => 'household',
+                'name' => 'Household',
+                'color' => '#9B51E0',
+                'iconPath' => '/projectassets/icons/homebills.svg',
+            ],
+            [
+                'key' => 'beauty',
+                'name' => 'Beauty',
+                'color' => '#FF6FAE',
+                'iconPath' => '/projectassets/icons/selfcare.svg',
+            ],
+            [
+                'key' => 'health',
+                'name' => 'Health',
+                'color' => '#E74C3C',
+                'iconPath' => '/projectassets/icons/health.svg',
+            ],
+            [
+                'key' => 'others',
+                'name' => 'Others',
+                'color' => '#F2C94C',
+                'iconPath' => '/projectassets/icons/others.svg',
+            ],
+        ];
+    }
+
+    private function resolveCategoryKey(string $categoryName, string $transactionType = 'expense'): string
+    {
+        if ($transactionType !== 'expense') {
+            return Str::of($categoryName)
+                ->lower()
+                ->trim()
+                ->replace('&', 'and')
+                ->replace('/', ' ')
+                ->replace('-', ' ')
+                ->squish()
+                ->replace(' ', '_')
+                ->value();
+        }
+
+        $normalizedName = Str::of($categoryName)
+            ->lower()
+            ->trim()
+            ->replace('&', 'and')
+            ->replace('/', ' ')
+            ->replace('-', ' ')
+            ->squish()
+            ->value();
+
+        return match ($normalizedName) {
+            'beauty', 'self care', 'selfcare' => 'beauty',
+            'transport', 'transportation', 'fare', 'gas', 'car' => 'transportation',
+            'food', 'food and drinks', 'food drinks', 'groceries', 'dining' => 'food',
+            'household', 'home bills', 'homebills', 'utilities', 'rent' => 'household',
+            'health', 'medical', 'medicine' => 'health',
+            'shopping', 'apparel', 'gift', 'education', 'school', 'pets', 'pet care', 'others', 'other', '' => 'others',
+            default => 'others',
+        };
+    }
+
+    private function resolveCategoryColor(string $categoryKey): string
+    {
+        return collect($this->defaultCategoryCatalog())
+            ->firstWhere('key', $categoryKey)['color'] ?? '#7d8597';
+    }
+
+    private function resolveTransactionIconPath(
+        string $categoryName,
+        string $accountName = '',
+        string $transactionType = 'expense'
+    ): string
     {
         $normalizedCategory = Str::of($categoryName)
             ->lower()
@@ -400,17 +661,19 @@ class TransactionController extends Controller
             'pettycash' => '/projectassets/icons/salary.svg',
             'shopping' => '/projectassets/icons/shopping.svg',
             'apparel' => '/projectassets/icons/shopping.svg',
-            'beauty' => '/projectassets/icons/shopping.svg',
-            'gift' => '/projectassets/icons/shopping.svg',
+            'beauty' => '/projectassets/icons/selfcare.svg',
+            'gift' => '/projectassets/icons/others.svg',
             'transport' => '/projectassets/icons/transport.svg',
             'transportation' => '/projectassets/icons/transport.svg',
             'food' => '/projectassets/icons/food&drinks.svg',
             'fooddrinks' => '/projectassets/icons/food&drinks.svg',
             'foodanddrinks' => '/projectassets/icons/food&drinks.svg',
             'health' => '/projectassets/icons/health.svg',
-            'education' => '/projectassets/icons/education.svg',
+            'education' => '/projectassets/icons/others.svg',
             'work' => '/projectassets/icons/work.svg',
-            'pets' => '/projectassets/icons/pets.svg',
+            'pets' => '/projectassets/icons/others.svg',
+            'household' => '/projectassets/icons/homebills.svg',
+            'homebills' => '/projectassets/icons/homebills.svg',
             'emergency' => '/projectassets/icons/savings.svg',
             'retirement' => '/projectassets/icons/savings.svg',
             'travel' => '/projectassets/icons/savings.svg',

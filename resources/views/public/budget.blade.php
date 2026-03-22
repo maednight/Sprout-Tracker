@@ -15,10 +15,35 @@
 @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="sprout-font">
+@php
+    $selectedMonthDate = \Carbon\Carbon::createFromFormat('Y-m', $selectedMonthValue)->startOfMonth();
+    $pickerYear = (int) $selectedMonthDate->format('Y');
+    $pickerMonth = (int) $selectedMonthDate->format('n');
+    $pickerMonths = [
+        1 => 'Jan',
+        2 => 'Feb',
+        3 => 'Mar',
+        4 => 'Apr',
+        5 => 'May',
+        6 => 'Jun',
+        7 => 'Jul',
+        8 => 'Aug',
+        9 => 'Sep',
+        10 => 'Oct',
+        11 => 'Nov',
+        12 => 'Dec',
+    ];
+@endphp
 <div class="sprout-shell">
     <div class="sprout-phone sprout-budget">
         <main class="sprout-budget__page">
             <div class="sprout-budget__content">
+                <button
+                    type="button"
+                    class="sprout-budget__picker-overlay sprout-budget__picker-overlay--hidden"
+                    data-budget-picker-overlay
+                    aria-label="Close month picker"
+                ></button>
 
                 <!-- Budget Header -->
                 <header class="sprout-budget__header">
@@ -27,21 +52,75 @@
                         class="sprout-budget__month-arrow"
                         aria-label="Previous month"
                     >
-                        ‹
+                        &lsaquo;
                     </a>
 
-                    <h1 class="sprout-budget__month-title">
-                        {{ $displayMonthLabel }}
-                    </h1>
+                    <button
+                        type="button"
+                        class="sprout-budget__month-title sprout-budget__month-title--trigger"
+                        data-budget-picker-trigger
+                        aria-haspopup="dialog"
+                        aria-expanded="false"
+                    >
+                        {{ $selectedMonthDate->format('F Y') }}
+                    </button>
 
                     <a
                         href="{{ route('budget.index', ['month' => $nextMonthValue]) }}"
                         class="sprout-budget__month-arrow"
                         aria-label="Next month"
                     >
-                        ›
+                        &rsaquo;
                     </a>
                 </header>
+
+                <section
+                    class="sprout-budget__picker sprout-budget__picker--hidden"
+                    data-budget-picker
+                    aria-label="Budget month picker"
+                    data-year="{{ $pickerYear }}"
+                    data-selected-month="{{ $pickerMonth }}"
+                >
+                    <div class="sprout-budget__picker-year-row">
+                        <button
+                            type="button"
+                            class="sprout-budget__picker-year-arrow"
+                            data-budget-picker-year-shift="-1"
+                            aria-label="Previous year"
+                        >
+                            &lsaquo;
+                        </button>
+
+                        <strong class="sprout-budget__picker-year-label" data-budget-picker-year-label>
+                            {{ $pickerYear }}
+                        </strong>
+
+                        <button
+                            type="button"
+                            class="sprout-budget__picker-year-arrow"
+                            data-budget-picker-year-shift="1"
+                            aria-label="Next year"
+                        >
+                            &rsaquo;
+                        </button>
+                    </div>
+
+                    <div class="sprout-budget__picker-month-grid">
+                        @foreach ($pickerMonths as $monthNumber => $monthLabel)
+                            @php
+                                $monthValue = sprintf('%04d-%02d', $pickerYear, $monthNumber);
+                            @endphp
+                            <a
+                                href="{{ route('budget.index', ['month' => $monthValue]) }}"
+                                class="sprout-budget__picker-month {{ $monthNumber === $pickerMonth ? 'sprout-budget__picker-month--active' : '' }}"
+                                data-budget-picker-month
+                                data-month="{{ $monthNumber }}"
+                            >
+                                {{ $monthLabel }}
+                            </a>
+                        @endforeach
+                    </div>
+                </section>
 
                 @if (session('success'))
                     <div class="sprout-budget-form__alert sprout-budget-form__alert--success">
@@ -329,6 +408,97 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    const pickerTrigger = document.querySelector('[data-budget-picker-trigger]')
+    const pickerPanel = document.querySelector('[data-budget-picker]')
+    const pickerOverlay = document.querySelector('[data-budget-picker-overlay]')
+    const pickerYearLabel = document.querySelector('[data-budget-picker-year-label]')
+    const pickerYearButtons = document.querySelectorAll('[data-budget-picker-year-shift]')
+    const pickerMonthLinks = document.querySelectorAll('[data-budget-picker-month]')
+    const selectedYear = {{ $pickerYear }}
+    const selectedMonth = {{ $pickerMonth }}
+    let pickerOpen = false
+
+    const formatMonthValue = (year, month) => `${year}-${String(month).padStart(2, '0')}`
+
+    const syncPickerMonthLinks = () => {
+        if (!pickerPanel || !pickerYearLabel) {
+            return
+        }
+
+        const activeYear = Number(pickerPanel.getAttribute('data-year') || selectedYear)
+
+        pickerYearLabel.textContent = String(activeYear)
+
+        pickerMonthLinks.forEach((link) => {
+            const month = Number(link.getAttribute('data-month') || 1)
+            const monthValue = formatMonthValue(activeYear, month)
+            const url = new URL(link.href, window.location.origin)
+
+            url.searchParams.set('month', monthValue)
+            link.href = url.toString()
+            link.classList.toggle(
+                'sprout-budget__picker-month--active',
+                activeYear === selectedYear && month === selectedMonth
+            )
+        })
+    }
+
+    const closePicker = () => {
+        if (!pickerPanel || !pickerOverlay || !pickerTrigger) {
+            return
+        }
+
+        pickerOpen = false
+        pickerPanel.classList.add('sprout-budget__picker--hidden')
+        pickerOverlay.classList.add('sprout-budget__picker-overlay--hidden')
+        pickerTrigger.setAttribute('aria-expanded', 'false')
+    }
+
+    const openPicker = () => {
+        if (!pickerPanel || !pickerOverlay || !pickerTrigger) {
+            return
+        }
+
+        pickerOpen = true
+        pickerPanel.classList.remove('sprout-budget__picker--hidden')
+        pickerOverlay.classList.remove('sprout-budget__picker-overlay--hidden')
+        pickerTrigger.setAttribute('aria-expanded', 'true')
+    }
+
+    if (pickerTrigger && pickerPanel && pickerOverlay) {
+        syncPickerMonthLinks()
+
+        pickerTrigger.addEventListener('click', function () {
+            if (pickerOpen) {
+                closePicker()
+                return
+            }
+
+            openPicker()
+        })
+
+        pickerOverlay.addEventListener('click', closePicker)
+
+        pickerYearButtons.forEach((button) => {
+            button.addEventListener('click', function () {
+                const shift = Number(button.getAttribute('data-budget-picker-year-shift') || 0)
+                const currentYear = Number(pickerPanel.getAttribute('data-year') || selectedYear)
+                pickerPanel.setAttribute('data-year', String(currentYear + shift))
+                syncPickerMonthLinks()
+            })
+        })
+
+        pickerMonthLinks.forEach((link) => {
+            link.addEventListener('click', closePicker)
+        })
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') {
+                closePicker()
+            }
+        })
+    }
+
     const scheduleModal = document.getElementById('budget-schedule-modal')
     const scheduleOpen = document.getElementById('budget-schedule-open')
     const scheduleClose = document.getElementById('budget-schedule-close')
@@ -379,9 +549,12 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         scheduleRowsContainer.innerHTML = rows.map((row) => {
-            const remainClass = Number(row.remain) < 0
+            const remainValue = Number(row.remain)
+            const remainClass = remainValue < 0
                 ? 'sprout-budget-schedule-modal__remain--negative'
-                : 'sprout-budget-schedule-modal__remain--positive'
+                : (remainValue > 0
+                    ? 'sprout-budget-schedule-modal__remain--positive'
+                    : 'sprout-budget-schedule-modal__remain--neutral')
 
             const currentClass = row.is_current
                 ? 'sprout-budget-schedule-modal__table-row sprout-budget-schedule-modal__table-row--current'
