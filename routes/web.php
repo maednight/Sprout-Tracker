@@ -37,6 +37,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/budget/{budget}/revert-override', [BudgetController::class, 'revertOverride'])->name('budget.override.revert');
 
     Route::get('/savings', [SavingsController::class, 'index'])->name('savings.index');
+    Route::get('/savings/transfer/create', [SavingsController::class, 'createTransfer'])->name('savings.transfer.create');
     Route::post('/savings/transfer', [SavingsController::class, 'transfer'])->name('savings.transfer');
 
     /* Settings Routes */

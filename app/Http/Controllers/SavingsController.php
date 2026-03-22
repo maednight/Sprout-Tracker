@@ -11,12 +11,82 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class SavingsController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
+    {
+        $user = auth()->user();
+        $selectedScope = $this->resolveSelectedScope($request->query('scope'));
+        $anchorDate = $this->resolveAnchorDate($request->query('anchor'), $selectedScope);
+        [$rangeStart, $rangeEnd] = $this->resolveScopeRange($anchorDate, $selectedScope);
+
+        $savingsTransactions = Transaction::query()
+            ->with(['category', 'account'])
+            ->where('user_id', $user->id)
+            ->where('type', 'savings')
+            ->whereBetween('occurred_at', [
+                $rangeStart,
+                $rangeEnd,
+            ])
+            ->orderByDesc('occurred_at')
+            ->orderByDesc('id')
+            ->get();
+
+        $savingsTransfers = SavingsTransfer::query()
+            ->with(['sourceCategory', 'account'])
+            ->where('user_id', $user->id)
+            ->whereBetween('transferred_at', [
+                $rangeStart,
+                $rangeEnd,
+            ])
+            ->orderByDesc('transferred_at')
+            ->orderByDesc('id')
+            ->get();
+
+        $categoryBalances = $this->buildCategoryBalances($savingsTransactions, $savingsTransfers);
+        $historyItems = $this->buildHistoryItems($savingsTransactions, $savingsTransfers, $categoryBalances);
+        $accounts = Account::query()
+            ->where('user_id', $user->id)
+            ->orderBy('name')
+            ->pluck('name')
+            ->values()
+            ->all();
+
+        return view('public.savings', [
+            'savingsPayload' => [
+                'totalWorth' => round($categoryBalances->sum('amount'), 2),
+                'categories' => $categoryBalances->values()->all(),
+                'history' => $historyItems->all(),
+                'pieGradient' => $this->buildPieGradient($categoryBalances),
+                'accounts' => $accounts,
+                'defaultTransferDate' => $anchorDate->isSameMonth(now())
+                    ? now()->format('Y-m-d')
+                    : $rangeStart->copy()->format('Y-m-d'),
+                'scope' => $selectedScope,
+                'anchorDate' => $anchorDate->format('Y-m-d'),
+                'periodLabel' => $this->formatPeriodLabel($anchorDate, $selectedScope),
+                'previousPeriodUrl' => route('savings.index', [
+                    'scope' => $selectedScope,
+                    'anchor' => $this->shiftAnchorDate($anchorDate, $selectedScope, -1)->format('Y-m-d'),
+                ]),
+                'nextPeriodUrl' => route('savings.index', [
+                    'scope' => $selectedScope,
+                    'anchor' => $this->shiftAnchorDate($anchorDate, $selectedScope, 1)->format('Y-m-d'),
+                ]),
+                'scopeUrls' => [
+                    'week' => route('savings.index', ['scope' => 'week', 'anchor' => $anchorDate->format('Y-m-d')]),
+                    'month' => route('savings.index', ['scope' => 'month', 'anchor' => $anchorDate->format('Y-m-d')]),
+                    'year' => route('savings.index', ['scope' => 'year', 'anchor' => $anchorDate->format('Y-m-d')]),
+                ],
+            ],
+        ]);
+    }
+
+    public function createTransfer(Request $request): View
     {
         $user = auth()->user();
 
@@ -35,24 +105,34 @@ class SavingsController extends Controller
             ->orderByDesc('id')
             ->get();
 
-        $categoryBalances = $this->buildCategoryBalances($savingsTransactions, $savingsTransfers);
-        $historyItems = $this->buildHistoryItems($savingsTransactions, $savingsTransfers);
-        $accounts = Account::query()
+        $transferCategories = $this->buildCategoryBalances($savingsTransactions, $savingsTransfers);
+        $accountOptions = Account::query()
             ->where('user_id', $user->id)
             ->orderBy('name')
             ->pluck('name')
             ->values()
             ->all();
 
-        return view('public.savings', [
-            'savingsPayload' => [
-                'totalWorth' => round($categoryBalances->sum('amount'), 2),
-                'categories' => $categoryBalances->values()->all(),
-                'history' => $historyItems->all(),
-                'pieGradient' => $this->buildPieGradient($categoryBalances),
-                'accounts' => $accounts,
-                'defaultTransferDate' => now()->format('Y-m-d'),
-            ],
+        $requestedDateValue = $request->query('date');
+        $prefilledTransferDateValue = now()->format('m/d/Y');
+
+        if (is_string($requestedDateValue) && $requestedDateValue !== '') {
+            try {
+                $prefilledTransferDateValue = Carbon::createFromFormat('Y-m-d', $requestedDateValue)
+                    ->format('m/d/Y');
+            } catch (\Throwable) {
+                $prefilledTransferDateValue = now()->format('m/d/Y');
+            }
+        }
+
+        return view('public.savings-transfer-create', [
+            'transferCategories' => $transferCategories,
+            'accountOptions' => $accountOptions,
+            'transferDateValue' => old('transfer_date', $prefilledTransferDateValue),
+            'transferAmountValue' => old('amount', ''),
+            'transferCategoryValue' => old('source_category_id', ''),
+            'transferAccountValue' => old('account', ''),
+            'transferDescriptionValue' => old('description', ''),
         ]);
     }
 
@@ -63,7 +143,7 @@ class SavingsController extends Controller
         $validated = $request->validate([
             'source_category_id' => ['required', 'integer'],
             'amount' => ['required', 'numeric', 'min:0.01'],
-            'transfer_date' => ['required', 'date'],
+            'transfer_date' => ['required', 'date_format:m/d/Y'],
             'account' => ['required', 'string', 'max:80'],
             'description' => ['nullable', 'string', 'max:255'],
         ]);
@@ -96,7 +176,7 @@ class SavingsController extends Controller
             'name' => 'Savings Transfer',
         ]);
 
-        $transferredAt = Carbon::parse($validated['transfer_date'])
+        $transferredAt = Carbon::createFromFormat('m/d/Y', $validated['transfer_date'])
             ->setTime(now()->hour, now()->minute, now()->second);
 
         DB::transaction(function () use (
@@ -155,6 +235,7 @@ class SavingsController extends Controller
                     'key' => $categoryKey,
                     'name' => $categoryName,
                     'amount' => (float) $items->sum('amount'),
+                    'txCount' => $items->count(),
                     'iconPath' => $this->resolveSavingsIcon($categoryName),
                 ];
             });
@@ -166,24 +247,27 @@ class SavingsController extends Controller
         $palette = ['#0d47a1', '#1565c0', '#1e88e5', '#42a5f5', '#90caf9', '#d6ebff'];
 
         return $baseAmounts
-            ->map(function (array $category) use ($transferredAmounts) {
+            ->values()
+            ->map(function (array $category, int $index) use ($transferredAmounts, $palette) {
                 $categoryAmount = $category['amount'] - (float) ($transferredAmounts[$category['categoryId'] ?: 'uncategorized'] ?? 0);
                 $category['amount'] = round(max($categoryAmount, 0), 2);
+                $category['color'] = $palette[$index % count($palette)];
                 return $category;
             })
             ->filter(fn (array $category) => $category['amount'] > 0)
             ->sortByDesc('amount')
-            ->values()
-            ->map(function (array $category, int $index) use ($palette) {
-                $category['color'] = $palette[$index % count($palette)];
-                return $category;
-            });
+            ->values();
     }
 
-    private function buildHistoryItems(Collection $transactions, Collection $transfers): Collection
+    private function buildHistoryItems(Collection $transactions, Collection $transfers, Collection $categoryBalances): Collection
     {
-        $depositItems = $transactions->map(function (Transaction $transaction) {
+        $categoryColors = $categoryBalances
+            ->mapWithKeys(fn (array $category) => [$category['key'] => $category['color']])
+            ->all();
+
+        $depositItems = $transactions->map(function (Transaction $transaction) use ($categoryColors) {
             $categoryName = $transaction->category?->name ?: 'Others';
+            $categoryKey = $this->normalizeCategoryKey($categoryName);
 
             return [
                 'id' => 'transaction-' . $transaction->id,
@@ -192,17 +276,23 @@ class SavingsController extends Controller
                 'time' => $transaction->occurred_at->format('g:ia'),
                 'direction' => 'in',
                 'kind' => 'saved',
+                'typeLabel' => 'Savings',
                 'category' => $categoryName,
+                'account' => $transaction->account?->name ?? '',
                 'amount' => (float) $transaction->amount,
                 'description' => $transaction->description ?? '',
                 'iconPath' => $this->resolveSavingsIcon($categoryName),
-                'iconTone' => 'blue',
-                'meta' => 'Savings activity',
+                'categoryColor' => $categoryColors[$categoryKey] ?? '#2d9af0',
+                'receiptPhotoUrls' => collect($this->getTransactionPhotoPaths($transaction))
+                    ->map(fn (string $photoPath) => Storage::url($photoPath))
+                    ->values()
+                    ->all(),
             ];
         });
 
-        $transferItems = $transfers->map(function (SavingsTransfer $transfer) {
+        $transferItems = $transfers->map(function (SavingsTransfer $transfer) use ($categoryColors) {
             $categoryName = $transfer->sourceCategory?->name ?: 'Others';
+            $categoryKey = $this->normalizeCategoryKey($categoryName);
 
             return [
                 'id' => 'transfer-' . $transfer->id,
@@ -211,12 +301,14 @@ class SavingsController extends Controller
                 'time' => $transfer->transferred_at->format('g:ia'),
                 'direction' => 'out',
                 'kind' => 'transfer',
+                'typeLabel' => 'Transfer to Income',
                 'category' => $categoryName,
+                'account' => $transfer->account?->name ?? '',
                 'amount' => (float) $transfer->amount,
                 'description' => $transfer->description ?? '',
                 'iconPath' => $this->resolveSavingsIcon($categoryName),
-                'iconTone' => 'green',
-                'meta' => 'Transferred to income',
+                'categoryColor' => $categoryColors[$categoryKey] ?? '#2d9af0',
+                'receiptPhotoUrls' => [],
             ];
         });
 
@@ -243,7 +335,10 @@ class SavingsController extends Controller
             $start = $currentAngle;
             $end = $index === $categories->count() - 1 ? 360 : $currentAngle + $portion;
 
-            if ($useSeparators && $index > 0) {
+            if ($useSeparators && $index === 0) {
+                $segments[] = sprintf('#ffffff %.2fdeg %.2fdeg', 0, min($separatorSize, $end));
+                $start += $separatorSize;
+            } elseif ($useSeparators && $index > 0) {
                 $segments[] = sprintf('#ffffff %.2fdeg %.2fdeg', $start, min($start + $separatorSize, $end));
                 $start += $separatorSize;
             }
@@ -269,6 +364,19 @@ class SavingsController extends Controller
             ->sum('amount');
 
         return max($savedAmount - $transferredAmount, 0);
+    }
+
+    private function getTransactionPhotoPaths(Transaction $transaction): array
+    {
+        $photoPaths = is_array($transaction->receipt_photo_paths)
+            ? $transaction->receipt_photo_paths
+            : [];
+
+        if (empty($photoPaths) && $transaction->receipt_photo_path) {
+            $photoPaths = [$transaction->receipt_photo_path];
+        }
+
+        return array_values(array_filter($photoPaths));
     }
 
     private function normalizeCategoryKey(string $categoryName): string
@@ -310,5 +418,69 @@ class SavingsController extends Controller
         ];
 
         return $icons[$normalized] ?? '/projectassets/icons/savings.svg';
+    }
+
+    private function resolveSelectedScope(?string $scope): string
+    {
+        return in_array($scope, ['week', 'month', 'year'], true)
+            ? $scope
+            : 'month';
+    }
+
+    private function resolveAnchorDate(?string $anchor, string $scope): Carbon
+    {
+        if (is_string($anchor) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $anchor) === 1) {
+            try {
+                return Carbon::createFromFormat('Y-m-d', $anchor)->startOfDay();
+            } catch (\Throwable) {
+                // fall through
+            }
+        }
+
+        return match ($scope) {
+            'week' => now()->startOfWeek(Carbon::MONDAY),
+            'year' => now()->startOfYear(),
+            default => now()->startOfMonth(),
+        };
+    }
+
+    private function resolveScopeRange(Carbon $anchorDate, string $scope): array
+    {
+        return match ($scope) {
+            'week' => [
+                $anchorDate->copy()->startOfWeek(Carbon::MONDAY),
+                $anchorDate->copy()->endOfWeek(Carbon::SUNDAY),
+            ],
+            'year' => [
+                $anchorDate->copy()->startOfYear(),
+                $anchorDate->copy()->endOfYear(),
+            ],
+            default => [
+                $anchorDate->copy()->startOfMonth(),
+                $anchorDate->copy()->endOfMonth(),
+            ],
+        };
+    }
+
+    private function shiftAnchorDate(Carbon $anchorDate, string $scope, int $shift): Carbon
+    {
+        return match ($scope) {
+            'week' => $anchorDate->copy()->addWeeks($shift),
+            'year' => $anchorDate->copy()->addYears($shift),
+            default => $anchorDate->copy()->addMonths($shift),
+        };
+    }
+
+    private function formatPeriodLabel(Carbon $anchorDate, string $scope): string
+    {
+        return match ($scope) {
+            'week' => sprintf(
+                '%s-%s',
+                $anchorDate->copy()->startOfWeek(Carbon::MONDAY)->format('m.d'),
+                $anchorDate->copy()->endOfWeek(Carbon::SUNDAY)->format('m.d')
+            ),
+            'year' => $anchorDate->format('Y'),
+            default => $anchorDate->format('F Y'),
+        };
     }
 }
