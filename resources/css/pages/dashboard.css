@@ -980,7 +980,12 @@
   margin-top: 16px;
 }
 
+.sprout-dashboard-mobile__delete-actions form {
+  width: 100%;
+}
+
 .sprout-dashboard-mobile__delete-button {
+  width: 100%;
   min-height: 42px;
   border: none;
   border-radius: 12px;

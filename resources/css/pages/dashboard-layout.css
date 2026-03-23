@@ -121,6 +121,34 @@
     min-height: 360px;
     }
 
-    .sprout-card--wide{
+.sprout-card--wide{
     grid-column: 1 / -1;
     }
+
+.sprout-dashboard-desktop{
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+}
+
+.sprout-dashboard-desktop__content{
+    flex: 1;
+    min-width: 0;
+    padding: 20px 24px;
+    box-sizing: border-box;
+}
+
+.sprout-dashboard-desktop__panel{
+    width: 100%;
+    max-width: 1180px;
+    margin: 0 auto;
+}
+
+@media (min-width: 900px){
+    .sprout-dashboard-desktop__panel .sprout-dashboard-mobile{
+        min-height: calc(100vh - 40px);
+        border-radius: 28px;
+        overflow: hidden;
+        box-shadow: 0 18px 34px rgba(0, 0, 0, 0.08);
+    }
+}

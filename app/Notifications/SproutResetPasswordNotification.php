@@ -12,8 +12,7 @@ class SproutResetPasswordNotification extends Notification
 
     public function __construct(
         private readonly string $token
-    ) {
-    }
+    ) {}
 
     public function via(object $notifiable): array
     {

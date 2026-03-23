@@ -31,7 +31,7 @@ class BudgetController extends Controller
             $user->id,
             $selectedMonthDate
         );
-        $isInheritedBudget = !$exactBudget && $budget !== null;
+        $isInheritedBudget = ! $exactBudget && $budget !== null;
         $reusableBudget = Budget::query()
             ->where('user_id', $user->id)
             ->where('is_reused', true)
@@ -151,7 +151,7 @@ class BudgetController extends Controller
 
         $sourceBudgetId = $validatedData['source_budget_id'] ?? null;
 
-        if ($sourceBudgetId && !$budget->items()->exists()) {
+        if ($sourceBudgetId && ! $budget->items()->exists()) {
             $sourceBudget = Budget::query()
                 ->with('items')
                 ->where('user_id', $user->id)
@@ -289,7 +289,7 @@ class BudgetController extends Controller
             ->orderByDesc('period_date')
             ->first();
 
-        if (!$reusableBudget || $reusableBudget->id === $budget->id) {
+        if (! $reusableBudget || $reusableBudget->id === $budget->id) {
             return redirect()
                 ->route('budget.index', [
                     'month' => $validatedData['month'],
@@ -306,48 +306,48 @@ class BudgetController extends Controller
             ->with('success', 'Reverted to reusable budget for this month.');
     }
 
-/* Budget Categories */
-private function getBudgetCategories(): array
-{
-    return [
-        [
-            'key' => 'food',
-            'name' => 'Food',
-            'icon' => 'food&drinks.svg',
-            'color' => '#F2994A',
-        ],
-        [
-            'key' => 'transportation',
-            'name' => 'Transportation',
-            'icon' => 'transport.svg',
-            'color' => '#EB5757',
-        ],
-        [
-            'key' => 'household',
-            'name' => 'Household',
-            'icon' => 'homebills.svg',
-            'color' => '#9B51E0',
-        ],
-        [
-            'key' => 'beauty',
-            'name' => 'Beauty',
-            'icon' => 'selfcare.svg',
-            'color' => '#FF6FAE',
-        ],
-        [
-            'key' => 'health',
-            'name' => 'Health',
-            'icon' => 'health.svg',
-            'color' => '#E74C3C',
-        ],
-        [
-            'key' => 'others',
-            'name' => 'Others',
-            'icon' => 'others.svg',
-            'color' => '#F2C94C',
-        ],
-    ];
-}
+    /* Budget Categories */
+    private function getBudgetCategories(): array
+    {
+        return [
+            [
+                'key' => 'food',
+                'name' => 'Food',
+                'icon' => 'food&drinks.svg',
+                'color' => '#F2994A',
+            ],
+            [
+                'key' => 'transportation',
+                'name' => 'Transportation',
+                'icon' => 'transport.svg',
+                'color' => '#EB5757',
+            ],
+            [
+                'key' => 'household',
+                'name' => 'Household',
+                'icon' => 'homebills.svg',
+                'color' => '#9B51E0',
+            ],
+            [
+                'key' => 'beauty',
+                'name' => 'Beauty',
+                'icon' => 'selfcare.svg',
+                'color' => '#FF6FAE',
+            ],
+            [
+                'key' => 'health',
+                'name' => 'Health',
+                'icon' => 'health.svg',
+                'color' => '#E74C3C',
+            ],
+            [
+                'key' => 'others',
+                'name' => 'Others',
+                'icon' => 'others.svg',
+                'color' => '#F2C94C',
+            ],
+        ];
+    }
 
     /* Budget Rows */
     private function buildBudgetRows(?Budget $budget, array $categories): array
@@ -531,7 +531,7 @@ private function getBudgetCategories(): array
                 ? Carbon::parse($budget->period_date)
                 : $selectedMonthDate->copy());
 
-        if (!$budget->is_reused) {
+        if (! $budget->is_reused) {
             return [[
                 'label' => $this->formatPeriodLabel(
                     $baseDate,
@@ -593,7 +593,7 @@ private function getBudgetCategories(): array
         array $categories,
         ?array $selectedCategory
     ): float {
-        if (!$budget) {
+        if (! $budget) {
             return 0;
         }
 
@@ -723,9 +723,9 @@ private function getBudgetCategories(): array
     {
         return match ($cycle) {
             'daily' => $date->format('Y M d'),
-            'weekly' => $date->copy()->startOfWeek()->format('Y M d') . ' - ' . $date->copy()->endOfWeek()->format('d'),
+            'weekly' => $date->copy()->startOfWeek()->format('Y M d').' - '.$date->copy()->endOfWeek()->format('d'),
             'monthly' => $date->format('Y M'),
-            'quarterly' => $date->format('Y') . ' Q' . $date->quarter,
+            'quarterly' => $date->format('Y').' Q'.$date->quarter,
             'yearly' => $date->format('Y'),
             default => $date->format('Y M'),
         };
@@ -734,7 +734,7 @@ private function getBudgetCategories(): array
     /* Resolve Month */
     private function resolveSelectedMonthDate(?string $monthValue): Carbon
     {
-        if (!$monthValue) {
+        if (! $monthValue) {
             return now()->startOfMonth();
         }
 

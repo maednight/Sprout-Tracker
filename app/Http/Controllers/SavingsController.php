@@ -419,7 +419,7 @@ class SavingsController extends Controller
             $description = trim((string) ($validated['description'] ?? ''));
             $transferDescription = $description !== ''
                 ? $description
-                : 'Transferred from ' . $sourceCategory->name . ' to ' . $destinationCategory->name;
+                : 'Transferred from '.$sourceCategory->name.' to '.$destinationCategory->name;
             $receiptPhotoPaths = $this->storeReceiptPhotos($request);
 
             $savingsTransaction = Transaction::create([
@@ -476,7 +476,7 @@ class SavingsController extends Controller
             $description = trim((string) ($validated['description'] ?? ''));
             $transferDescription = $description !== ''
                 ? $description
-                : 'Transferred from savings: ' . $sourceCategory->name;
+                : 'Transferred from savings: '.$sourceCategory->name;
             $receiptPhotoPaths = $this->storeReceiptPhotos($request);
 
             $incomeTransaction = Transaction::create([
@@ -528,13 +528,13 @@ class SavingsController extends Controller
             $description = trim((string) ($validated['description'] ?? ''));
             $transferDescription = $description !== ''
                 ? $description
-                : 'Transferred from ' . $sourceCategory->name . ' to ' . $destinationCategory->name;
+                : 'Transferred from '.$sourceCategory->name.' to '.$destinationCategory->name;
 
             $this->deleteLinkedTransferTransaction($savingsTransfer->incomeTransaction);
 
             $savingsTransaction = $savingsTransfer->savingsTransaction;
 
-            if (!$savingsTransaction || $savingsTransaction->user_id !== $userId) {
+            if (! $savingsTransaction || $savingsTransaction->user_id !== $userId) {
                 $savingsTransaction = new Transaction([
                     'user_id' => $userId,
                     'type' => 'savings',
@@ -598,13 +598,13 @@ class SavingsController extends Controller
             $description = trim((string) ($validated['description'] ?? ''));
             $transferDescription = $description !== ''
                 ? $description
-                : 'Transferred from savings: ' . $sourceCategory->name;
+                : 'Transferred from savings: '.$sourceCategory->name;
 
             $this->deleteLinkedTransferTransaction($savingsTransfer->savingsTransaction);
 
             $incomeTransaction = $savingsTransfer->incomeTransaction;
 
-            if (!$incomeTransaction || $incomeTransaction->user_id !== $userId) {
+            if (! $incomeTransaction || $incomeTransaction->user_id !== $userId) {
                 $incomeTransaction = new Transaction([
                     'user_id' => $userId,
                     'type' => 'income',
@@ -669,6 +669,7 @@ class SavingsController extends Controller
                 $categoryAmount = $category['amount'] - (float) ($transferredAmounts[$category['categoryId'] ?: 'uncategorized'] ?? 0);
                 $category['amount'] = round(max($categoryAmount, 0), 2);
                 $category['color'] = $palette[$index % count($palette)];
+
                 return $category;
             })
             ->filter(fn (array $category) => $category['amount'] > 0)
@@ -702,7 +703,7 @@ class SavingsController extends Controller
                 fn (array $category) => (int) ($category['categoryId'] ?? 0) === (int) $editingCategoryId
             );
 
-            if (!$categoryExists) {
+            if (! $categoryExists) {
                 $transferCategories->push([
                     'categoryId' => $editingCategoryId,
                     'key' => $this->normalizeCategoryKey($editingTransfer->sourceCategory->name),
@@ -770,33 +771,33 @@ class SavingsController extends Controller
         $depositItems = $transactions
             ->reject(fn (Transaction $transaction) => $transaction->destinationSavingsTransfer !== null)
             ->map(function (Transaction $transaction) use ($categoryColors) {
-            $categoryName = $transaction->category?->name ?: 'Others';
-            $categoryKey = $this->normalizeCategoryKey($categoryName);
+                $categoryName = $transaction->category?->name ?: 'Others';
+                $categoryKey = $this->normalizeCategoryKey($categoryName);
 
-            return [
-                'id' => 'transaction-' . $transaction->id,
-                'timestamp' => $transaction->occurred_at->timestamp,
-                'dateLabel' => $transaction->occurred_at->format('D, F d'),
-                'time' => $transaction->occurred_at->format('g:ia'),
-                'direction' => 'in',
-                'kind' => 'saved',
-                'typeLabel' => 'Savings',
-                'category' => $categoryName,
-                'account' => $transaction->account?->name ?? '',
-                'amount' => (float) $transaction->amount,
-                'description' => $transaction->description ?? '',
-                'iconPath' => $this->resolveSavingsIcon($categoryName),
-                'categoryColor' => $categoryColors[$categoryKey] ?? '#2d9af0',
-                'receiptPhotoUrls' => collect($this->getTransactionPhotoPaths($transaction))
-                    ->map(fn (string $photoPath) => Storage::url($photoPath))
-                    ->values()
-                    ->all(),
-                'editUrl' => route('transaction.edit', $transaction),
-                'deleteUrl' => route('transaction.destroy', $transaction),
-                'editLabel' => 'Edit Transaction',
-                'deleteLabel' => 'Delete Transaction',
-            ];
-        });
+                return [
+                    'id' => 'transaction-'.$transaction->id,
+                    'timestamp' => $transaction->occurred_at->timestamp,
+                    'dateLabel' => $transaction->occurred_at->format('D, F d'),
+                    'time' => $transaction->occurred_at->format('g:ia'),
+                    'direction' => 'in',
+                    'kind' => 'saved',
+                    'typeLabel' => 'Savings',
+                    'category' => $categoryName,
+                    'account' => $transaction->account?->name ?? '',
+                    'amount' => (float) $transaction->amount,
+                    'description' => $transaction->description ?? '',
+                    'iconPath' => $this->resolveSavingsIcon($categoryName),
+                    'categoryColor' => $categoryColors[$categoryKey] ?? '#2d9af0',
+                    'receiptPhotoUrls' => collect($this->getTransactionPhotoPaths($transaction))
+                        ->map(fn (string $photoPath) => Storage::url($photoPath))
+                        ->values()
+                        ->all(),
+                    'editUrl' => route('transaction.edit', $transaction),
+                    'deleteUrl' => route('transaction.destroy', $transaction),
+                    'editLabel' => 'Edit Transaction',
+                    'deleteLabel' => 'Delete Transaction',
+                ];
+            });
 
         $transferItems = $transfers->map(function (SavingsTransfer $transfer) use ($categoryColors) {
             $categoryName = $transfer->sourceCategory?->name ?: 'Others';
@@ -810,7 +811,7 @@ class SavingsController extends Controller
                 : $transfer->incomeTransaction;
 
             return [
-                'id' => 'transfer-' . $transfer->id,
+                'id' => 'transfer-'.$transfer->id,
                 'timestamp' => $transfer->transferred_at->timestamp,
                 'dateLabel' => $transfer->transferred_at->format('D, F d'),
                 'time' => $transfer->transferred_at->format('g:ia'),
@@ -871,7 +872,7 @@ class SavingsController extends Controller
             $currentAngle = $end;
         }
 
-        return 'conic-gradient(' . implode(', ', $segments) . ')';
+        return 'conic-gradient('.implode(', ', $segments).')';
     }
 
     private function resolveAvailableCategoryAmount(int $userId, int $categoryId, ?int $ignoredTransferId = null): float
@@ -906,13 +907,13 @@ class SavingsController extends Controller
 
     private function decodeExistingPhotoPaths(?string $rawValue): array
     {
-        if (!$rawValue) {
+        if (! $rawValue) {
             return [];
         }
 
         $decodedValue = json_decode($rawValue, true);
 
-        if (!is_array($decodedValue)) {
+        if (! is_array($decodedValue)) {
             return [];
         }
 
@@ -923,7 +924,7 @@ class SavingsController extends Controller
     {
         $normalizedAmount = preg_replace('/[^\d.]/', '', $amount);
 
-        if (!$normalizedAmount || !is_numeric($normalizedAmount)) {
+        if (! $normalizedAmount || ! is_numeric($normalizedAmount)) {
             return null;
         }
 
@@ -976,7 +977,7 @@ class SavingsController extends Controller
 
     private function deleteLinkedTransferTransaction(?Transaction $transaction): void
     {
-        if (!$transaction) {
+        if (! $transaction) {
             return;
         }
 
@@ -999,7 +1000,7 @@ class SavingsController extends Controller
 
         $linkedTransaction = $editingTransfer?->incomeTransaction ?? $editingTransfer?->savingsTransaction;
 
-        if (!$linkedTransaction) {
+        if (! $linkedTransaction) {
             return [];
         }
 

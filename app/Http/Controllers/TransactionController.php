@@ -85,7 +85,7 @@ class TransactionController extends Controller
     {
         $user = auth()->user();
 
-        if (!$user) {
+        if (! $user) {
             return redirect()
                 ->route('login.view')
                 ->withErrors([
@@ -235,7 +235,7 @@ class TransactionController extends Controller
     {
         $normalizedAmount = preg_replace('/[^\d.]/', '', $amount);
 
-        if (!$normalizedAmount || !is_numeric($normalizedAmount)) {
+        if (! $normalizedAmount || ! is_numeric($normalizedAmount)) {
             return null;
         }
 
@@ -258,7 +258,7 @@ class TransactionController extends Controller
     /* Resolve category id */
     private function resolveCategoryId(int $userId, string $transactionType, ?string $categoryName): ?int
     {
-        if (!$categoryName || trim($categoryName) === '') {
+        if (! $categoryName || trim($categoryName) === '') {
             return null;
         }
 
@@ -274,7 +274,7 @@ class TransactionController extends Controller
     /* Resolve account id */
     private function resolveAccountId(int $userId, ?string $accountName): ?int
     {
-        if (!$accountName || trim($accountName) === '') {
+        if (! $accountName || trim($accountName) === '') {
             return null;
         }
 
@@ -303,13 +303,13 @@ class TransactionController extends Controller
     /* Decode existing photo paths input */
     private function decodeExistingPhotoPaths(?string $rawValue): array
     {
-        if (!$rawValue) {
+        if (! $rawValue) {
             return [];
         }
 
         $decodedValue = json_decode($rawValue, true);
 
-        if (!is_array($decodedValue)) {
+        if (! is_array($decodedValue)) {
             return [];
         }
 
@@ -499,7 +499,7 @@ class TransactionController extends Controller
                 $monthDate = Carbon::createFromFormat('Y-m', $monthKey)->startOfMonth();
                 $budget = $this->resolveBudgetForMonth($userId, $monthDate);
 
-                if (!$budget) {
+                if (! $budget) {
                     return [$monthKey => []];
                 }
 
@@ -533,6 +533,7 @@ class TransactionController extends Controller
                     return $monthTransactions
                         ->groupBy(function (Transaction $transaction) {
                             $categoryName = $transaction->category?->name ?? 'Others';
+
                             return $this->resolveCategoryKey($categoryName, 'expense');
                         })
                         ->map(fn (Collection $categoryTransactions) => (float) $categoryTransactions->sum('amount'))
@@ -649,8 +650,7 @@ class TransactionController extends Controller
         string $categoryName,
         string $accountName = '',
         string $transactionType = 'expense'
-    ): string
-    {
+    ): string {
         $normalizedCategory = Str::of($categoryName)
             ->lower()
             ->trim()

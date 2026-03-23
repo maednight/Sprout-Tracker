@@ -3,7 +3,7 @@
   <div class="sprout-dashboard-mobile">
     <!-- Dashboard Backdrop -->
     <div
-      v-if="isFilterMenuVisible || isPeriodMenuVisible || isActionModalVisible"
+      v-if="isFilterMenuVisible || isPeriodMenuVisible || isActionModalVisible || isDeleteModalVisible"
       class="sprout-dashboard-mobile__backdrop"
       @click="closePanels"
     ></div>
@@ -657,20 +657,13 @@
           Edit Transaction
         </button>
 
-        <form
-          :action="deleteTransactionUrl"
-          method="POST"
+        <button
+          type="button"
+          class="sprout-dashboard-mobile__action-button sprout-dashboard-mobile__action-button--delete"
+          @click="openDeleteModal"
         >
-          <input type="hidden" name="_token" :value="csrfToken">
-          <input type="hidden" name="_method" value="DELETE">
-
-          <button
-            type="submit"
-            class="sprout-dashboard-mobile__action-button sprout-dashboard-mobile__action-button--delete"
-          >
-            Delete Transaction
-          </button>
-        </form>
+          Delete Transaction
+        </button>
 
         <button
           type="button"
@@ -798,6 +791,56 @@
         </button>
       </div>
     </div>
+
+    <!-- Dashboard Delete Modal -->
+    <div
+      v-if="isDeleteModalVisible && activeTransaction"
+      class="sprout-dashboard-mobile__delete-modal"
+    >
+      <button
+        type="button"
+        class="sprout-dashboard-mobile__delete-backdrop"
+        @click="closeDeleteModal"
+        aria-label="Close delete confirmation"
+      ></button>
+
+      <div class="sprout-dashboard-mobile__delete-sheet">
+        <h2 class="sprout-dashboard-mobile__delete-title">
+          Delete Transaction?
+        </h2>
+
+        <p class="sprout-dashboard-mobile__delete-message">
+          This will permanently remove
+          <strong>{{ activeTransaction.category }}</strong>
+          from {{ activeTransactionDateLabel || 'your transactions' }}.
+        </p>
+
+        <div class="sprout-dashboard-mobile__delete-actions">
+          <button
+            type="button"
+            class="sprout-dashboard-mobile__delete-button sprout-dashboard-mobile__delete-button--secondary"
+            @click="closeDeleteModal"
+          >
+            Cancel
+          </button>
+
+          <form
+            :action="deleteTransactionUrl"
+            method="POST"
+          >
+            <input type="hidden" name="_token" :value="csrfToken">
+            <input type="hidden" name="_method" value="DELETE">
+
+            <button
+              type="submit"
+              class="sprout-dashboard-mobile__delete-button sprout-dashboard-mobile__delete-button--primary"
+            >
+              Delete
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -868,6 +911,7 @@ const selectedDate = ref(new Date(resolvedInitialDate))
 const displayYear = ref(resolvedInitialDate.getFullYear())
 const isActionModalVisible = ref(false)
 const isViewModalVisible = ref(false)
+const isDeleteModalVisible = ref(false)
 const activeTransaction = ref(null)
 const activeTransactionDateLabel = ref('')
 
@@ -1244,6 +1288,7 @@ const closePanels = () => {
   isPeriodMenuVisible.value = false
   isActionModalVisible.value = false
   isViewModalVisible.value = false
+  isDeleteModalVisible.value = false
   activeTransaction.value = null
   activeTransactionDateLabel.value = ''
 }
@@ -1407,6 +1452,7 @@ const openTransactionActionModal = (transactionItem, transactionDateLabel) => {
   activeTransactionDateLabel.value = transactionDateLabel ?? ''
   isActionModalVisible.value = true
   isViewModalVisible.value = false
+  isDeleteModalVisible.value = false
   isFilterMenuVisible.value = false
   isPeriodMenuVisible.value = false
 }
@@ -1415,6 +1461,7 @@ const openTransactionActionModal = (transactionItem, transactionDateLabel) => {
 const openTransactionViewModal = () => {
   isActionModalVisible.value = false
   isViewModalVisible.value = true
+  isDeleteModalVisible.value = false
 }
 
 /* Dashboard Close Transaction View Modal */
@@ -1427,6 +1474,18 @@ const closeTransactionActionModal = () => {
   isActionModalVisible.value = false
   activeTransaction.value = null
   activeTransactionDateLabel.value = ''
+}
+
+/* Dashboard Open Delete Modal */
+const openDeleteModal = () => {
+  isActionModalVisible.value = false
+  isViewModalVisible.value = false
+  isDeleteModalVisible.value = true
+}
+
+/* Dashboard Close Delete Modal */
+const closeDeleteModal = () => {
+  isDeleteModalVisible.value = false
 }
 
 /* Dashboard Go To Edit Transaction */

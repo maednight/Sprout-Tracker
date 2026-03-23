@@ -29,7 +29,7 @@
         <div class="sprout-view sprout-view--mobile">
             <div class="sprout-phone sprout-app sprout-app--mobile">
                 <div
-                    id="app"
+                    data-dashboard-app
                     data-dashboard='@json($dashboardPayload ?? ["transactionGroups" => [], "initialDisplayDate" => now()->format("Y-m-d")])'
                     data-csrf-token="{{ csrf_token() }}"
                 ></div>
@@ -40,7 +40,18 @@
 
         <!-- Desktop Dashboard -->
         <div class="sprout-view sprout-view--desktop">
-            @include('public.desktop.dashboard')
+            <div class="sprout-dashboard-desktop">
+                @include('public.partials.nav-desktop')
+
+                <main class="sprout-dashboard-desktop__content">
+                    <div
+                        class="sprout-dashboard-desktop__panel"
+                        data-dashboard-app
+                        data-dashboard='@json($dashboardPayload ?? ["transactionGroups" => [], "initialDisplayDate" => now()->format("Y-m-d")])'
+                        data-csrf-token="{{ csrf_token() }}"
+                    ></div>
+                </main>
+            </div>
         </div>
 
     </div>

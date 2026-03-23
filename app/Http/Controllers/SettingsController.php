@@ -91,13 +91,13 @@ class SettingsController extends Controller
         $user = Auth::user();
 
         $validated = $request->validate([
-            'email' => ['required', 'email', 'max:255', 'unique:users,email,' . $user->id],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email,'.$user->id],
             'current_password_for_email' => ['required'],
         ], [
             'current_password_for_email.required' => 'Please enter your current password to change your email.',
         ]);
 
-        if (!Hash::check($validated['current_password_for_email'], $user->password)) {
+        if (! Hash::check($validated['current_password_for_email'], $user->password)) {
             return redirect()
                 ->route('settings.index')
                 ->withErrors([
@@ -131,7 +131,7 @@ class SettingsController extends Controller
             'new_password.confirmed' => 'New password confirmation does not match.',
         ]);
 
-        if (!Hash::check($validated['current_password'], $user->password)) {
+        if (! Hash::check($validated['current_password'], $user->password)) {
             return redirect()
                 ->route('settings.index')
                 ->withErrors([
@@ -163,10 +163,10 @@ class SettingsController extends Controller
         $today = Carbon::today();
         $currentDate = $today->copy();
 
-        if (!$daysLookup->has($today->toDateString())) {
+        if (! $daysLookup->has($today->toDateString())) {
             $yesterday = $today->copy()->subDay();
 
-            if (!$daysLookup->has($yesterday->toDateString())) {
+            if (! $daysLookup->has($yesterday->toDateString())) {
                 return 0;
             }
 

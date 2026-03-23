@@ -7,9 +7,9 @@ import { createApp } from 'vue'
 import DashboardHome from './pages/DashboardHome.vue'
 
 /* Dashboard Mount */
-const dashboardElement = document.querySelector('#app')
+const dashboardElements = document.querySelectorAll('[data-dashboard-app]')
 
-if (dashboardElement) {
+dashboardElements.forEach((dashboardElement) => {
     let dashboardPayload = {
         transactionGroups: [],
         initialDisplayDate: null
@@ -41,8 +41,8 @@ if (dashboardElement) {
         initialTransactionGroups: dashboardPayload.transactionGroups ?? [],
         initialDisplayDate: dashboardPayload.initialDisplayDate ?? null,
         csrfToken
-    }).mount('#app')
-}
+    }).mount(dashboardElement)
+})
 
 /* Settings Page */
 document.addEventListener('DOMContentLoaded', () => {

@@ -72,7 +72,7 @@ class DashboardController extends Controller
                                 && $categoryName === 'Savings Transfer';
                             $sourceSavingsCategoryName = $transaction->savingsTransfer?->sourceCategory?->name ?? '';
                             $transferIndicator = $isSavingsTransfer
-                                ? trim(($sourceSavingsCategoryName ?: 'Savings') . ' savings transfer')
+                                ? trim(($sourceSavingsCategoryName ?: 'Savings').' savings transfer')
                                 : '';
 
                             return [
@@ -108,9 +108,9 @@ class DashboardController extends Controller
     {
         $photoPaths = [];
 
-        if (is_array($transaction->receipt_photo_paths) && !empty($transaction->receipt_photo_paths)) {
+        if (is_array($transaction->receipt_photo_paths) && ! empty($transaction->receipt_photo_paths)) {
             $photoPaths = $transaction->receipt_photo_paths;
-        } elseif (!empty($transaction->receipt_photo_path)) {
+        } elseif (! empty($transaction->receipt_photo_path)) {
             $photoPaths = [$transaction->receipt_photo_path];
         }
 

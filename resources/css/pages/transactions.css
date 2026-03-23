@@ -11,6 +11,14 @@
     linear-gradient(180deg, #ffffff 0%, #f5fbf6 62%, #b9f7c3 100%);
 }
 
+.sprout-transactions-shell {
+  align-items: stretch;
+}
+
+.sprout-transactions-shell__main {
+  width: 100%;
+}
+
 .sprout-transactions__page {
   flex: 1;
   min-height: 100vh;
@@ -22,6 +30,28 @@
   max-width: 372px;
   margin: 0 auto;
   position: relative;
+}
+
+@media (min-width: 900px) {
+  .sprout-transactions-shell {
+    display: flex;
+  }
+
+  .sprout-transactions-shell__main {
+    max-width: none;
+    min-height: 100vh;
+    flex: 1;
+    background: transparent;
+  }
+
+  .sprout-phone.sprout-transactions.sprout-transactions-shell__main {
+    margin: 0;
+  }
+
+  .sprout-transactions__content {
+    max-width: 1160px;
+    padding: 20px 24px 40px;
+  }
 }
 
 .sprout-transactions__summary-view--hidden,
