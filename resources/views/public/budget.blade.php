@@ -17,6 +17,7 @@
 <body class="sprout-font">
 @php
     $selectedMonthDate = \Carbon\Carbon::createFromFormat('Y-m', $selectedMonthValue)->startOfMonth();
+    $activeBudgetView = request()->query('view') === 'remain' ? 'remain' : 'budget';
     $pickerYear = (int) $selectedMonthDate->format('Y');
     $pickerMonth = (int) $selectedMonthDate->format('n');
     $pickerMonths = [
@@ -44,12 +45,19 @@
                     data-budget-picker-overlay
                     aria-label="Close month picker"
                 ></button>
+                <button
+                    type="button"
+                    class="sprout-budget__menu-overlay sprout-budget__menu-overlay--hidden"
+                    data-budget-menu-overlay
+                    aria-label="Close budget filters"
+                ></button>
 
                 <!-- Budget Header -->
                 <header class="sprout-budget__header">
                     <a
-                        href="{{ route('budget.index', ['month' => $previousMonthValue]) }}"
+                        href="{{ route('budget.index', array_filter(['month' => $previousMonthValue, 'view' => $activeBudgetView !== 'budget' ? $activeBudgetView : null])) }}"
                         class="sprout-budget__month-arrow"
+                        data-budget-month-link
                         aria-label="Previous month"
                     >
                         &lsaquo;
@@ -66,12 +74,107 @@
                     </button>
 
                     <a
-                        href="{{ route('budget.index', ['month' => $nextMonthValue]) }}"
+                        href="{{ route('budget.index', array_filter(['month' => $nextMonthValue, 'view' => $activeBudgetView !== 'budget' ? $activeBudgetView : null])) }}"
                         class="sprout-budget__month-arrow"
+                        data-budget-month-link
                         aria-label="Next month"
                     >
                         &rsaquo;
                     </a>
+
+                    @if ($budget)
+                        @php
+                            $remainCategoryFilters = collect($remainRows ?? [])
+                                ->map(fn (array $remainRow) => [
+                                    'value' => $remainRow['key'],
+                                    'label' => $remainRow['name'],
+                                ])
+                                ->values();
+                        @endphp
+                        <div class="sprout-budget__header-tools {{ $activeBudgetView === 'remain' ? '' : 'sprout-budget__header-tools--hidden' }}" data-budget-remain-toolbar>
+                            <div class="sprout-budget-remain-toolbar sprout-budget-remain-toolbar--header">
+                                <div class="sprout-budget-remain-toolbar__group">
+                                    <button
+                                        type="button"
+                                        class="sprout-budget-remain-toolbar__text-trigger"
+                                        data-budget-remain-category-trigger
+                                        aria-haspopup="listbox"
+                                        aria-expanded="false"
+                                    >
+                                        <span data-budget-remain-category-label>All</span>
+                                        <span class="sprout-budget-remain-toolbar__chevron" aria-hidden="true">&#9662;</span>
+                                    </button>
+
+                                    <div
+                                        class="sprout-budget-remain-toolbar__menu sprout-budget-remain-toolbar__menu--hidden"
+                                        data-budget-remain-category-menu
+                                        role="listbox"
+                                    >
+                                        <button
+                                            type="button"
+                                            class="sprout-budget-remain-toolbar__option sprout-budget-remain-toolbar__option--active"
+                                            data-budget-remain-category-option
+                                            data-category-value="all"
+                                            data-category-label="All"
+                                        >
+                                            All
+                                        </button>
+                                        @foreach ($remainCategoryFilters as $remainCategoryFilter)
+                                            <button
+                                                type="button"
+                                                class="sprout-budget-remain-toolbar__option"
+                                                data-budget-remain-category-option
+                                                data-category-value="{{ $remainCategoryFilter['value'] }}"
+                                                data-category-label="{{ $remainCategoryFilter['label'] }}"
+                                            >
+                                                {{ $remainCategoryFilter['label'] }}
+                                            </button>
+                                        @endforeach
+                                    </div>
+                                </div>
+
+                                <div class="sprout-budget-remain-toolbar__group">
+                                    <button
+                                        type="button"
+                                        class="sprout-budget-remain-toolbar__icon-trigger"
+                                        data-budget-remain-sort-trigger
+                                        aria-haspopup="listbox"
+                                        aria-expanded="false"
+                                        aria-label="Sort remain categories"
+                                    >
+                                        <img src="/projectassets/icons/filtericon.svg" alt="">
+                                    </button>
+
+                                    <div
+                                        class="sprout-budget-remain-toolbar__menu sprout-budget-remain-toolbar__menu--hidden sprout-budget-remain-toolbar__menu--right"
+                                        data-budget-remain-sort-menu
+                                        role="listbox"
+                                    >
+                                        <button
+                                            type="button"
+                                            class="sprout-budget-remain-toolbar__option sprout-budget-remain-toolbar__option--active"
+                                            data-budget-remain-sort-option
+                                            data-sort-value="highest"
+                                            data-sort-label="Spent: highest to lowest"
+                                        >
+                                            <img src="/projectassets/icons/filtericon.svg" alt="">
+                                            <span>Spent: highest to lowest</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            class="sprout-budget-remain-toolbar__option"
+                                            data-budget-remain-sort-option
+                                            data-sort-value="lowest"
+                                            data-sort-label="Spent: lowest to highest"
+                                        >
+                                            <img src="/projectassets/icons/filtericon.svg" alt="">
+                                            <span>Spent: lowest to highest</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
                 </header>
 
                 <section
@@ -111,7 +214,7 @@
                                 $monthValue = sprintf('%04d-%02d', $pickerYear, $monthNumber);
                             @endphp
                             <a
-                                href="{{ route('budget.index', ['month' => $monthValue]) }}"
+                                href="{{ route('budget.index', array_filter(['month' => $monthValue, 'view' => $activeBudgetView !== 'budget' ? $activeBudgetView : null])) }}"
                                 class="sprout-budget__picker-month {{ $monthNumber === $pickerMonth ? 'sprout-budget__picker-month--active' : '' }}"
                                 data-budget-picker-month
                                 data-month="{{ $monthNumber }}"
@@ -171,6 +274,8 @@
                         }
                     @endphp
 
+                    <div class="sprout-budget__views" data-budget-views>
+                    <div class="sprout-budget__view" data-budget-view-panel="budget">
                     <section class="sprout-budget-card">
                         <div class="sprout-budget-card__topline">
                             <div class="sprout-budget-card__topline-actions">
@@ -237,7 +342,7 @@
 
                                 <div class="sprout-budget-card__amount-row">
                                 <p class="sprout-budget-card__total">
-                                    ₱{{ number_format($totalAllocated, 0) }}
+                                    &#8369;{{ number_format($totalAllocated, 0) }}
                                 </p>
                                 <a
                                     href="{{ route('budget.allocate', ['budget' => $budget, 'month' => $selectedMonthValue]) }}"
@@ -249,7 +354,7 @@
                                 </div>
 
                                 <p class="sprout-budget-card__per-day">
-                                    ~₱{{ number_format($plannedPerDay, 2) }} per day
+                                    ~&#8369;{{ number_format($plannedPerDay, 2) }} per day
                                 </p>
                             </div>
                         </div>
@@ -285,9 +390,8 @@
                                                 </span>
                                             </div>
                                         </div>
-
                                         <span class="sprout-budget-card__row-amount">
-                                            ₱{{ number_format($categoryRow['amount'], 0) }}
+                                            &#8369;{{ number_format($categoryRow['amount'], 0) }}
                                         </span>
                                     </div>
                                 @endif
@@ -314,18 +418,188 @@
                                             {{ $categoryRow['name'] }}
                                         </span>
                                     </div>
-
                                     <span class="sprout-budget-category-card__amount">
-                                        ₱{{ number_format($categoryRow['amount'], 0) }}
+                                        &#8369;{{ number_format($categoryRow['amount'], 0) }}
                                     </span>
                                 </article>
                             @endif
                         @endforeach
                     </section>
+                    </div>
+
+                    <div class="sprout-budget__view sprout-budget__view--hidden" data-budget-view-panel="remain">
+                        <section
+                            class="sprout-budget-remain-card"
+                            data-budget-remain-card
+                            style="--budget-remain-accent: #43da84; --budget-remain-accent-soft: #d8f5e5;"
+                        >
+                            @php
+                                $remainSpentPercentage = min((float) ($remainOverview['spentPercentage'] ?? 0), 100);
+                                $remainGaugeAngle = 180 - (($remainSpentPercentage / 100) * 180);
+                                $remainGaugeRadians = deg2rad($remainGaugeAngle);
+                                $remainGaugeCenterX = 100;
+                                $remainGaugeCenterY = 100;
+                                $remainGaugeRadius = 76;
+                                $remainBadgeX = $remainGaugeCenterX + (cos($remainGaugeRadians) * $remainGaugeRadius);
+                                $remainBadgeY = $remainGaugeCenterY - (sin($remainGaugeRadians) * $remainGaugeRadius);
+                                $remainBadgeLeft = ($remainBadgeX / 200) * 100;
+                                $remainBadgeTop = ($remainBadgeY / 120) * 100;
+                                $remainSpentPerDay = $selectedMonthDate->daysInMonth > 0
+                                    ? (float) ($remainOverview['spent'] ?? 0) / $selectedMonthDate->daysInMonth
+                                    : 0;
+                            @endphp
+                            <div class="sprout-budget-remain-card__header">
+                                <span
+                                    class="sprout-budget-remain-card__exceed-pill {{ ($remainOverview['remaining'] ?? 0) < 0 ? '' : 'sprout-budget-remain-card__exceed-pill--hidden' }}"
+                                    data-budget-remain-exceed-pill
+                                >
+                                    Exceed &#8369;{{ number_format(abs(min((float) ($remainOverview['remaining'] ?? 0), 0)), 0) }}
+                                </span>
+                            </div>
+
+                            <div class="sprout-budget-remain-card__gauge">
+                                <div
+                                    class="sprout-budget-remain-card__gauge-badge"
+                                    data-budget-remain-badge
+                                    style="left: {{ $remainBadgeLeft }}%; top: {{ $remainBadgeTop }}%;"
+                                >
+                                    {{ number_format($remainOverview['spentPercentage'] ?? 0, 0) }}%
+                                </div>
+
+                                <svg
+                                    viewBox="0 0 200 120"
+                                    class="sprout-budget-remain-card__gauge-svg"
+                                    aria-label="Budget remain gauge"
+                                >
+                                    <path
+                                        d="M 20 100 A 80 80 0 0 1 180 100"
+                                        class="sprout-budget-remain-card__gauge-track"
+                                        pathLength="100"
+                                    />
+                                    <path
+                                        d="M 20 100 A 80 80 0 0 1 180 100"
+                                        class="sprout-budget-remain-card__gauge-progress {{ ($remainOverview['remaining'] ?? 0) < 0 ? 'sprout-budget-remain-card__gauge-progress--danger' : '' }} {{ $remainSpentPercentage <= 0 ? 'sprout-budget-remain-card__gauge-progress--empty' : '' }}"
+                                        data-budget-remain-progress
+                                        pathLength="100"
+                                        style="stroke-dasharray: {{ $remainSpentPercentage }} 100;"
+                                    />
+                                </svg>
+
+                                <div class="sprout-budget-remain-card__hero">
+                                    <div class="sprout-budget-remain-card__hero-kicker">Remaining Amount</div>
+                                    <div
+                                        class="sprout-budget-remain-card__hero-value"
+                                        data-budget-remain-hero-value
+                                    >
+                                        &#8369;{{ number_format(max((float) ($remainOverview['remaining'] ?? 0), 0), 0) }}
+                                    </div>
+
+                                    <div class="sprout-budget-remain-card__hero-label" data-budget-remain-hero-label>
+                                        ~&#8369;{{ number_format($remainSpentPerDay, 2) }} spent per day
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="sprout-budget-remain-card__stats">
+                                <div class="sprout-budget-remain-card__stat">
+                                    <span class="sprout-budget-remain-card__stat-value" data-budget-remain-spent-value>&#8369;{{ number_format((float) ($remainOverview['spent'] ?? 0), 0) }}</span>
+                                    <span class="sprout-budget-remain-card__stat-label">Spent</span>
+                                </div>
+
+                                <div class="sprout-budget-remain-card__stat sprout-budget-remain-card__stat--right">
+                                    <span class="sprout-budget-remain-card__stat-value" data-budget-remain-monthly-value>&#8369;{{ number_format((float) ($remainOverview['monthly'] ?? 0), 0) }}</span>
+                                    <span class="sprout-budget-remain-card__stat-label">Monthly</span>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="sprout-budget-remain-list">
+                            @foreach ($remainRows as $remainRow)
+                                <article
+                                    class="sprout-budget-remain-item"
+                                    data-budget-remain-row
+                                    data-category-key="{{ $remainRow['key'] }}"
+                                    data-category-name="{{ $remainRow['name'] }}"
+                                    data-row-order="{{ $loop->index }}"
+                                    data-color="{{ $remainRow['color'] }}"
+                                    data-amount="{{ (float) $remainRow['amount'] }}"
+                                    data-progress-percentage="{{ (float) $remainRow['progressPercentage'] }}"
+                                    data-spent="{{ (float) $remainRow['spent'] }}"
+                                    data-remaining="{{ (float) $remainRow['remaining'] }}"
+                                >
+                                    <div class="sprout-budget-remain-item__head">
+                                        <div class="sprout-budget-remain-item__head-left">
+                                            <div
+                                                class="sprout-budget-remain-item__icon"
+                                                style="--budget-remain-color: {{ $remainRow['color'] }};"
+                                            >
+                                                <img
+                                                    src="{{ asset('projectassets/icons/' . $remainRow['icon']) }}"
+                                                    alt="{{ $remainRow['name'] }} icon"
+                                                >
+                                            </div>
+                                            <div class="sprout-budget-remain-item__copy">
+                                                <div class="sprout-budget-remain-item__name">{{ $remainRow['name'] }}</div>
+                                                <div class="sprout-budget-remain-item__monthly">Monthly: &#8369;{{ number_format((float) $remainRow['amount'], 0) }}</div>
+                                            </div>
+                                        </div>
+
+                                        @if ($remainRow['isOverspent'])
+                                            <span class="sprout-budget-remain-item__exceed-pill">
+                                                Exceed &#8369;{{ number_format(abs((float) $remainRow['remaining']), 0) }}
+                                            </span>
+                                        @endif
+                                    </div>
+
+                                    <div class="sprout-budget-remain-item__stats">
+                                        <div class="sprout-budget-remain-item__stat">
+                                            <span class="sprout-budget-remain-item__stat-label">Spent:</span>
+                                            <span class="sprout-budget-remain-item__stat-value">&#8369;{{ number_format((float) $remainRow['spent'], 0) }}</span>
+                                        </div>
+
+                                        <div class="sprout-budget-remain-item__stat sprout-budget-remain-item__stat--right">
+                                            <span class="sprout-budget-remain-item__stat-label">Remain:</span>
+                                            <span class="sprout-budget-remain-item__stat-value {{ $remainRow['isOverspent'] ? 'sprout-budget-remain-item__stat-value--negative' : '' }}">
+                                                &#8369;{{ number_format(max((float) $remainRow['remaining'], 0), 0) }}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div class="sprout-budget-remain-item__progress-track">
+                                        <div
+                                            class="sprout-budget-remain-item__progress-fill {{ $remainRow['isOverspent'] ? 'sprout-budget-remain-item__progress-fill--danger' : '' }}"
+                                            style="--budget-remain-color: {{ $remainRow['color'] }}; width: {{ min((float) $remainRow['progressPercentage'], 100) }}%;"
+                                        ></div>
+                                    </div>
+                                </article>
+                            @endforeach
+                        </section>
+                    </div>
+                    </div>
                 @endif
 
             </div>
         </main>
+
+        @if ($budget)
+            <div class="sprout-budget__mode-toggle" data-budget-view-toggle-shell>
+                <button
+                    type="button"
+                    class="sprout-budget__mode-toggle-button sprout-budget__mode-toggle-button--active"
+                    data-budget-view-toggle="budget"
+                >
+                    Budget
+                </button>
+
+                <button
+                    type="button"
+                    class="sprout-budget__mode-toggle-button"
+                    data-budget-view-toggle="remain"
+                >
+                    Remain
+                </button>
+            </div>
+        @endif
 
         @include('public.partials.nav-mobile')
     </div>
@@ -347,7 +621,7 @@
                 id="budget-schedule-close"
                 aria-label="Close budget schedule"
             >
-                ×
+                &times;
             </button>
 
             <div class="sprout-budget-schedule-modal__filter-wrap">
@@ -408,6 +682,71 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    const viewToggleButtons = document.querySelectorAll('[data-budget-view-toggle]')
+    const viewPanels = document.querySelectorAll('[data-budget-view-panel]')
+    const viewToggleShell = document.querySelector('[data-budget-view-toggle-shell]')
+    const remainHeaderToolbar = document.querySelector('[data-budget-remain-toolbar]')
+    const menuOverlay = document.querySelector('[data-budget-menu-overlay]')
+    const monthNavigationLinks = document.querySelectorAll('[data-budget-month-link], [data-budget-picker-month]')
+    const currentPageUrl = new URL(window.location.href)
+    let currentBudgetView = currentPageUrl.searchParams.get('view') === 'remain' ? 'remain' : 'budget'
+
+    const syncBudgetNavigationLinks = (viewName) => {
+        monthNavigationLinks.forEach((link) => {
+            const url = new URL(link.href, window.location.origin)
+
+            if (viewName === 'remain') {
+                url.searchParams.set('view', 'remain')
+            } else {
+                url.searchParams.delete('view')
+            }
+
+            link.href = url.toString()
+        })
+    }
+
+    const setBudgetView = (viewName) => {
+        currentBudgetView = viewName
+
+        viewPanels.forEach((panel) => {
+            panel.classList.toggle(
+                'sprout-budget__view--hidden',
+                panel.getAttribute('data-budget-view-panel') !== viewName
+            )
+        })
+
+        viewToggleButtons.forEach((button) => {
+            const isActive = button.getAttribute('data-budget-view-toggle') === viewName
+            button.classList.toggle('sprout-budget__mode-toggle-button--active', isActive)
+            button.setAttribute('aria-pressed', isActive ? 'true' : 'false')
+        })
+
+        if (remainHeaderToolbar) {
+            remainHeaderToolbar.classList.toggle('sprout-budget__header-tools--hidden', viewName !== 'remain')
+        }
+
+        const nextUrl = new URL(window.location.href)
+
+        if (viewName === 'remain') {
+            nextUrl.searchParams.set('view', 'remain')
+        } else {
+            nextUrl.searchParams.delete('view')
+        }
+
+        window.history.replaceState({}, '', nextUrl)
+        syncBudgetNavigationLinks(viewName)
+    }
+
+    viewToggleButtons.forEach((button) => {
+        button.addEventListener('click', function () {
+            setBudgetView(button.getAttribute('data-budget-view-toggle') || 'budget')
+        })
+    })
+
+    if (viewToggleButtons.length > 0) {
+        setBudgetView(currentBudgetView)
+    }
+
     const pickerTrigger = document.querySelector('[data-budget-picker-trigger]')
     const pickerPanel = document.querySelector('[data-budget-picker]')
     const pickerOverlay = document.querySelector('[data-budget-picker-overlay]')
@@ -435,6 +774,13 @@ document.addEventListener('DOMContentLoaded', function () {
             const url = new URL(link.href, window.location.origin)
 
             url.searchParams.set('month', monthValue)
+
+            if (currentBudgetView === 'remain') {
+                url.searchParams.set('view', 'remain')
+            } else {
+                url.searchParams.delete('view')
+            }
+
             link.href = url.toString()
             link.classList.toggle(
                 'sprout-budget__picker-month--active',
@@ -499,6 +845,309 @@ document.addEventListener('DOMContentLoaded', function () {
         })
     }
 
+    const remainCategoryTrigger = document.querySelector('[data-budget-remain-category-trigger]')
+    const remainCategoryLabel = document.querySelector('[data-budget-remain-category-label]')
+    const remainCategoryMenu = document.querySelector('[data-budget-remain-category-menu]')
+    const remainCategoryOptions = document.querySelectorAll('[data-budget-remain-category-option]')
+    const remainSortTrigger = document.querySelector('[data-budget-remain-sort-trigger]')
+    const remainSortMenu = document.querySelector('[data-budget-remain-sort-menu]')
+    const remainSortOptions = document.querySelectorAll('[data-budget-remain-sort-option]')
+    const remainList = document.querySelector('.sprout-budget-remain-list')
+    const remainRows = remainList ? Array.from(remainList.querySelectorAll('[data-budget-remain-row]')) : []
+    const remainCard = document.querySelector('[data-budget-remain-card]')
+    const remainTitle = document.querySelector('[data-budget-remain-title]')
+    const remainBadge = document.querySelector('[data-budget-remain-badge]')
+    const remainProgress = document.querySelector('[data-budget-remain-progress]')
+    const remainExceedPill = document.querySelector('[data-budget-remain-exceed-pill]')
+    const remainHeroValue = document.querySelector('[data-budget-remain-hero-value]')
+    const remainHeroLabel = document.querySelector('[data-budget-remain-hero-label]')
+    const remainSpentValue = document.querySelector('[data-budget-remain-spent-value]')
+    const remainMonthlyValue = document.querySelector('[data-budget-remain-monthly-value]')
+    let activeRemainCategory = 'all'
+    let activeRemainSort = 'highest'
+    const remainDaysInMonth = {{ $selectedMonthDate->daysInMonth }}
+    const remainDefaultSummary = {
+        title: 'Budget Remaining',
+        color: '#43da84',
+        softColor: '#d8f5e5',
+        spent: Number({{ json_encode((float) ($remainOverview['spent'] ?? 0)) }}),
+        monthly: Number({{ json_encode((float) ($remainOverview['monthly'] ?? 0)) }}),
+        remaining: Number({{ json_encode((float) ($remainOverview['remaining'] ?? 0)) }}),
+        percentage: Number({{ json_encode((float) ($remainOverview['spentPercentage'] ?? 0)) }})
+    }
+
+    const formatRemainCurrency = (value, absolute = false) => {
+        const numericValue = Number(value || 0)
+        const displayValue = absolute ? Math.abs(numericValue) : numericValue
+
+        return `\u20B1${new Intl.NumberFormat('en-PH', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(displayValue)}`
+    }
+
+    const formatRemainDailyCurrency = (value) => {
+        return `~\u20B1${new Intl.NumberFormat('en-PH', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }).format(Number(value || 0))} spent per day`
+    }
+
+    const softenRemainColor = (hexColor) => {
+        const normalizedColor = String(hexColor || '').replace('#', '')
+
+        if (normalizedColor.length !== 6) {
+            return '#d8f5e5'
+        }
+
+        const red = parseInt(normalizedColor.slice(0, 2), 16)
+        const green = parseInt(normalizedColor.slice(2, 4), 16)
+        const blue = parseInt(normalizedColor.slice(4, 6), 16)
+
+        const mixChannel = (channel) => Math.round((channel * 0.22) + (255 * 0.78))
+
+        return `rgb(${mixChannel(red)}, ${mixChannel(green)}, ${mixChannel(blue)})`
+    }
+
+    const updateRemainCardBadgePosition = (percentageValue) => {
+        if (!remainBadge) {
+            return
+        }
+
+        const clampedPercentage = Math.max(0, Math.min(Number(percentageValue || 0), 100))
+        const angleInRadians = ((180 - ((clampedPercentage / 100) * 180)) * Math.PI) / 180
+        const badgeX = 100 + (Math.cos(angleInRadians) * 76)
+        const badgeY = 100 - (Math.sin(angleInRadians) * 76)
+
+        remainBadge.style.left = `${(badgeX / 200) * 100}%`
+        remainBadge.style.top = `${(badgeY / 120) * 100}%`
+    }
+
+    const updateRemainCardSummary = () => {
+        if (!remainCard || !remainProgress) {
+            return
+        }
+
+        let summary = remainDefaultSummary
+
+        if (activeRemainCategory !== 'all') {
+            const activeRow = remainRows.find((row) => row.getAttribute('data-category-key') === activeRemainCategory)
+
+            if (activeRow) {
+                const rowColor = activeRow.getAttribute('data-color') || remainDefaultSummary.color
+                const spent = Number(activeRow.getAttribute('data-spent') || 0)
+                const monthly = Number(activeRow.getAttribute('data-amount') || 0)
+                const remaining = Number(activeRow.getAttribute('data-remaining') || 0)
+                const percentage = Number(activeRow.getAttribute('data-progress-percentage') || 0)
+
+                summary = {
+                    title: `${activeRow.getAttribute('data-category-name') || 'Budget'} Remaining`,
+                    color: remaining < 0 ? '#ff8b80' : rowColor,
+                    softColor: remaining < 0 ? '#ffe0dc' : softenRemainColor(rowColor),
+                    spent,
+                    monthly,
+                    remaining,
+                    percentage
+                }
+            }
+        }
+
+        remainCard.style.setProperty('--budget-remain-accent', summary.color)
+        remainCard.style.setProperty('--budget-remain-accent-soft', summary.softColor)
+
+        if (remainTitle) {
+            remainTitle.textContent = summary.title
+        }
+
+        if (remainBadge) {
+            remainBadge.textContent = `${Math.round(summary.percentage)}%`
+            remainBadge.classList.toggle('sprout-budget-remain-card__gauge-badge--danger', summary.remaining < 0)
+            updateRemainCardBadgePosition(summary.percentage)
+        }
+
+        remainProgress.style.strokeDasharray = `${Math.max(0, Math.min(summary.percentage, 100))} 100`
+        remainProgress.classList.toggle('sprout-budget-remain-card__gauge-progress--danger', summary.remaining < 0)
+        remainProgress.classList.toggle('sprout-budget-remain-card__gauge-progress--empty', Number(summary.percentage) <= 0)
+
+        if (remainHeroValue) {
+            remainHeroValue.textContent = formatRemainCurrency(Math.max(summary.remaining, 0))
+        }
+
+        if (remainHeroLabel) {
+            remainHeroLabel.textContent = formatRemainDailyCurrency(remainDaysInMonth > 0 ? summary.spent / remainDaysInMonth : 0)
+        }
+
+        if (remainExceedPill) {
+            remainExceedPill.textContent = `Exceed ${formatRemainCurrency(Math.abs(Math.min(summary.remaining, 0)))}`
+            remainExceedPill.classList.toggle('sprout-budget-remain-card__exceed-pill--hidden', summary.remaining >= 0)
+        }
+
+        if (remainSpentValue) {
+            remainSpentValue.textContent = formatRemainCurrency(summary.spent)
+        }
+
+        if (remainMonthlyValue) {
+            remainMonthlyValue.textContent = formatRemainCurrency(summary.monthly)
+        }
+    }
+
+    const closeRemainMenus = () => {
+        if (remainCategoryMenu && remainCategoryTrigger) {
+            remainCategoryMenu.classList.add('sprout-budget-remain-toolbar__menu--hidden')
+            remainCategoryTrigger.setAttribute('aria-expanded', 'false')
+            remainCategoryTrigger.classList.remove('sprout-budget-remain-toolbar__text-trigger--open')
+        }
+
+        if (remainSortMenu && remainSortTrigger) {
+            remainSortMenu.classList.add('sprout-budget-remain-toolbar__menu--hidden')
+            remainSortTrigger.setAttribute('aria-expanded', 'false')
+            remainSortTrigger.classList.remove('sprout-budget-remain-toolbar__icon-trigger--open')
+        }
+
+        if (menuOverlay) {
+            menuOverlay.classList.add('sprout-budget__menu-overlay--hidden')
+        }
+    }
+
+    const toggleRemainMenu = (menu, trigger) => {
+        if (!menu || !trigger) {
+            return
+        }
+
+        const shouldOpen = menu.classList.contains('sprout-budget-remain-toolbar__menu--hidden')
+        closeRemainMenus()
+
+        if (!shouldOpen) {
+            return
+        }
+
+        menu.classList.remove('sprout-budget-remain-toolbar__menu--hidden')
+        trigger.setAttribute('aria-expanded', 'true')
+
+        if (menuOverlay) {
+            menuOverlay.classList.remove('sprout-budget__menu-overlay--hidden')
+        }
+
+        if (trigger === remainCategoryTrigger) {
+            trigger.classList.add('sprout-budget-remain-toolbar__text-trigger--open')
+        }
+
+        if (trigger === remainSortTrigger) {
+            trigger.classList.add('sprout-budget-remain-toolbar__icon-trigger--open')
+        }
+    }
+
+    const applyRemainListState = () => {
+        if (!remainList || !remainRows.length) {
+            return
+        }
+
+        const filteredRows = remainRows.filter((row) => {
+            if (activeRemainCategory === 'all') {
+                return true
+            }
+
+            return row.getAttribute('data-category-key') === activeRemainCategory
+        })
+
+        remainRows.forEach((row) => {
+            row.classList.add('sprout-budget-remain-item--hidden')
+        })
+
+        const sortedRows = filteredRows.sort((leftRow, rightRow) => {
+            const leftOrder = Number(leftRow.getAttribute('data-row-order') || 0)
+            const rightOrder = Number(rightRow.getAttribute('data-row-order') || 0)
+            const leftSpent = Number(leftRow.getAttribute('data-spent') || 0)
+            const rightSpent = Number(rightRow.getAttribute('data-spent') || 0)
+
+            switch (activeRemainSort) {
+                case 'highest':
+                    return rightSpent - leftSpent
+                case 'lowest':
+                    return leftSpent - rightSpent
+                default:
+                    return leftOrder - rightOrder
+            }
+        })
+
+        sortedRows.forEach((row) => {
+            row.classList.remove('sprout-budget-remain-item--hidden')
+            remainList.appendChild(row)
+        })
+
+        updateRemainCardSummary()
+    }
+
+    if (remainCategoryTrigger && remainCategoryMenu) {
+        remainCategoryTrigger.addEventListener('click', function (event) {
+            event.preventDefault()
+            event.stopPropagation()
+            toggleRemainMenu(remainCategoryMenu, remainCategoryTrigger)
+        })
+
+        remainCategoryOptions.forEach((option) => {
+            option.addEventListener('click', function (event) {
+                event.preventDefault()
+                event.stopPropagation()
+
+                activeRemainCategory = option.getAttribute('data-category-value') || 'all'
+
+                if (remainCategoryLabel) {
+                    remainCategoryLabel.textContent = option.getAttribute('data-category-label') || 'All'
+                }
+
+                remainCategoryOptions.forEach((categoryOption) => {
+                    const isActive = categoryOption === option
+                    categoryOption.classList.toggle('sprout-budget-remain-toolbar__option--active', isActive)
+                    categoryOption.setAttribute('aria-selected', isActive ? 'true' : 'false')
+                })
+
+                applyRemainListState()
+                closeRemainMenus()
+            })
+        })
+    }
+
+    if (remainSortTrigger && remainSortMenu) {
+        remainSortTrigger.addEventListener('click', function (event) {
+            event.preventDefault()
+            event.stopPropagation()
+            toggleRemainMenu(remainSortMenu, remainSortTrigger)
+        })
+
+        remainSortOptions.forEach((option) => {
+            option.addEventListener('click', function (event) {
+                event.preventDefault()
+                event.stopPropagation()
+
+                activeRemainSort = option.getAttribute('data-sort-value') || 'highest'
+
+                remainSortOptions.forEach((sortOption) => {
+                    const isActive = sortOption === option
+                    sortOption.classList.toggle('sprout-budget-remain-toolbar__option--active', isActive)
+                    sortOption.setAttribute('aria-selected', isActive ? 'true' : 'false')
+                })
+
+                applyRemainListState()
+                closeRemainMenus()
+            })
+        })
+    }
+
+    document.addEventListener('click', function (event) {
+        const clickedInsideRemainToolbar = event.target.closest('.sprout-budget-remain-toolbar__group')
+
+        if (!clickedInsideRemainToolbar) {
+            closeRemainMenus()
+        }
+    })
+
+    if (menuOverlay) {
+        menuOverlay.addEventListener('click', closeRemainMenus)
+    }
+
+    applyRemainListState()
+
     const scheduleModal = document.getElementById('budget-schedule-modal')
     const scheduleOpen = document.getElementById('budget-schedule-open')
     const scheduleClose = document.getElementById('budget-schedule-close')
@@ -526,7 +1175,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const formatCurrency = (value) => {
         const numericValue = Number(value || 0)
 
-        return `P${new Intl.NumberFormat('en-PH', {
+        return `\u20B1${new Intl.NumberFormat('en-PH', {
             minimumFractionDigits: 0,
             maximumFractionDigits: 0
         }).format(numericValue)}`
@@ -576,12 +1225,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const openScheduleModal = () => {
         scheduleModal.classList.remove('sprout-budget-schedule-modal--hidden')
+        if (viewToggleShell) {
+            viewToggleShell.classList.add('sprout-budget__mode-toggle--hidden')
+        }
         renderScheduleRows(activeFilterValue)
     }
 
     const closeScheduleModal = () => {
         closeFilterMenu()
         scheduleModal.classList.add('sprout-budget-schedule-modal--hidden')
+        if (viewToggleShell) {
+            viewToggleShell.classList.remove('sprout-budget__mode-toggle--hidden')
+        }
     }
 
     const openFilterMenu = () => {

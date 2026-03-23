@@ -159,6 +159,37 @@
   opacity: 0.8;
 }
 
+.sprout-forgot-link {
+  align-self: flex-end;
+  margin-top: -2px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #00D95F;
+  text-decoration: none;
+}
+
+.sprout-forgot-link:hover {
+  text-decoration: underline;
+}
+
+.sprout-status {
+  width: 100%;
+  align-self: flex-start;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(0, 217, 95, 0.12);
+  color: #0A7C3C;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.sprout-auth__helper {
+  font-size: 13px;
+  line-height: 1.5;
+  color: #5F6E66;
+  margin-bottom: 8px;
+}
+
 .sprout-btn {
   position: relative;
   margin-top: 14px;
@@ -190,10 +221,13 @@
 }
 
 .sprout-error {
+  width: 100%;
+  align-self: flex-start;
   font-size: 12px;
   line-height: 1.35;
   color: #FF4D4F;
-  margin-top: -4px;
+  margin-top: 0;
+  margin-bottom: 2px;
 }
 
 /* Tablet */

@@ -568,6 +568,11 @@
   align-items: start;
 }
 
+.sprout-dashboard-mobile__summary-row--two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+}
+
 /* Dashboard Summary Item */
 .sprout-dashboard-mobile__summary-item {
   min-width: 0;
@@ -649,6 +654,10 @@
 
 .sprout-dashboard-mobile__summary-value--balance {
   color: var(--sprout-dashboard-balance);
+}
+
+.sprout-dashboard-mobile__summary-value--negative {
+  color: var(--sprout-dashboard-expense);
 }
 
 /* Dashboard History List */
@@ -797,6 +806,20 @@
   text-overflow: ellipsis;
 }
 
+.sprout-dashboard-mobile__transaction-indicator {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 4px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(0, 201, 87, 0.12);
+  color: var(--sprout-dashboard-income);
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
 .sprout-dashboard-mobile__transaction-right {
   text-align: right;
   flex-shrink: 0;
@@ -899,6 +922,86 @@
   color: var(--sprout-dashboard-text-light);
 }
 
+.sprout-dashboard-mobile__delete-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.sprout-dashboard-mobile__delete-backdrop {
+  position: absolute;
+  inset: 0;
+  border: none;
+  background: rgba(0, 0, 0, 0.14);
+  padding: 0;
+  margin: 0;
+}
+
+.sprout-dashboard-mobile__delete-sheet {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 352px;
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 24px 18px 18px;
+  box-sizing: border-box;
+  box-shadow: 0 18px 34px rgba(0, 0, 0, 0.12);
+}
+
+.sprout-dashboard-mobile__delete-title {
+  margin: 0;
+  color: var(--sprout-dashboard-text);
+  font-family: 'Inter', sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.sprout-dashboard-mobile__delete-message {
+  margin: 14px auto 0;
+  max-width: 314px;
+  color: #5e5e5e;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.sprout-dashboard-mobile__delete-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.sprout-dashboard-mobile__delete-button {
+  min-height: 42px;
+  border: none;
+  border-radius: 12px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sprout-dashboard-mobile__delete-button--primary {
+  border: none;
+  background: #00f36b;
+  color: #ffffff;
+}
+
+.sprout-dashboard-mobile__delete-button--secondary {
+  border: 1.4px solid rgba(0, 243, 107, 0.24);
+  background: #f5fff7;
+  color: #00c957;
+}
+
 /* Dashboard View Sheet */
 .sprout-dashboard-mobile__view-sheet {
   position: relative;
@@ -988,11 +1091,15 @@
   word-break: break-word;
 }
 
+.sprout-dashboard-mobile__view-value--transfer {
+  color: var(--sprout-dashboard-income);
+}
+
 /* Dashboard Floating Action Button */
 .sprout-dashboard-mobile__fab {
   position: fixed;
   right: 24px;
-  bottom: 92px;
+  bottom: calc(96px + env(safe-area-inset-bottom));
   width: 62px;
   height: 62px;
   border-radius: 999px;
@@ -1009,7 +1116,8 @@
   padding: 0;
   margin: 0;
   box-shadow: 0 12px 26px rgba(0, 243, 107, 0.32);
-  z-index: 30;
+  z-index: 1101;
+  pointer-events: auto;
 }
 
 /* Dashboard View Receipt Photos */

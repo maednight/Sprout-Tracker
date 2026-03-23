@@ -18,7 +18,7 @@
 }
 
 .sprout-transactions__content {
-  padding: 18px 10px 28px;
+  padding: 18px 8px 28px;
   max-width: 372px;
   margin: 0 auto;
   position: relative;
@@ -53,6 +53,7 @@
   grid-template-columns: 40px 1fr 40px;
   align-items: center;
   margin-bottom: 14px;
+  min-height: 40px;
 }
 
 .sprout-transactions__header {
@@ -88,15 +89,23 @@
   width: 36px;
   height: 36px;
   color: #1f1f1f;
-  font-size: 32px;
+  font-size: 22px;
+  font-weight: 600;
   line-height: 1;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  justify-self: start;
+  transform: translateX(-4px);
 }
 
 .sprout-transactions__detail-filter-wrap {
   position: relative;
   justify-self: end;
   z-index: 30;
+  display: inline-flex;
+  align-items: center;
 }
 
 .sprout-transactions__detail-filter-button {
@@ -107,12 +116,14 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  justify-self: end;
+  transform: translateX(4px);
 }
 
 .sprout-transactions__detail-filter-button img {
-  width: 18px;
-  height: 18px;
-  filter: brightness(0) saturate(100%) invert(58%) sepia(82%) saturate(6922%) hue-rotate(95deg) brightness(98%) contrast(101%);
+  width: 15px;
+  height: 15px;
+  filter: brightness(0) saturate(100%) invert(52%) sepia(81%) saturate(1025%) hue-rotate(94deg) brightness(98%) contrast(88%);
 }
 
 .sprout-transactions__controls {
@@ -203,7 +214,7 @@
   display: block;
   object-fit: contain;
   opacity: 0.72;
-  filter: brightness(0) saturate(100%) invert(58%) sepia(82%) saturate(6922%) hue-rotate(95deg) brightness(98%) contrast(101%);
+  filter: brightness(0) saturate(100%) invert(52%) sepia(81%) saturate(1025%) hue-rotate(94deg) brightness(98%) contrast(88%);
 }
 
 .sprout-transactions__filter-option--active,
@@ -214,7 +225,7 @@
 
 .sprout-transactions__detail-filter-option--active img {
   opacity: 1;
-  filter: brightness(0) saturate(100%) invert(58%) sepia(82%) saturate(6922%) hue-rotate(95deg) brightness(98%) contrast(101%);
+  filter: brightness(0) saturate(100%) invert(52%) sepia(81%) saturate(1025%) hue-rotate(94deg) brightness(98%) contrast(88%);
 }
 
 .sprout-transactions__period {

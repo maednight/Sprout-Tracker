@@ -25,7 +25,7 @@ class SavingsController extends Controller
         [$rangeStart, $rangeEnd] = $this->resolveScopeRange($anchorDate, $selectedScope);
 
         $savingsTransactions = Transaction::query()
-            ->with(['category', 'account'])
+            ->with(['category', 'account', 'destinationSavingsTransfer'])
             ->where('user_id', $user->id)
             ->where('type', 'savings')
             ->whereBetween('occurred_at', [
@@ -37,7 +37,7 @@ class SavingsController extends Controller
             ->get();
 
         $savingsTransfers = SavingsTransfer::query()
-            ->with(['sourceCategory', 'account'])
+            ->with(['sourceCategory', 'destinationCategory', 'account', 'incomeTransaction', 'savingsTransaction'])
             ->where('user_id', $user->id)
             ->whereBetween('transferred_at', [
                 $rangeStart,
@@ -88,31 +88,6 @@ class SavingsController extends Controller
 
     public function createTransfer(Request $request): View
     {
-        $user = auth()->user();
-
-        $savingsTransactions = Transaction::query()
-            ->with(['category', 'account'])
-            ->where('user_id', $user->id)
-            ->where('type', 'savings')
-            ->orderByDesc('occurred_at')
-            ->orderByDesc('id')
-            ->get();
-
-        $savingsTransfers = SavingsTransfer::query()
-            ->with(['sourceCategory', 'account'])
-            ->where('user_id', $user->id)
-            ->orderByDesc('transferred_at')
-            ->orderByDesc('id')
-            ->get();
-
-        $transferCategories = $this->buildCategoryBalances($savingsTransactions, $savingsTransfers);
-        $accountOptions = Account::query()
-            ->where('user_id', $user->id)
-            ->orderBy('name')
-            ->pluck('name')
-            ->values()
-            ->all();
-
         $requestedDateValue = $request->query('date');
         $prefilledTransferDateValue = now()->format('m/d/Y');
 
@@ -126,13 +101,19 @@ class SavingsController extends Controller
         }
 
         return view('public.savings-transfer-create', [
-            'transferCategories' => $transferCategories,
-            'accountOptions' => $accountOptions,
-            'transferDateValue' => old('transfer_date', $prefilledTransferDateValue),
-            'transferAmountValue' => old('amount', ''),
-            'transferCategoryValue' => old('source_category_id', ''),
-            'transferAccountValue' => old('account', ''),
-            'transferDescriptionValue' => old('description', ''),
+            ...$this->buildTransferFormViewData(
+                auth()->id(),
+                null,
+                [
+                    'transferTypeValue' => old('transfer_type', 'savings_to_savings'),
+                    'transferDateValue' => old('transfer_date', $prefilledTransferDateValue),
+                    'transferAmountValue' => old('amount', ''),
+                    'transferCategoryValue' => old('source_category_id', ''),
+                    'transferDestinationCategoryValue' => old('destination_category_id', ''),
+                    'transferAccountValue' => old('account', ''),
+                    'transferDescriptionValue' => old('description', ''),
+                ]
+            ),
         ]);
     }
 
@@ -141,11 +122,17 @@ class SavingsController extends Controller
         $user = auth()->user();
 
         $validated = $request->validate([
+            'transfer_type' => ['required', 'in:savings_to_savings,savings_to_income'],
             'source_category_id' => ['required', 'integer'],
-            'amount' => ['required', 'numeric', 'min:0.01'],
+            'destination_category_id' => ['nullable', 'integer'],
+            'amount' => ['required', 'string'],
             'transfer_date' => ['required', 'date_format:m/d/Y'],
-            'account' => ['required', 'string', 'max:80'],
+            'account' => ['nullable', 'string', 'max:80'],
             'description' => ['nullable', 'string', 'max:255'],
+            'receipt_photos' => ['nullable', 'array'],
+            'receipt_photos.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'receipt_photo_camera' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'existing_receipt_photo_paths' => ['nullable', 'string'],
         ]);
 
         $sourceCategory = Category::query()
@@ -154,8 +141,22 @@ class SavingsController extends Controller
             ->whereKey($validated['source_category_id'])
             ->firstOrFail();
 
+        $normalizedAmount = $this->normalizeAmount($validated['amount']);
+
+        if ($normalizedAmount === null) {
+            return back()
+                ->withErrors([
+                    'amount' => 'Please enter a valid amount.',
+                ])
+                ->withInput();
+        }
+
+        $transferAmount = round((float) $normalizedAmount, 2);
+
+        $transferredAt = Carbon::createFromFormat('m/d/Y', $validated['transfer_date'])
+            ->setTime(now()->hour, now()->minute, now()->second);
+
         $availableAmount = $this->resolveAvailableCategoryAmount($user->id, $sourceCategory->id);
-        $transferAmount = round((float) $validated['amount'], 2);
 
         if ($transferAmount > $availableAmount) {
             return back()
@@ -165,60 +166,476 @@ class SavingsController extends Controller
                 ->withInput();
         }
 
+        if ($validated['transfer_type'] === 'savings_to_savings') {
+            $destinationCategoryId = (int) ($validated['destination_category_id'] ?? 0);
+
+            if ($destinationCategoryId <= 0) {
+                return back()
+                    ->withErrors([
+                        'destination_category_id' => 'Please select a savings category to transfer into.',
+                    ])
+                    ->withInput();
+            }
+
+            if ($destinationCategoryId === (int) $sourceCategory->id) {
+                return back()
+                    ->withErrors([
+                        'destination_category_id' => 'Please choose a different destination savings category.',
+                    ])
+                    ->withInput();
+            }
+
+            $destinationCategory = Category::query()
+                ->where('user_id', $user->id)
+                ->where('type', 'savings')
+                ->whereKey($destinationCategoryId)
+                ->firstOrFail();
+
+            $this->createSavingsToSavingsTransfer(
+                $user->id,
+                $sourceCategory,
+                $destinationCategory,
+                $transferAmount,
+                $transferredAt,
+                $validated,
+                $request
+            );
+
+            return redirect()
+                ->route('savings.index')
+                ->with('savings_success', 'Savings moved successfully.');
+        }
+
+        $accountName = trim((string) ($validated['account'] ?? ''));
+
+        if ($accountName === '') {
+            return back()
+                ->withErrors([
+                    'account' => 'Please select the income account to withdraw into.',
+                ])
+                ->withInput();
+        }
+
         $account = Account::firstOrCreate([
             'user_id' => $user->id,
-            'name' => trim($validated['account']),
+            'name' => $accountName,
         ]);
 
-        $incomeCategory = Category::firstOrCreate([
-            'user_id' => $user->id,
-            'type' => 'income',
-            'name' => 'Savings Transfer',
+        $this->createSavingsToIncomeTransfer(
+            $user->id,
+            $sourceCategory,
+            $account,
+            $transferAmount,
+            $transferredAt,
+            $validated,
+            $request
+        );
+
+        return redirect()
+            ->route('savings.index')
+            ->with('savings_success', 'Savings transferred to income successfully.');
+    }
+
+    public function editTransfer(SavingsTransfer $savingsTransfer): View
+    {
+        $this->authorizeSavingsTransfer($savingsTransfer);
+
+        $savingsTransfer->load(['sourceCategory', 'destinationCategory', 'account', 'incomeTransaction', 'savingsTransaction']);
+
+        return view('public.savings-transfer-create', [
+            ...$this->buildTransferFormViewData(
+                $savingsTransfer->user_id,
+                $savingsTransfer,
+                [
+                    'transferTypeValue' => old(
+                        'transfer_type',
+                        $savingsTransfer->destination_category_id ? 'savings_to_savings' : 'savings_to_income'
+                    ),
+                    'transferDateValue' => old('transfer_date', $savingsTransfer->transferred_at->format('m/d/Y')),
+                    'transferAmountValue' => old('amount', number_format((float) $savingsTransfer->amount, 2, '.', '')),
+                    'transferCategoryValue' => old('source_category_id', (string) $savingsTransfer->source_category_id),
+                    'transferDestinationCategoryValue' => old('destination_category_id', (string) $savingsTransfer->destination_category_id),
+                    'transferAccountValue' => old('account', $savingsTransfer->account?->name ?? ''),
+                    'transferDescriptionValue' => old('description', $savingsTransfer->description ?? ''),
+                ]
+            ),
         ]);
+    }
+
+    public function updateTransfer(Request $request, SavingsTransfer $savingsTransfer): RedirectResponse
+    {
+        $this->authorizeSavingsTransfer($savingsTransfer);
+
+        $validated = $request->validate([
+            'transfer_type' => ['required', 'in:savings_to_savings,savings_to_income'],
+            'source_category_id' => ['required', 'integer'],
+            'destination_category_id' => ['nullable', 'integer'],
+            'amount' => ['required', 'string'],
+            'transfer_date' => ['required', 'date_format:m/d/Y'],
+            'account' => ['nullable', 'string', 'max:80'],
+            'description' => ['nullable', 'string', 'max:255'],
+            'receipt_photos' => ['nullable', 'array'],
+            'receipt_photos.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'receipt_photo_camera' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'existing_receipt_photo_paths' => ['nullable', 'string'],
+        ]);
+
+        $user = auth()->user();
+        $sourceCategory = Category::query()
+            ->where('user_id', $user->id)
+            ->where('type', 'savings')
+            ->whereKey($validated['source_category_id'])
+            ->firstOrFail();
+
+        $normalizedAmount = $this->normalizeAmount($validated['amount']);
+
+        if ($normalizedAmount === null) {
+            return back()
+                ->withErrors([
+                    'amount' => 'Please enter a valid amount.',
+                ])
+                ->withInput();
+        }
+
+        $availableAmount = $this->resolveAvailableCategoryAmount($user->id, $sourceCategory->id, $savingsTransfer->id);
+        $transferAmount = round((float) $normalizedAmount, 2);
+
+        if ($transferAmount > $availableAmount) {
+            return back()
+                ->withErrors([
+                    'transfer_amount' => 'The transfer amount is higher than the available savings in this category.',
+                ])
+                ->withInput();
+        }
 
         $transferredAt = Carbon::createFromFormat('m/d/Y', $validated['transfer_date'])
             ->setTime(now()->hour, now()->minute, now()->second);
 
+        if ($validated['transfer_type'] === 'savings_to_savings') {
+            $destinationCategoryId = (int) ($validated['destination_category_id'] ?? 0);
+
+            if ($destinationCategoryId <= 0) {
+                return back()
+                    ->withErrors([
+                        'destination_category_id' => 'Please select a savings category to transfer into.',
+                    ])
+                    ->withInput();
+            }
+
+            if ($destinationCategoryId === (int) $sourceCategory->id) {
+                return back()
+                    ->withErrors([
+                        'destination_category_id' => 'Please choose a different destination savings category.',
+                    ])
+                    ->withInput();
+            }
+
+            $destinationCategory = Category::query()
+                ->where('user_id', $user->id)
+                ->where('type', 'savings')
+                ->whereKey($destinationCategoryId)
+                ->firstOrFail();
+
+            $this->updateSavingsToSavingsTransfer(
+                $savingsTransfer,
+                $user->id,
+                $sourceCategory,
+                $destinationCategory,
+                $transferAmount,
+                $transferredAt,
+                $validated,
+                $request
+            );
+
+            return redirect()
+                ->route('savings.index')
+                ->with('savings_success', 'Savings transfer updated successfully.');
+        }
+
+        $accountName = trim((string) ($validated['account'] ?? ''));
+
+        if ($accountName === '') {
+            return back()
+                ->withErrors([
+                    'account' => 'Please select the income account to withdraw into.',
+                ])
+                ->withInput();
+        }
+
+        $account = Account::firstOrCreate([
+            'user_id' => $user->id,
+            'name' => $accountName,
+        ]);
+
+        $this->updateSavingsToIncomeTransfer(
+            $savingsTransfer,
+            $user->id,
+            $sourceCategory,
+            $account,
+            $transferAmount,
+            $transferredAt,
+            $validated,
+            $request
+        );
+
+        return redirect()
+            ->route('savings.index')
+            ->with('savings_success', 'Savings transfer updated successfully.');
+    }
+
+    public function destroyTransfer(SavingsTransfer $savingsTransfer): RedirectResponse
+    {
+        $this->authorizeSavingsTransfer($savingsTransfer);
+
+        DB::transaction(function () use ($savingsTransfer) {
+            $this->deleteLinkedTransferTransaction($savingsTransfer->incomeTransaction);
+            $this->deleteLinkedTransferTransaction($savingsTransfer->savingsTransaction);
+            $savingsTransfer->delete();
+        });
+
+        return redirect()
+            ->route('savings.index')
+            ->with('savings_success', 'Savings transfer deleted successfully.');
+    }
+
+    private function createSavingsToSavingsTransfer(
+        int $userId,
+        Category $sourceCategory,
+        Category $destinationCategory,
+        float $transferAmount,
+        Carbon $transferredAt,
+        array $validated,
+        Request $request
+    ): void {
         DB::transaction(function () use (
-            $user,
+            $userId,
+            $sourceCategory,
+            $destinationCategory,
+            $transferAmount,
+            $transferredAt,
+            $validated,
+            $request
+        ) {
+            $description = trim((string) ($validated['description'] ?? ''));
+            $transferDescription = $description !== ''
+                ? $description
+                : 'Transferred from ' . $sourceCategory->name . ' to ' . $destinationCategory->name;
+            $receiptPhotoPaths = $this->storeReceiptPhotos($request);
+
+            $savingsTransaction = Transaction::create([
+                'user_id' => $userId,
+                'type' => 'savings',
+                'amount' => $transferAmount,
+                'category_id' => $destinationCategory->id,
+                'account_id' => null,
+                'occurred_at' => $transferredAt,
+                'description' => $transferDescription,
+                'receipt_photo_path' => $receiptPhotoPaths[0] ?? null,
+                'receipt_photo_paths' => $receiptPhotoPaths,
+            ]);
+
+            SavingsTransfer::create([
+                'user_id' => $userId,
+                'source_category_id' => $sourceCategory->id,
+                'destination_category_id' => $destinationCategory->id,
+                'account_id' => null,
+                'savings_transaction_id' => $savingsTransaction->id,
+                'income_transaction_id' => null,
+                'amount' => $transferAmount,
+                'transferred_at' => $transferredAt,
+                'description' => $transferDescription,
+            ]);
+        });
+    }
+
+    private function createSavingsToIncomeTransfer(
+        int $userId,
+        Category $sourceCategory,
+        Account $account,
+        float $transferAmount,
+        Carbon $transferredAt,
+        array $validated,
+        Request $request
+    ): void {
+        $incomeCategory = Category::firstOrCreate([
+            'user_id' => $userId,
+            'type' => 'income',
+            'name' => 'Savings Transfer',
+        ]);
+
+        DB::transaction(function () use (
+            $userId,
             $sourceCategory,
             $account,
             $incomeCategory,
             $transferAmount,
             $transferredAt,
-            $validated
+            $validated,
+            $request
         ) {
             $description = trim((string) ($validated['description'] ?? ''));
             $transferDescription = $description !== ''
                 ? $description
                 : 'Transferred from savings: ' . $sourceCategory->name;
+            $receiptPhotoPaths = $this->storeReceiptPhotos($request);
 
             $incomeTransaction = Transaction::create([
-                'user_id' => $user->id,
+                'user_id' => $userId,
                 'type' => 'income',
                 'amount' => $transferAmount,
                 'category_id' => $incomeCategory->id,
                 'account_id' => $account->id,
                 'occurred_at' => $transferredAt,
                 'description' => $transferDescription,
-                'receipt_photo_path' => null,
-                'receipt_photo_paths' => [],
+                'receipt_photo_path' => $receiptPhotoPaths[0] ?? null,
+                'receipt_photo_paths' => $receiptPhotoPaths,
             ]);
 
             SavingsTransfer::create([
-                'user_id' => $user->id,
+                'user_id' => $userId,
                 'source_category_id' => $sourceCategory->id,
+                'destination_category_id' => null,
                 'account_id' => $account->id,
+                'savings_transaction_id' => null,
                 'income_transaction_id' => $incomeTransaction->id,
                 'amount' => $transferAmount,
                 'transferred_at' => $transferredAt,
                 'description' => $transferDescription,
             ]);
         });
+    }
 
-        return redirect()
-            ->route('savings.index')
-            ->with('savings_success', 'Savings transferred to income successfully.');
+    private function updateSavingsToSavingsTransfer(
+        SavingsTransfer $savingsTransfer,
+        int $userId,
+        Category $sourceCategory,
+        Category $destinationCategory,
+        float $transferAmount,
+        Carbon $transferredAt,
+        array $validated,
+        Request $request
+    ): void {
+        DB::transaction(function () use (
+            $savingsTransfer,
+            $userId,
+            $sourceCategory,
+            $destinationCategory,
+            $transferAmount,
+            $transferredAt,
+            $validated,
+            $request
+        ) {
+            $description = trim((string) ($validated['description'] ?? ''));
+            $transferDescription = $description !== ''
+                ? $description
+                : 'Transferred from ' . $sourceCategory->name . ' to ' . $destinationCategory->name;
+
+            $this->deleteLinkedTransferTransaction($savingsTransfer->incomeTransaction);
+
+            $savingsTransaction = $savingsTransfer->savingsTransaction;
+
+            if (!$savingsTransaction || $savingsTransaction->user_id !== $userId) {
+                $savingsTransaction = new Transaction([
+                    'user_id' => $userId,
+                    'type' => 'savings',
+                ]);
+            }
+
+            $receiptPhotoPaths = $this->resolveUpdatedReceiptPhotoPaths($request, $savingsTransaction);
+
+            $savingsTransaction->fill([
+                'type' => 'savings',
+                'amount' => $transferAmount,
+                'category_id' => $destinationCategory->id,
+                'account_id' => null,
+                'occurred_at' => $transferredAt,
+                'description' => $transferDescription,
+                'receipt_photo_path' => $receiptPhotoPaths[0] ?? null,
+                'receipt_photo_paths' => $receiptPhotoPaths,
+            ]);
+            $savingsTransaction->save();
+
+            $savingsTransfer->update([
+                'source_category_id' => $sourceCategory->id,
+                'destination_category_id' => $destinationCategory->id,
+                'account_id' => null,
+                'savings_transaction_id' => $savingsTransaction->id,
+                'income_transaction_id' => null,
+                'amount' => $transferAmount,
+                'transferred_at' => $transferredAt,
+                'description' => $transferDescription,
+            ]);
+        });
+    }
+
+    private function updateSavingsToIncomeTransfer(
+        SavingsTransfer $savingsTransfer,
+        int $userId,
+        Category $sourceCategory,
+        Account $account,
+        float $transferAmount,
+        Carbon $transferredAt,
+        array $validated,
+        Request $request
+    ): void {
+        $incomeCategory = Category::firstOrCreate([
+            'user_id' => $userId,
+            'type' => 'income',
+            'name' => 'Savings Transfer',
+        ]);
+
+        DB::transaction(function () use (
+            $savingsTransfer,
+            $userId,
+            $sourceCategory,
+            $account,
+            $incomeCategory,
+            $transferAmount,
+            $transferredAt,
+            $validated,
+            $request
+        ) {
+            $description = trim((string) ($validated['description'] ?? ''));
+            $transferDescription = $description !== ''
+                ? $description
+                : 'Transferred from savings: ' . $sourceCategory->name;
+
+            $this->deleteLinkedTransferTransaction($savingsTransfer->savingsTransaction);
+
+            $incomeTransaction = $savingsTransfer->incomeTransaction;
+
+            if (!$incomeTransaction || $incomeTransaction->user_id !== $userId) {
+                $incomeTransaction = new Transaction([
+                    'user_id' => $userId,
+                    'type' => 'income',
+                ]);
+            }
+
+            $receiptPhotoPaths = $this->resolveUpdatedReceiptPhotoPaths($request, $incomeTransaction);
+
+            $incomeTransaction->fill([
+                'type' => 'income',
+                'amount' => $transferAmount,
+                'category_id' => $incomeCategory->id,
+                'account_id' => $account->id,
+                'occurred_at' => $transferredAt,
+                'description' => $transferDescription,
+                'receipt_photo_path' => $receiptPhotoPaths[0] ?? null,
+                'receipt_photo_paths' => $receiptPhotoPaths,
+            ]);
+            $incomeTransaction->save();
+
+            $savingsTransfer->update([
+                'source_category_id' => $sourceCategory->id,
+                'destination_category_id' => null,
+                'account_id' => $account->id,
+                'savings_transaction_id' => null,
+                'income_transaction_id' => $incomeTransaction->id,
+                'amount' => $transferAmount,
+                'transferred_at' => $transferredAt,
+                'description' => $transferDescription,
+            ]);
+        });
     }
 
     private function buildCategoryBalances(Collection $transactions, Collection $transfers): Collection
@@ -259,13 +676,100 @@ class SavingsController extends Controller
             ->values();
     }
 
+    private function buildTransferFormViewData(int $userId, ?SavingsTransfer $editingTransfer = null, array $overrides = []): array
+    {
+        $savingsTransactions = Transaction::query()
+            ->with(['category', 'account', 'destinationSavingsTransfer'])
+            ->where('user_id', $userId)
+            ->where('type', 'savings')
+            ->orderByDesc('occurred_at')
+            ->orderByDesc('id')
+            ->get();
+
+        $savingsTransfers = SavingsTransfer::query()
+            ->with(['sourceCategory', 'destinationCategory', 'account', 'incomeTransaction', 'savingsTransaction'])
+            ->where('user_id', $userId)
+            ->when($editingTransfer, fn ($query) => $query->where('id', '!=', $editingTransfer->id))
+            ->orderByDesc('transferred_at')
+            ->orderByDesc('id')
+            ->get();
+
+        $transferCategories = $this->buildCategoryBalances($savingsTransactions, $savingsTransfers);
+
+        if ($editingTransfer && $editingTransfer->sourceCategory) {
+            $editingCategoryId = $editingTransfer->source_category_id;
+            $categoryExists = $transferCategories->contains(
+                fn (array $category) => (int) ($category['categoryId'] ?? 0) === (int) $editingCategoryId
+            );
+
+            if (!$categoryExists) {
+                $transferCategories->push([
+                    'categoryId' => $editingCategoryId,
+                    'key' => $this->normalizeCategoryKey($editingTransfer->sourceCategory->name),
+                    'name' => $editingTransfer->sourceCategory->name,
+                    'amount' => round((float) $editingTransfer->amount, 2),
+                    'txCount' => 0,
+                    'iconPath' => $this->resolveSavingsIcon($editingTransfer->sourceCategory->name),
+                    'color' => '#1e88e5',
+                ]);
+            }
+        }
+
+        $storedAccountOptions = Account::query()
+            ->where('user_id', $userId)
+            ->orderBy('name')
+            ->pluck('name')
+            ->values()
+            ->all();
+
+        $defaultIncomeAccountOptions = [
+            'Cash',
+            'Bank',
+            'Card',
+            'Petty Cash',
+        ];
+
+        $accountOptions = collect([
+            ...$defaultIncomeAccountOptions,
+            ...$storedAccountOptions,
+        ])
+            ->filter(fn ($accountName) => is_string($accountName) && trim($accountName) !== '')
+            ->map(fn ($accountName) => trim($accountName))
+            ->unique(fn ($accountName) => Str::lower($accountName))
+            ->values()
+            ->all();
+
+        return array_merge([
+            'transferCategories' => $transferCategories->sortBy('name')->values(),
+            'accountOptions' => $accountOptions,
+            'transferTypeValue' => 'savings_to_savings',
+            'transferTypeLocked' => false,
+            'transferDateValue' => '',
+            'transferAmountValue' => '',
+            'transferCategoryValue' => '',
+            'transferDestinationCategoryValue' => '',
+            'transferAccountValue' => '',
+            'transferDescriptionValue' => '',
+            'transferExistingPhotoPaths' => $this->resolveTransferExistingPhotoPaths($editingTransfer, $overrides['transferExistingPhotoPaths'] ?? old('existing_receipt_photo_paths')),
+            'transferFormAction' => $editingTransfer
+                ? route('savings.transfer.update', $editingTransfer)
+                : route('savings.transfer'),
+            'transferFormMethod' => $editingTransfer ? 'PUT' : 'POST',
+            'transferPageTitle' => $editingTransfer ? 'Edit Transfer' : 'Transfer',
+            'transferSubmitLabel' => $editingTransfer ? 'Save' : 'Confirm',
+            'transferCancelUrl' => route('savings.index'),
+        ], $overrides);
+    }
+
     private function buildHistoryItems(Collection $transactions, Collection $transfers, Collection $categoryBalances): Collection
     {
         $categoryColors = $categoryBalances
             ->mapWithKeys(fn (array $category) => [$category['key'] => $category['color']])
             ->all();
 
-        $depositItems = $transactions->map(function (Transaction $transaction) use ($categoryColors) {
+        $depositItems = $transactions
+            ->reject(fn (Transaction $transaction) => $transaction->destinationSavingsTransfer !== null)
+            ->map(function (Transaction $transaction) use ($categoryColors) {
             $categoryName = $transaction->category?->name ?: 'Others';
             $categoryKey = $this->normalizeCategoryKey($categoryName);
 
@@ -287,12 +791,23 @@ class SavingsController extends Controller
                     ->map(fn (string $photoPath) => Storage::url($photoPath))
                     ->values()
                     ->all(),
+                'editUrl' => route('transaction.edit', $transaction),
+                'deleteUrl' => route('transaction.destroy', $transaction),
+                'editLabel' => 'Edit Transaction',
+                'deleteLabel' => 'Delete Transaction',
             ];
         });
 
         $transferItems = $transfers->map(function (SavingsTransfer $transfer) use ($categoryColors) {
             $categoryName = $transfer->sourceCategory?->name ?: 'Others';
             $categoryKey = $this->normalizeCategoryKey($categoryName);
+            $isSavingsToSavings = $transfer->destinationCategory !== null;
+            $targetLabel = $isSavingsToSavings
+                ? ($transfer->destinationCategory?->name ?? 'Savings')
+                : ($transfer->account?->name ?? '');
+            $linkedTransaction = $isSavingsToSavings
+                ? $transfer->savingsTransaction
+                : $transfer->incomeTransaction;
 
             return [
                 'id' => 'transfer-' . $transfer->id,
@@ -301,14 +816,23 @@ class SavingsController extends Controller
                 'time' => $transfer->transferred_at->format('g:ia'),
                 'direction' => 'out',
                 'kind' => 'transfer',
-                'typeLabel' => 'Transfer to Income',
+                'typeLabel' => $isSavingsToSavings ? 'Transfer to Savings' : 'Withdraw to Income',
                 'category' => $categoryName,
-                'account' => $transfer->account?->name ?? '',
+                'account' => $targetLabel,
                 'amount' => (float) $transfer->amount,
                 'description' => $transfer->description ?? '',
                 'iconPath' => $this->resolveSavingsIcon($categoryName),
                 'categoryColor' => $categoryColors[$categoryKey] ?? '#2d9af0',
-                'receiptPhotoUrls' => [],
+                'receiptPhotoUrls' => $linkedTransaction
+                    ? collect($this->getTransactionPhotoPaths($linkedTransaction))
+                        ->map(fn (string $photoPath) => Storage::url($photoPath))
+                        ->values()
+                        ->all()
+                    : [],
+                'editUrl' => route('savings.transfer.edit', $transfer),
+                'deleteUrl' => route('savings.transfer.destroy', $transfer),
+                'editLabel' => 'Edit Transfer',
+                'deleteLabel' => 'Delete Transfer',
             ];
         });
 
@@ -350,7 +874,7 @@ class SavingsController extends Controller
         return 'conic-gradient(' . implode(', ', $segments) . ')';
     }
 
-    private function resolveAvailableCategoryAmount(int $userId, int $categoryId): float
+    private function resolveAvailableCategoryAmount(int $userId, int $categoryId, ?int $ignoredTransferId = null): float
     {
         $savedAmount = (float) Transaction::query()
             ->where('user_id', $userId)
@@ -361,6 +885,7 @@ class SavingsController extends Controller
         $transferredAmount = (float) SavingsTransfer::query()
             ->where('user_id', $userId)
             ->where('source_category_id', $categoryId)
+            ->when($ignoredTransferId, fn ($query) => $query->where('id', '!=', $ignoredTransferId))
             ->sum('amount');
 
         return max($savedAmount - $transferredAmount, 0);
@@ -377,6 +902,116 @@ class SavingsController extends Controller
         }
 
         return array_values(array_filter($photoPaths));
+    }
+
+    private function decodeExistingPhotoPaths(?string $rawValue): array
+    {
+        if (!$rawValue) {
+            return [];
+        }
+
+        $decodedValue = json_decode($rawValue, true);
+
+        if (!is_array($decodedValue)) {
+            return [];
+        }
+
+        return array_values(array_filter($decodedValue));
+    }
+
+    private function normalizeAmount(string $amount): ?string
+    {
+        $normalizedAmount = preg_replace('/[^\d.]/', '', $amount);
+
+        if (!$normalizedAmount || !is_numeric($normalizedAmount)) {
+            return null;
+        }
+
+        return $normalizedAmount;
+    }
+
+    private function storeReceiptPhotos(Request $request): array
+    {
+        $storedPaths = [];
+
+        $galleryFiles = $request->file('receipt_photos', []);
+
+        if (is_array($galleryFiles)) {
+            foreach ($galleryFiles as $uploadedFile) {
+                if ($uploadedFile) {
+                    $storedPaths[] = $uploadedFile->store('transaction-photos', 'public');
+                }
+            }
+        }
+
+        $cameraFile = $request->file('receipt_photo_camera');
+
+        if ($cameraFile) {
+            $storedPaths[] = $cameraFile->store('transaction-photos', 'public');
+        }
+
+        return array_values(array_filter($storedPaths));
+    }
+
+    private function resolveUpdatedReceiptPhotoPaths(Request $request, ?Transaction $transaction = null): array
+    {
+        $currentPhotoPaths = $transaction ? $this->getTransactionPhotoPaths($transaction) : [];
+        $keptExistingPhotoPaths = $this->decodeExistingPhotoPaths(
+            $request->input('existing_receipt_photo_paths')
+        );
+
+        $removedPhotoPaths = array_diff($currentPhotoPaths, $keptExistingPhotoPaths);
+
+        foreach ($removedPhotoPaths as $removedPhotoPath) {
+            Storage::disk('public')->delete($removedPhotoPath);
+        }
+
+        $newPhotoPaths = $this->storeReceiptPhotos($request);
+
+        return array_values(array_filter([
+            ...$keptExistingPhotoPaths,
+            ...$newPhotoPaths,
+        ]));
+    }
+
+    private function deleteLinkedTransferTransaction(?Transaction $transaction): void
+    {
+        if (!$transaction) {
+            return;
+        }
+
+        foreach ($this->getTransactionPhotoPaths($transaction) as $photoPath) {
+            Storage::disk('public')->delete($photoPath);
+        }
+
+        $transaction->delete();
+    }
+
+    private function resolveTransferExistingPhotoPaths(?SavingsTransfer $editingTransfer, mixed $oldExistingPhotoPaths = null): array
+    {
+        if (is_string($oldExistingPhotoPaths) && $oldExistingPhotoPaths !== '') {
+            $decodedOldPhotoPaths = json_decode($oldExistingPhotoPaths, true);
+
+            if (is_array($decodedOldPhotoPaths)) {
+                return array_values(array_filter($decodedOldPhotoPaths));
+            }
+        }
+
+        $linkedTransaction = $editingTransfer?->incomeTransaction ?? $editingTransfer?->savingsTransaction;
+
+        if (!$linkedTransaction) {
+            return [];
+        }
+
+        return $this->getTransactionPhotoPaths($linkedTransaction);
+    }
+
+    private function authorizeSavingsTransfer(SavingsTransfer $savingsTransfer): void
+    {
+        abort_unless(
+            auth()->check() && auth()->id() === $savingsTransfer->user_id,
+            403
+        );
     }
 
     private function normalizeCategoryKey(string $categoryName): string

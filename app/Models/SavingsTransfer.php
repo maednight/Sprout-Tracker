@@ -10,7 +10,9 @@ class SavingsTransfer extends Model
     protected $fillable = [
         'user_id',
         'source_category_id',
+        'destination_category_id',
         'account_id',
+        'savings_transaction_id',
         'income_transaction_id',
         'amount',
         'transferred_at',
@@ -35,6 +37,16 @@ class SavingsTransfer extends Model
     public function account(): BelongsTo
     {
         return $this->belongsTo(Account::class);
+    }
+
+    public function destinationCategory(): BelongsTo
+    {
+        return $this->belongsTo(Category::class, 'destination_category_id');
+    }
+
+    public function savingsTransaction(): BelongsTo
+    {
+        return $this->belongsTo(Transaction::class, 'savings_transaction_id');
     }
 
     public function incomeTransaction(): BelongsTo

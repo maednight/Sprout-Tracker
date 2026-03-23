@@ -19,6 +19,10 @@
             <form method="POST" action="{{ route('login') }}" class="sprout-form" novalidate>
                 @csrf
 
+                @if (session('status'))
+                    <div class="sprout-status">{{ session('status') }}</div>
+                @endif
+
                 <label class="sprout-label" for="email">Email</label>
                 <input
                     id="email"
@@ -30,6 +34,10 @@
                     required
                     autocomplete="email"
                 />
+
+                @error('email')
+                    <div class="sprout-error">{{ $message }}</div>
+                @enderror
 
                 <label class="sprout-label" for="password">Password</label>
 
@@ -73,9 +81,11 @@
                     </button>
                 </div>
 
-                @if ($errors->any())
-                    <div class="sprout-error">{{ $errors->first() }}</div>
-                @endif
+                @error('password')
+                    <div class="sprout-error">{{ $message }}</div>
+                @enderror
+
+                <a href="{{ route('password.request') }}" class="sprout-forgot-link">Forgot Password?</a>
 
                 <button type="submit" class="sprout-btn">Log In</button>
 

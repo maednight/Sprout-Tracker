@@ -460,12 +460,14 @@
   box-shadow: 0 12px 26px rgba(0, 243, 107, 0.32);
   z-index: 30;
   cursor: pointer;
+  text-decoration: none;
 }
 
-.sprout-savings__fab:disabled {
+.sprout-savings__fab[aria-disabled="true"] {
   background: #e8ecef;
   box-shadow: none;
   cursor: not-allowed;
+  pointer-events: none;
 }
 
 .sprout-savings__fab-icon {
@@ -578,6 +580,168 @@
   font-family: 'Inter', sans-serif;
   font-size: 12px;
   line-height: 1.3;
+}
+
+.sprout-savings__action-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 72;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.sprout-savings__action-modal--hidden {
+  display: none;
+}
+
+.sprout-savings__action-backdrop {
+  position: absolute;
+  inset: 0;
+  border: none;
+  background: rgba(0, 0, 0, 0.16);
+  backdrop-filter: blur(0.5px);
+}
+
+.sprout-savings__action-sheet {
+  position: relative;
+  width: 100%;
+  max-width: 414px;
+  background: rgba(255, 255, 255, 0.98);
+  border-radius: 24px 24px 0 0;
+  padding: 22px 20px 28px;
+  box-shadow: 0 -10px 28px rgba(0, 0, 0, 0.08);
+}
+
+.sprout-savings__action-title {
+  color: #2b2b2b;
+  font-family: 'Inter', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.sprout-savings__action-subtitle {
+  color: #8b8b8b;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  text-align: center;
+  margin-top: 6px;
+  margin-bottom: 18px;
+}
+
+.sprout-savings__action-button {
+  width: 100%;
+  min-height: 46px;
+  border: none;
+  border-radius: 14px;
+  background: #f3f6f3;
+  color: #2b2b2b;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.sprout-savings__action-button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.sprout-savings__action-button--delete {
+  background: #fff1ef;
+  color: #ff6f5d;
+}
+
+.sprout-savings__action-button--cancel {
+  background: transparent;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  color: #8b8b8b;
+}
+
+.sprout-savings__delete-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 74;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.sprout-savings__delete-modal--hidden {
+  display: none;
+}
+
+.sprout-savings__delete-backdrop {
+  position: absolute;
+  inset: 0;
+  border: none;
+  background: rgba(0, 0, 0, 0.14);
+  padding: 0;
+  margin: 0;
+}
+
+.sprout-savings__delete-sheet {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 352px;
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 24px 18px 18px;
+  box-sizing: border-box;
+  box-shadow: 0 18px 34px rgba(0, 0, 0, 0.12);
+}
+
+.sprout-savings__delete-title {
+  margin: 0;
+  color: #2b2b2b;
+  font-family: 'Inter', sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.sprout-savings__delete-message {
+  margin: 14px auto 0;
+  max-width: 314px;
+  color: #5e5e5e;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.sprout-savings__delete-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.sprout-savings__delete-button {
+  min-height: 42px;
+  border: none;
+  border-radius: 12px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sprout-savings__delete-button--primary {
+  border: none;
+  background: #00f36b;
+  color: #ffffff;
+}
+
+.sprout-savings__delete-button--secondary {
+  border: 1.4px solid rgba(0, 243, 107, 0.24);
+  background: #f5fff7;
+  color: #00c957;
 }
 
 .sprout-savings__detail-modal {

@@ -11,14 +11,10 @@
     $previousPeriodUrl = $savingsPayload['previousPeriodUrl'] ?? route('savings.index');
     $nextPeriodUrl = $savingsPayload['nextPeriodUrl'] ?? route('savings.index');
     $scopeUrls = $savingsPayload['scopeUrls'] ?? [];
-    $showTransferModal = $errors->has('source_category_id')
-        || $errors->has('amount')
-        || $errors->has('transfer_amount')
-        || $errors->has('transfer_date')
-        || $errors->has('account');
 @endphp
 
 <div class="sprout-savings__panel-shell" data-savings-panel data-savings-index-url="{{ route('savings.index') }}" data-savings-scope="{{ $scope }}" data-savings-anchor="{{ $anchorDate }}">
+<input type="hidden" value="{{ csrf_token() }}" data-savings-csrf-token>
 <button type="button" class="sprout-savings__backdrop sprout-savings__backdrop--hidden" data-savings-backdrop aria-label="Close savings period picker"></button>
 <section class="sprout-savings__panel">
     @if (session('savings_success'))
@@ -187,103 +183,68 @@
     </section>
 </section>
 
-<div class="sprout-savings__modal {{ $showTransferModal ? '' : 'sprout-savings__modal--hidden' }}" data-savings-transfer-modal>
-    <button type="button" class="sprout-savings__modal-backdrop" data-savings-transfer-close aria-label="Close transfer form"></button>
+<a
+    href="{{ route('savings.transfer.create', ['date' => $defaultTransferDate]) }}"
+    class="sprout-savings__fab"
+    aria-label="Transfer savings to income"
+    @if($categories->isEmpty()) aria-disabled="true" @endif
+>
+    <img src="/projectassets/icons/transfer.svg" alt="" class="sprout-savings__fab-icon">
+</a>
 
-    <div class="sprout-savings__modal-sheet">
-        <div class="sprout-savings__modal-head">
-            <div class="sprout-savings__modal-title">Transfer Savings</div>
-            <button type="button" class="sprout-savings__modal-close" data-savings-transfer-close aria-label="Close">
-                &times;
-            </button>
-        </div>
+<div class="sprout-savings__action-modal sprout-savings__action-modal--hidden" data-savings-action-modal>
+    <button type="button" class="sprout-savings__action-backdrop" data-savings-action-close aria-label="Close activity actions"></button>
 
-        <form action="{{ route('savings.transfer') }}" method="POST" class="sprout-savings__form">
+    <div class="sprout-savings__action-sheet">
+        <div class="sprout-savings__action-title">Activity Options</div>
+        <div class="sprout-savings__action-subtitle" data-savings-action-subtitle></div>
+
+        <button type="button" class="sprout-savings__action-button" data-savings-action-view>
+            View Activity
+        </button>
+
+        <button type="button" class="sprout-savings__action-button" data-savings-action-edit>
+            Edit Activity
+        </button>
+
+        <form method="POST" data-savings-action-delete-form>
             @csrf
+            @method('DELETE')
 
-            <label class="sprout-savings__field">
-                <span class="sprout-savings__field-label">Savings Category</span>
-                <select name="source_category_id" class="sprout-savings__input" required>
-                    <option value="">Select category</option>
-                    @foreach ($categories as $category)
-                        <option
-                            value="{{ $category['categoryId'] }}"
-                            @selected((string) old('source_category_id') === (string) $category['categoryId'])
-                        >
-                            {{ $category['name'] }} - &#8369;{{ number_format($category['amount'], 0) }}
-                        </option>
-                    @endforeach
-                </select>
-            </label>
-
-            <label class="sprout-savings__field">
-                <span class="sprout-savings__field-label">Amount</span>
-                <input
-                    type="number"
-                    step="0.01"
-                    min="0.01"
-                    name="amount"
-                    class="sprout-savings__input"
-                    value="{{ old('amount') }}"
-                    required
-                >
-            </label>
-
-            <label class="sprout-savings__field">
-                <span class="sprout-savings__field-label">Transfer Date</span>
-                <input
-                    type="date"
-                    name="transfer_date"
-                    class="sprout-savings__input"
-                    value="{{ old('transfer_date', $defaultTransferDate) }}"
-                    required
-                >
-            </label>
-
-            <label class="sprout-savings__field">
-                <span class="sprout-savings__field-label">Income Account</span>
-                <input
-                    type="text"
-                    name="account"
-                    class="sprout-savings__input"
-                    list="sproutSavingsAccounts-{{ $savingsScope }}"
-                    value="{{ old('account') }}"
-                    required
-                >
-            </label>
-
-            <datalist id="sproutSavingsAccounts-{{ $savingsScope }}">
-                @foreach ($accounts as $account)
-                    <option value="{{ $account }}"></option>
-                @endforeach
-            </datalist>
-
-            <label class="sprout-savings__field">
-                <span class="sprout-savings__field-label">Description</span>
-                <textarea name="description" class="sprout-savings__input sprout-savings__input--textarea">{{ old('description') }}</textarea>
-            </label>
-
-            <div class="sprout-savings__form-actions">
-                <button type="button" class="sprout-savings__button sprout-savings__button--secondary" data-savings-transfer-close>
-                    Cancel
-                </button>
-                <button type="submit" class="sprout-savings__button sprout-savings__button--primary">
-                    Transfer
-                </button>
-            </div>
+            <button type="button" class="sprout-savings__action-button sprout-savings__action-button--delete" data-savings-action-delete-button>
+                Delete Activity
+            </button>
         </form>
+
+        <button type="button" class="sprout-savings__action-button sprout-savings__action-button--cancel" data-savings-action-close>
+            Cancel
+        </button>
     </div>
 </div>
 
-<button
-    type="button"
-    class="sprout-savings__fab"
-    data-savings-transfer-open
-    aria-label="Transfer savings to income"
-    @disabled($categories->isEmpty())
->
-    <img src="/projectassets/icons/transfer.svg" alt="" class="sprout-savings__fab-icon">
-</button>
+<div class="sprout-savings__delete-modal sprout-savings__delete-modal--hidden" data-savings-delete-modal>
+    <button type="button" class="sprout-savings__delete-backdrop" data-savings-delete-cancel aria-label="Close delete confirmation"></button>
+
+    <div class="sprout-savings__delete-sheet">
+        <div class="sprout-savings__delete-title" data-savings-delete-title>Delete Activity</div>
+        <p class="sprout-savings__delete-message" data-savings-delete-message>
+            Are you sure you want to delete this activity?
+        </p>
+
+        <form method="POST" class="sprout-savings__delete-actions" data-savings-delete-form>
+            @csrf
+            @method('DELETE')
+
+            <button type="button" class="sprout-savings__delete-button sprout-savings__delete-button--secondary" data-savings-delete-cancel>
+                Cancel
+            </button>
+
+            <button type="submit" class="sprout-savings__delete-button sprout-savings__delete-button--primary" data-savings-delete-confirm>
+                Delete
+            </button>
+        </form>
+    </div>
+</div>
 
 <div class="sprout-savings__detail-modal sprout-savings__detail-modal--hidden" data-savings-detail-modal>
     <button type="button" class="sprout-savings__detail-backdrop" data-savings-detail-close aria-label="Close savings activity details"></button>

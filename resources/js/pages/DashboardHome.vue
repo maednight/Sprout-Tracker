@@ -312,21 +312,21 @@
               v-if="calendarCell.dailyIncome > 0"
               class="sprout-dashboard-mobile__day-amount sprout-dashboard-mobile__day-amount--income"
             >
-              ₱{{ formatCompactAmount(calendarCell.dailyIncome) }}
+              &#8369;{{ formatCompactAmount(calendarCell.dailyIncome) }}
             </span>
 
             <span
               v-if="calendarCell.dailyExpense > 0"
               class="sprout-dashboard-mobile__day-amount sprout-dashboard-mobile__day-amount--expense"
             >
-              ₱{{ formatCompactAmount(calendarCell.dailyExpense) }}
+              &#8369;{{ formatCompactAmount(calendarCell.dailyExpense) }}
             </span>
 
             <span
               v-if="calendarCell.dailySavings > 0"
               class="sprout-dashboard-mobile__day-amount sprout-dashboard-mobile__day-amount--savings"
             >
-              ₱{{ formatCompactAmount(calendarCell.dailySavings) }}
+              &#8369;{{ formatCompactAmount(calendarCell.dailySavings) }}
             </span>
           </div>
         </button>
@@ -366,21 +366,21 @@
               v-if="weekCell.dailyIncome > 0"
               class="sprout-dashboard-mobile__day-amount sprout-dashboard-mobile__day-amount--income"
             >
-              ₱{{ formatCompactAmount(weekCell.dailyIncome) }}
+              &#8369;{{ formatCompactAmount(weekCell.dailyIncome) }}
             </span>
 
             <span
               v-if="weekCell.dailyExpense > 0"
               class="sprout-dashboard-mobile__day-amount sprout-dashboard-mobile__day-amount--expense"
             >
-              ₱{{ formatCompactAmount(weekCell.dailyExpense) }}
+              &#8369;{{ formatCompactAmount(weekCell.dailyExpense) }}
             </span>
 
             <span
               v-if="weekCell.dailySavings > 0"
               class="sprout-dashboard-mobile__day-amount sprout-dashboard-mobile__day-amount--savings"
             >
-              ₱{{ formatCompactAmount(weekCell.dailySavings) }}
+              &#8369;{{ formatCompactAmount(weekCell.dailySavings) }}
             </span>
           </div>
         </button>
@@ -459,7 +459,7 @@
               'sprout-dashboard-mobile__summary-value--compact': isSummaryCompact
             }"
           >
-            ₱{{ formatMoney(periodSummary.income) }}
+            &#8369;{{ formatMoney(periodSummary.income) }}
           </div>
         </div>
 
@@ -476,7 +476,7 @@
               'sprout-dashboard-mobile__summary-value--compact': isSummaryCompact
             }"
           >
-            ₱{{ formatMoney(periodSummary.expense) }}
+            &#8369;{{ formatMoney(periodSummary.expense) }}
           </div>
         </div>
 
@@ -493,7 +493,7 @@
               'sprout-dashboard-mobile__summary-value--compact': isSummaryCompact
             }"
           >
-            ₱{{ formatMoney(periodSummary.savings) }}
+            &#8369;{{ formatMoney(periodSummary.savings) }}
           </div>
         </div>
 
@@ -507,10 +507,11 @@
           <div
             class="sprout-dashboard-mobile__summary-value sprout-dashboard-mobile__summary-value--balance"
             :class="{
-              'sprout-dashboard-mobile__summary-value--compact': isSummaryCompact
+              'sprout-dashboard-mobile__summary-value--compact': isSummaryCompact,
+              'sprout-dashboard-mobile__summary-value--negative': periodSummary.balance < 0
             }"
           >
-            ₱{{ formatMoney(periodSummary.balance) }}
+            {{ periodSummary.balance < 0 ? '-' : '' }}&#8369;{{ formatMoney(Math.abs(periodSummary.balance)) }}
           </div>
         </div>
       </div>
@@ -535,21 +536,21 @@
               v-if="transactionGroup.income > 0"
               class="sprout-dashboard-mobile__history-total sprout-dashboard-mobile__history-total--income"
             >
-              IN ₱{{ formatMoney(transactionGroup.income) }}
+              IN &#8369;{{ formatMoney(transactionGroup.income) }}
             </span>
 
             <span
               v-if="transactionGroup.expense > 0"
               class="sprout-dashboard-mobile__history-total sprout-dashboard-mobile__history-total--expense"
             >
-              OUT ₱{{ formatMoney(transactionGroup.expense) }}
+              OUT &#8369;{{ formatMoney(transactionGroup.expense) }}
             </span>
 
             <span
               v-if="transactionGroup.savings > 0"
               class="sprout-dashboard-mobile__history-total sprout-dashboard-mobile__history-total--savings"
             >
-              SAVE ₱{{ formatMoney(transactionGroup.savings) }}
+              SAVE &#8369;{{ formatMoney(transactionGroup.savings) }}
             </span>
           </div>
         </div>
@@ -599,7 +600,7 @@
               class="sprout-dashboard-mobile__transaction-amount"
               :class="transactionAmountClass(transactionItem.type)"
             >
-              {{ transactionDisplayPrefix(transactionItem.type) }}₱{{ formatMoney(transactionItem.amount) }}
+              {{ transactionDisplayPrefix(transactionItem.type) }}&#8369;{{ formatMoney(transactionItem.amount) }}
             </div>
 
             <div class="sprout-dashboard-mobile__transaction-time">
@@ -733,7 +734,7 @@
               class="sprout-dashboard-mobile__view-value sprout-dashboard-mobile__view-value--amount"
               :class="transactionAmountClass(activeTransaction.type)"
             >
-              {{ transactionDisplayPrefix(activeTransaction.type) }}₱{{ formatMoney(activeTransaction.amount) }}
+              {{ transactionDisplayPrefix(activeTransaction.type) }}&#8369;{{ formatMoney(activeTransaction.amount) }}
             </span>
           </div>
 
@@ -879,6 +880,21 @@ const createTransactionHref = computed(() => {
 /* Dashboard Transaction Data */
 const transactionGroups = ref(props.initialTransactionGroups)
 
+const normalizedTransactionGroups = computed(() => {
+  return transactionGroups.value.map((transactionGroup) => ({
+    ...transactionGroup,
+    income: Number(transactionGroup.income || 0),
+    expense: Number(transactionGroup.expense || 0),
+    savings: Number(transactionGroup.savings || 0),
+    transactions: (transactionGroup.transactions || []).map((transactionItem) => ({
+      ...transactionItem,
+      receiptPhotoUrls: Array.isArray(transactionItem.receiptPhotoUrls)
+        ? transactionItem.receiptPhotoUrls
+        : []
+    }))
+  }))
+})
+
 /* Dashboard Transaction Group Refs */
 const transactionGroupRefs = ref({})
 
@@ -923,23 +939,12 @@ const hasActiveTransactionReceiptPhotos = computed(() => {
 /* Dashboard Filtered Transaction Groups */
 const filteredTransactionGroups = computed(() => {
   if (selectedFilter.value === 'All') {
-    return transactionGroups.value.map((transactionGroup) => ({
-      ...transactionGroup,
-      income: Number(transactionGroup.income || 0),
-      expense: Number(transactionGroup.expense || 0),
-      savings: Number(transactionGroup.savings || 0),
-      transactions: (transactionGroup.transactions || []).map((transactionItem) => ({
-        ...transactionItem,
-        receiptPhotoUrls: Array.isArray(transactionItem.receiptPhotoUrls)
-          ? transactionItem.receiptPhotoUrls
-          : []
-      }))
-    }))
+    return normalizedTransactionGroups.value
   }
 
   const targetType = selectedFilter.value.toLowerCase()
 
-  return transactionGroups.value
+  return normalizedTransactionGroups.value
     .map((transactionGroup) => {
       const filteredTransactions = (transactionGroup.transactions || [])
         .filter((transactionItem) => {
@@ -975,25 +980,9 @@ const filteredTransactionGroups = computed(() => {
     .filter((transactionGroup) => transactionGroup.transactions.length > 0)
 })
 
-/* Dashboard Transaction Summary By Date */
-const transactionSummaryByDate = computed(() => {
-  const summaryMap = {}
-
-  filteredTransactionGroups.value.forEach((transactionGroup) => {
-    summaryMap[transactionGroup.dateKey] = {
-      income: Number(transactionGroup.income || 0),
-      expense: Number(transactionGroup.expense || 0),
-      savings: Number(transactionGroup.savings || 0)
-    }
-  })
-
-  return summaryMap
-})
-
-/* Dashboard Visible Period Groups */
-const visiblePeriodGroups = computed(() => {
+const filterGroupsBySelectedPeriod = (groups) => {
   if (selectedPeriodView.value === 'year') {
-    return filteredTransactionGroups.value.filter((transactionGroup) => {
+    return groups.filter((transactionGroup) => {
       const [year] = transactionGroup.dateKey.split('-').map(Number)
 
       return year === displayYear.value
@@ -1013,19 +1002,43 @@ const visiblePeriodGroups = computed(() => {
     lastDateOfWeek.setDate(firstDateOfWeek.getDate() + 6)
     lastDateOfWeek.setHours(23, 59, 59, 999)
 
-    return filteredTransactionGroups.value.filter((transactionGroup) => {
+    return groups.filter((transactionGroup) => {
       const transactionDate = buildDateFromKey(transactionGroup.dateKey)
 
       return transactionDate >= firstDateOfWeek && transactionDate <= lastDateOfWeek
     })
   }
 
-  return filteredTransactionGroups.value.filter((transactionGroup) => {
+  return groups.filter((transactionGroup) => {
     const [year, month] = transactionGroup.dateKey.split('-').map(Number)
 
     return year === currentDisplayDate.value.getFullYear()
       && month - 1 === currentDisplayDate.value.getMonth()
   })
+}
+
+/* Dashboard Transaction Summary By Date */
+const transactionSummaryByDate = computed(() => {
+  const summaryMap = {}
+
+  filterGroupsBySelectedPeriod(normalizedTransactionGroups.value).forEach((transactionGroup) => {
+    summaryMap[transactionGroup.dateKey] = {
+      income: Number(transactionGroup.income || 0),
+      expense: Number(transactionGroup.expense || 0),
+      savings: Number(transactionGroup.savings || 0)
+    }
+  })
+
+  return summaryMap
+})
+
+/* Dashboard Visible Period Groups */
+const visiblePeriodGroups = computed(() => {
+  return filterGroupsBySelectedPeriod(filteredTransactionGroups.value)
+})
+
+const periodTransactionGroups = computed(() => {
+  return filterGroupsBySelectedPeriod(normalizedTransactionGroups.value)
 })
 
 /* Dashboard Period Summary */
@@ -1034,7 +1047,7 @@ const periodSummary = computed(() => {
   let totalExpense = 0
   let totalSavings = 0
 
-  visiblePeriodGroups.value.forEach((transactionGroup) => {
+  periodTransactionGroups.value.forEach((transactionGroup) => {
     totalIncome += Number(transactionGroup.income || 0)
     totalExpense += Number(transactionGroup.expense || 0)
     totalSavings += Number(transactionGroup.savings || 0)
@@ -1166,7 +1179,7 @@ const yearMonthSummaries = computed(() => {
     let totalExpense = 0
     let totalSavings = 0
 
-    filteredTransactionGroups.value.forEach((transactionGroup) => {
+    normalizedTransactionGroups.value.forEach((transactionGroup) => {
       const [year, month] = transactionGroup.dateKey.split('-').map(Number)
 
       if (
@@ -1484,10 +1497,10 @@ const formatYearLegendAmount = (amount) => {
   const numericAmount = Number(amount || 0)
 
   if (numericAmount >= 1000) {
-    return `₱${(numericAmount / 1000).toFixed(1)}k`
+    return `\u20B1${(numericAmount / 1000).toFixed(1)}k`
   }
 
-  return `₱${numericAmount.toLocaleString('en-PH')}`
+  return `\u20B1${numericAmount.toLocaleString('en-PH')}`
 }
 
 /* Dashboard Format Transaction Type Label */
@@ -1524,3 +1537,5 @@ const transactionDisplayPrefix = (transactionType) => {
   return transactionType === 'expense' ? '-' : '+'
 }
 </script>
+
+

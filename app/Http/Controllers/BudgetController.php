@@ -57,6 +57,17 @@ class BudgetController extends Controller
                 'filters' => [],
                 'rows' => [],
             ];
+        $remainPayload = $budget
+            ? $this->buildRemainPayload($budget, $categoryRows, $selectedMonthDate)
+            : [
+                'overview' => [
+                    'spent' => 0,
+                    'remaining' => 0,
+                    'monthly' => 0,
+                    'spentPercentage' => 0,
+                ],
+                'rows' => [],
+            ];
 
         return view('public.budget', [
             'budget' => $budget,
@@ -65,6 +76,8 @@ class BudgetController extends Controller
             'plannedPerDay' => $plannedPerDay,
             'scheduleFilters' => $schedulePayload['filters'],
             'scheduleRows' => $schedulePayload['rows'],
+            'remainOverview' => $remainPayload['overview'],
+            'remainRows' => $remainPayload['rows'],
             'displayMonthLabel' => $selectedMonthDate->format('F'),
             'selectedMonthValue' => $selectedMonthDate->format('Y-m'),
             'isInheritedBudget' => $isInheritedBudget,
@@ -417,6 +430,54 @@ private function getBudgetCategories(): array
         return [
             'filters' => $filters,
             'rows' => $rows,
+        ];
+    }
+
+    private function buildRemainPayload(Budget $budget, array $categoryRows, Carbon $selectedMonthDate): array
+    {
+        $periodStart = $selectedMonthDate->copy()->startOfMonth();
+        $periodEnd = $selectedMonthDate->copy()->endOfMonth();
+
+        $rows = collect($categoryRows)
+            ->filter(fn (array $categoryRow) => (float) $categoryRow['amount'] > 0)
+            ->map(function (array $categoryRow) use ($budget, $periodStart, $periodEnd) {
+                $spentAmount = $this->calculateSpentAmountForPeriod(
+                    $budget,
+                    $periodStart,
+                    $periodEnd,
+                    $categoryRow
+                );
+                $allocatedAmount = (float) $categoryRow['amount'];
+                $remainingAmount = $allocatedAmount - $spentAmount;
+                $progressPercentage = $allocatedAmount > 0
+                    ? min(($spentAmount / $allocatedAmount) * 100, 100)
+                    : 0;
+
+                return [
+                    ...$categoryRow,
+                    'spent' => round($spentAmount, 2),
+                    'remaining' => round($remainingAmount, 2),
+                    'progressPercentage' => round($progressPercentage, 2),
+                    'isOverspent' => $remainingAmount < 0,
+                ];
+            })
+            ->sortByDesc('spent')
+            ->values();
+
+        $totalSpent = (float) $rows->sum('spent');
+        $totalAllocated = (float) $rows->sum('amount');
+        $totalRemaining = $totalAllocated - $totalSpent;
+
+        return [
+            'overview' => [
+                'spent' => round($totalSpent, 2),
+                'remaining' => round($totalRemaining, 2),
+                'monthly' => round($totalAllocated, 2),
+                'spentPercentage' => $totalAllocated > 0
+                    ? round(min(($totalSpent / $totalAllocated) * 100, 100), 2)
+                    : 0,
+            ],
+            'rows' => $rows->all(),
         ];
     }
 

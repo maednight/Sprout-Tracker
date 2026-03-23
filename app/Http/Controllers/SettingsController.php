@@ -23,6 +23,7 @@ class SettingsController extends Controller
 
         $transactionDays = $transactions
             ->filter(fn ($transaction) => $transaction->occurred_at !== null)
+            ->toBase()
             ->map(fn ($transaction) => $transaction->occurred_at->copy()->startOfDay()->toDateString())
             ->unique()
             ->values();

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Account;
 use App\Models\Budget;
 use App\Models\Category;
+use App\Models\SavingsTransfer;
 use App\Models\Transaction;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
@@ -189,11 +190,23 @@ class TransactionController extends Controller
     {
         $this->authorizeTransaction($transaction);
 
+        $linkedSavingsTransfer = SavingsTransfer::query()
+            ->where('user_id', $transaction->user_id)
+            ->where(function ($query) use ($transaction) {
+                $query->where('income_transaction_id', $transaction->id)
+                    ->orWhere('savings_transaction_id', $transaction->id);
+            })
+            ->first();
+
         foreach ($this->getTransactionPhotoPaths($transaction) as $photoPath) {
             Storage::disk('public')->delete($photoPath);
         }
 
         $transaction->delete();
+
+        if ($linkedSavingsTransfer) {
+            $linkedSavingsTransfer->delete();
+        }
 
         return redirect()
             ->route('dashboard')
@@ -414,6 +427,7 @@ class TransactionController extends Controller
 
         $transactionCategories = $transactions
             ->filter(fn (Transaction $transaction) => $transaction->type === 'expense')
+            ->toBase()
             ->map(function (Transaction $transaction) {
                 $categoryName = $transaction->category?->name ?? 'Others';
                 $categoryKey = $this->resolveCategoryKey($categoryName, 'expense');
@@ -473,6 +487,7 @@ class TransactionController extends Controller
             ->map(fn ($periodDate) => Carbon::parse($periodDate)->format('Y-m'));
 
         $months = $transactions
+            ->toBase()
             ->map(fn (Transaction $transaction) => $transaction->occurred_at->format('Y-m'))
             ->merge($budgetMonthKeys)
             ->push(now()->format('Y-m'))
@@ -659,8 +674,8 @@ class TransactionController extends Controller
             'allowance' => '/projectassets/icons/salary.svg',
             'bonus' => '/projectassets/icons/salary.svg',
             'pettycash' => '/projectassets/icons/salary.svg',
-            'shopping' => '/projectassets/icons/shopping.svg',
-            'apparel' => '/projectassets/icons/shopping.svg',
+            'shopping' => '/projectassets/icons/others.svg',
+            'apparel' => '/projectassets/icons/others.svg',
             'beauty' => '/projectassets/icons/selfcare.svg',
             'gift' => '/projectassets/icons/others.svg',
             'transport' => '/projectassets/icons/transport.svg',
@@ -670,7 +685,7 @@ class TransactionController extends Controller
             'foodanddrinks' => '/projectassets/icons/food&drinks.svg',
             'health' => '/projectassets/icons/health.svg',
             'education' => '/projectassets/icons/others.svg',
-            'work' => '/projectassets/icons/work.svg',
+            'work' => '/projectassets/icons/others.svg',
             'pets' => '/projectassets/icons/others.svg',
             'household' => '/projectassets/icons/homebills.svg',
             'homebills' => '/projectassets/icons/homebills.svg',

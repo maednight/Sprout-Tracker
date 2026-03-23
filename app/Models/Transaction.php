@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Transaction extends Model
 {
@@ -38,5 +39,15 @@ class Transaction extends Model
     public function account(): BelongsTo
     {
         return $this->belongsTo(Account::class);
+    }
+
+    public function savingsTransfer(): HasOne
+    {
+        return $this->hasOne(SavingsTransfer::class, 'income_transaction_id');
+    }
+
+    public function destinationSavingsTransfer(): HasOne
+    {
+        return $this->hasOne(SavingsTransfer::class, 'savings_transaction_id');
     }
 }

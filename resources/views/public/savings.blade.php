@@ -57,9 +57,6 @@
                 const indexUrl = panel.getAttribute('data-savings-index-url') || '/savings'
                 const initialScope = panel.getAttribute('data-savings-scope') || 'month'
                 const initialAnchor = panel.getAttribute('data-savings-anchor') || new Date().toISOString().slice(0, 10)
-                const modal = panel.querySelector('[data-savings-transfer-modal]')
-                const openButtons = document.querySelectorAll('[data-savings-transfer-open]')
-                const closeButtons = panel.querySelectorAll('[data-savings-transfer-close]')
                 const backdrop = panel.querySelector('[data-savings-backdrop]')
                 const periodTrigger = panel.querySelector('[data-savings-period-trigger]')
                 const periodPanel = panel.querySelector('[data-savings-period-panel]')
@@ -76,6 +73,19 @@
                 const worthIcon = panel.querySelector('[data-savings-worth-icon]')
                 const sortTrigger = panel.querySelector('[data-savings-sort-trigger]')
                 const sortMenu = panel.querySelector('[data-savings-sort-menu]')
+                const csrfToken = panel.querySelector('[data-savings-csrf-token]')?.value || ''
+                const actionModal = panel.querySelector('[data-savings-action-modal]')
+                const actionCloseButtons = panel.querySelectorAll('[data-savings-action-close]')
+                const actionSubtitle = panel.querySelector('[data-savings-action-subtitle]')
+                const actionViewButton = panel.querySelector('[data-savings-action-view]')
+                const actionEditButton = panel.querySelector('[data-savings-action-edit]')
+                const actionDeleteForm = panel.querySelector('[data-savings-action-delete-form]')
+                const actionDeleteButton = panel.querySelector('[data-savings-action-delete-button]')
+                const deleteModal = panel.querySelector('[data-savings-delete-modal]')
+                const deleteForm = panel.querySelector('[data-savings-delete-form]')
+                const deleteTitle = panel.querySelector('[data-savings-delete-title]')
+                const deleteMessage = panel.querySelector('[data-savings-delete-message]')
+                const deleteCancelButtons = panel.querySelectorAll('[data-savings-delete-cancel]')
                 const donut = panel.querySelector('[data-savings-donut]')
                 const popup = panel.querySelector('[data-savings-pie-popup]')
                 const popupName = panel.querySelector('[data-savings-pie-popup-name]')
@@ -98,8 +108,12 @@
                 let currentDisplayDate = new Date(`${initialAnchor}T00:00:00`)
                 let selectedDate = new Date(`${initialAnchor}T00:00:00`)
                 let displayYear = currentDisplayDate.getFullYear()
+                let activeHistoryItem = null
 
                 const periodPanelHiddenClass = 'sprout-savings__period-panel--hidden'
+                const detailHiddenClass = 'sprout-savings__detail-modal--hidden'
+                const actionHiddenClass = 'sprout-savings__action-modal--hidden'
+                const deleteHiddenClass = 'sprout-savings__delete-modal--hidden'
 
                 const pad = (value) => String(value).padStart(2, '0')
 
@@ -146,6 +160,115 @@
                 const closePeriodPanel = () => {
                     periodPanel?.classList.add(periodPanelHiddenClass)
                     hideBackdrop()
+                }
+
+                const closeActionModal = () => {
+                    actionModal?.classList.add(actionHiddenClass)
+                }
+
+                const openDeleteModal = () => {
+                    if (!activeHistoryItem?.deleteUrl) {
+                        return
+                    }
+
+                    const deleteLabel = activeHistoryItem.deleteLabel || 'Delete Activity'
+                    const deleteItemName = deleteLabel.replace(/^Delete\s+/i, '').toLowerCase()
+
+                    if (deleteTitle) {
+                        deleteTitle.textContent = deleteLabel
+                    }
+
+                    if (deleteMessage) {
+                        deleteMessage.textContent = `Are you sure you want to delete this ${deleteItemName}?`
+                    }
+
+                    if (deleteForm) {
+                        deleteForm.setAttribute('action', activeHistoryItem.deleteUrl || '#')
+                    }
+
+                    actionModal?.classList.add(actionHiddenClass)
+                    deleteModal?.classList.remove(deleteHiddenClass)
+                }
+
+                const closeDeleteModal = () => {
+                    deleteModal?.classList.add(deleteHiddenClass)
+
+                    if (activeHistoryItem?.deleteUrl) {
+                        actionModal?.classList.remove(actionHiddenClass)
+                    }
+                }
+
+                const closeDetailModal = () => {
+                    detailModal?.classList.add(detailHiddenClass)
+                }
+
+                const openDetail = (item) => {
+                    if (!detailModal || !detailCategory || !detailType || !detailDate || !detailTime || !detailAmount) {
+                        return
+                    }
+
+                    detailCategory.textContent = item.category || 'Savings'
+                    detailType.textContent = item.typeLabel || 'Savings'
+                    detailDate.textContent = item.dateLabel || ''
+                    detailTime.textContent = item.time || ''
+                    detailAmount.textContent = `${item.direction === 'out' ? '-' : '+'}₱${Number(item.amount || 0).toLocaleString('en-PH')}`
+                    detailAmount.style.color = item.direction === 'out' ? '#ff6f5d' : '#00c957'
+
+                    if (detailAccountRow && detailAccount) {
+                        const accountValue = item.account || ''
+                        detailAccountRow.classList.toggle('sprout-savings__detail-row--hidden', !accountValue)
+                        detailAccount.textContent = accountValue
+                    }
+
+                    if (detailDescriptionRow && detailDescription) {
+                        const descriptionValue = item.description || ''
+                        detailDescriptionRow.classList.toggle('sprout-savings__detail-description--hidden', !descriptionValue)
+                        detailDescription.textContent = descriptionValue
+                    }
+
+                    if (detailPhotosRow && detailPhotos) {
+                        const receiptPhotoUrls = Array.isArray(item.receiptPhotoUrls) ? item.receiptPhotoUrls : []
+                        detailPhotosRow.classList.toggle('sprout-savings__detail-photos--hidden', receiptPhotoUrls.length === 0)
+                        detailPhotos.innerHTML = receiptPhotoUrls.map((receiptPhotoUrl, photoIndex) => `
+                            <button
+                                type="button"
+                                class="sprout-savings__detail-photo-button"
+                                aria-label="Open receipt photo ${photoIndex + 1}"
+                            >
+                                <img src="${receiptPhotoUrl}" alt="Receipt photo ${photoIndex + 1}" class="sprout-savings__detail-photo-image">
+                            </button>
+                        `).join('')
+                    }
+
+                    detailModal.classList.remove(detailHiddenClass)
+                }
+
+                const openActionModal = (item) => {
+                    if (!actionModal) {
+                        return
+                    }
+
+                    activeHistoryItem = item
+
+                    if (actionSubtitle) {
+                        actionSubtitle.textContent = item.category || 'Savings'
+                    }
+
+                    if (actionEditButton) {
+                        actionEditButton.textContent = item.editLabel || 'Edit Activity'
+                        actionEditButton.disabled = !item.editUrl
+                    }
+
+                    if (actionDeleteForm) {
+                        actionDeleteForm.setAttribute('action', item.deleteUrl || '#')
+                    }
+
+                    if (actionDeleteButton) {
+                        actionDeleteButton.textContent = item.deleteLabel || 'Delete Activity'
+                        actionDeleteButton.disabled = !item.deleteUrl
+                    }
+
+                    actionModal.classList.remove(actionHiddenClass)
                 }
 
                 const renderWeekGrid = () => {
@@ -261,10 +384,6 @@
                     showBackdrop()
                 }
 
-                if (!modal || !openButtons.length) {
-                    return
-                }
-
                 if (periodTrigger && periodPanel) {
                     periodTrigger.addEventListener('click', (event) => {
                         event.stopPropagation()
@@ -328,22 +447,6 @@
                         }
                     })
                 }
-
-                openButtons.forEach((button) => {
-                    button.addEventListener('click', () => {
-                        if (button.disabled) {
-                            return
-                        }
-
-                        modal.classList.remove(hiddenClass)
-                    })
-                })
-
-                closeButtons.forEach((button) => {
-                    button.addEventListener('click', () => {
-                        modal.classList.add(hiddenClass)
-                    })
-                })
 
                 if (worthToggle && worthValue && worthIcon) {
                     const openIcon = '/projectassets/icons/eyeopen.svg'
@@ -462,7 +565,7 @@
                     panel.querySelectorAll('[data-savings-history-item]').forEach((button) => {
                         button.addEventListener('click', () => {
                             const item = JSON.parse(button.getAttribute('data-savings-history-item') || '{}')
-                            openDetail(item)
+                            openActionModal(item)
                         })
                     })
 
@@ -472,6 +575,49 @@
                         })
                     })
                 }
+
+                actionCloseButtons.forEach((button) => {
+                    button.addEventListener('click', () => {
+                        closeActionModal()
+                    })
+                })
+
+                actionViewButton?.addEventListener('click', () => {
+                    if (!activeHistoryItem) {
+                        return
+                    }
+
+                    closeActionModal()
+                    openDetail(activeHistoryItem)
+                })
+
+                actionEditButton?.addEventListener('click', () => {
+                    if (!activeHistoryItem?.editUrl) {
+                        return
+                    }
+
+                    window.location.href = activeHistoryItem.editUrl
+                })
+
+                actionDeleteButton?.addEventListener('click', () => {
+                    if (!csrfToken || !activeHistoryItem?.deleteUrl) {
+                        return
+                    }
+
+                    openDeleteModal()
+                })
+
+                deleteCancelButtons.forEach((button) => {
+                    button.addEventListener('click', () => {
+                        closeDeleteModal()
+                    })
+                })
+
+                deleteForm?.addEventListener('submit', (event) => {
+                    if (!csrfToken || !activeHistoryItem?.deleteUrl) {
+                        event.preventDefault()
+                    }
+                })
 
                 if (donut && popup && popupName && popupAmount) {
                     const categories = JSON.parse(donut.getAttribute('data-savings-categories') || '[]')

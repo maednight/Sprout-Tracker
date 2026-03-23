@@ -16,7 +16,7 @@ class DashboardController extends Controller
         $user = auth()->user();
 
         $transactions = Transaction::query()
-            ->with(['category', 'account'])
+            ->with(['category', 'account', 'savingsTransfer.sourceCategory'])
             ->where('user_id', $user->id)
             ->orderByDesc('occurred_at')
             ->orderByDesc('id')
@@ -68,6 +68,12 @@ class DashboardController extends Controller
                                 ?? Str::headline($transaction->type);
 
                             $accountName = $transaction->account?->name ?? '';
+                            $isSavingsTransfer = $transaction->type === 'income'
+                                && $categoryName === 'Savings Transfer';
+                            $sourceSavingsCategoryName = $transaction->savingsTransfer?->sourceCategory?->name ?? '';
+                            $transferIndicator = $isSavingsTransfer
+                                ? trim(($sourceSavingsCategoryName ?: 'Savings') . ' savings transfer')
+                                : '';
 
                             return [
                                 'id' => $transaction->id,
@@ -77,6 +83,8 @@ class DashboardController extends Controller
                                 'amount' => (float) $transaction->amount,
                                 'time' => $transaction->occurred_at->format('g:ia'),
                                 'description' => $transaction->description ?? '',
+                                'isSavingsTransfer' => $isSavingsTransfer,
+                                'transferIndicator' => $transferIndicator,
                                 'iconPath' => $this->resolveTransactionIconPath(
                                     $categoryName,
                                     $accountName
@@ -150,10 +158,10 @@ class DashboardController extends Controller
             'bonus' => '/projectassets/icons/salary.svg',
             'pettycash' => '/projectassets/icons/salary.svg',
 
-            'shopping' => '/projectassets/icons/shopping.svg',
-            'apparel' => '/projectassets/icons/shopping.svg',
-            'beauty' => '/projectassets/icons/shopping.svg',
-            'gift' => '/projectassets/icons/shopping.svg',
+            'shopping' => '/projectassets/icons/others.svg',
+            'apparel' => '/projectassets/icons/others.svg',
+            'beauty' => '/projectassets/icons/selfcare.svg',
+            'gift' => '/projectassets/icons/others.svg',
 
             'transport' => '/projectassets/icons/transport.svg',
             'transportation' => '/projectassets/icons/transport.svg',
@@ -163,9 +171,9 @@ class DashboardController extends Controller
             'foodanddrinks' => '/projectassets/icons/food&drinks.svg',
 
             'health' => '/projectassets/icons/health.svg',
-            'education' => '/projectassets/icons/education.svg',
-            'work' => '/projectassets/icons/work.svg',
-            'pets' => '/projectassets/icons/pets.svg',
+            'education' => '/projectassets/icons/others.svg',
+            'work' => '/projectassets/icons/others.svg',
+            'pets' => '/projectassets/icons/others.svg',
 
             'emergency' => '/projectassets/icons/savings.svg',
             'retirement' => '/projectassets/icons/savings.svg',

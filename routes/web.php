@@ -15,6 +15,10 @@ Route::get('/', fn () => view('public.loading'))->name('loading');
 Route::middleware('guest')->group(function () {
     Route::get('/login', fn () => view('public.home'))->name('login.view');
     Route::post('/login', [SproutAuthController::class, 'login'])->name('login');
+    Route::get('/forgot-password', [SproutAuthController::class, 'forgotPassword'])->name('password.request');
+    Route::post('/forgot-password', [SproutAuthController::class, 'sendResetLink'])->name('password.email');
+    Route::get('/reset-password/{token}', [SproutAuthController::class, 'resetPassword'])->name('password.reset');
+    Route::post('/reset-password', [SproutAuthController::class, 'updateForgottenPassword'])->name('password.update');
 
     Route::get('/signup', fn () => view('public.signup'))->name('signup.view');
     Route::post('/signup', [SproutAuthController::class, 'register'])->name('signup');
@@ -39,6 +43,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/savings', [SavingsController::class, 'index'])->name('savings.index');
     Route::get('/savings/transfer/create', [SavingsController::class, 'createTransfer'])->name('savings.transfer.create');
     Route::post('/savings/transfer', [SavingsController::class, 'transfer'])->name('savings.transfer');
+    Route::get('/savings/transfer/{savingsTransfer}/edit', [SavingsController::class, 'editTransfer'])->name('savings.transfer.edit');
+    Route::put('/savings/transfer/{savingsTransfer}', [SavingsController::class, 'updateTransfer'])->name('savings.transfer.update');
+    Route::delete('/savings/transfer/{savingsTransfer}', [SavingsController::class, 'destroyTransfer'])->name('savings.transfer.destroy');
 
     /* Settings Routes */
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
