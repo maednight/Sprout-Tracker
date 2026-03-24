@@ -69,7 +69,7 @@
 
   @vite(['resources/css/app.css', 'resources/js/app.js'])
   </head>
-  <body class="sprout-font">
+  <body class="sprout-font sprout-transaction-screen">
   @php $authUserId = auth()->id() ?? 'guest'; @endphp
 
   <div class="sprout-shell">

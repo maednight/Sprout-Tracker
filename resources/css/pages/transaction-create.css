@@ -5,11 +5,32 @@
   --sprout-gray: #8D8D8D;
   --sprout-line: #D9D9D9;
   --sprout-card: rgba(255, 255, 255, 0.78);
+  --sprout-mobile-nav-height: calc(74px + env(safe-area-inset-bottom));
+}
+
+body.sprout-transaction-screen {
+  margin: 0;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
 }
 
 /* Transaction Page Shell Override */
 .sprout-shell {
   align-items: flex-start;
+  position: fixed;
+  inset: 0;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at top center, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.78) 22%, rgba(244, 251, 246, 0.94) 58%, rgba(188, 249, 196, 0.95) 100%),
+    linear-gradient(180deg, #ffffff 0%, #f7fbf8 62%, #b8f7c2 100%);
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
 }
 
 /* Transaction Phone Wrapper */
@@ -17,16 +38,30 @@
 .sprout-phone.sprout-savings-transfer-page {
   width: 100%;
   max-width: 414px;
+  height: 100vh;
+  height: 100dvh;
   min-height: 100vh;
+  min-height: 100dvh;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(
-    to bottom,
-    #FFFFFF 0%,
-    #F7FBF8 58%,
-    #B8F7C2 100%
-  );
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at top center, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.78) 22%, rgba(244, 251, 246, 0.94) 58%, rgba(188, 249, 196, 0.95) 100%),
+    linear-gradient(180deg, #ffffff 0%, #f7fbf8 62%, #b8f7c2 100%);
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+}
+
+.sprout-phone.sprout-transaction .sprout-nav--mobile,
+.sprout-phone.sprout-savings-transfer-page .sprout-nav--mobile {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--sprout-mobile-nav-height);
+  box-sizing: border-box;
 }
 
 .sprout-savings-transfer .sprout-transaction__content {
@@ -325,15 +360,24 @@
 /* Transaction Page Main Area */
 .sprout-transaction__page {
   flex: 1;
-  min-height: 100vh;
-  padding-bottom: 110px;
+  min-height: 0;
+  padding-bottom: 0;
+  background: transparent;
+  overflow: hidden;
 }
 
 /* Transaction Page Content */
 .sprout-transaction__content {
   width: 100%;
-  padding: 28px 20px 32px;
+  height: 100%;
+  min-height: 100%;
+  padding: 18px 20px calc(var(--sprout-mobile-nav-height) + 22px);
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(231, 255, 236, 0.24) 68%, rgba(184, 247, 194, 0.5) 100%);
 }
 
 .sprout-transaction__validation {
@@ -360,7 +404,7 @@
   grid-template-columns: 72px 1fr 72px;
   align-items: center;
   min-height: 28px;
-  margin-bottom: 26px;
+  margin-bottom: 16px;
 }
 
 /* Header Side */
@@ -408,7 +452,7 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
-  margin-bottom: 26px;
+  margin-bottom: 16px;
 }
 
 /* Transaction Tab Button */
@@ -434,7 +478,7 @@
 .sprout-transaction__form {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 14px;
 }
 
 /* Transaction Card */
@@ -448,7 +492,7 @@
 
 /* Description Card */
 .sprout-transaction__card--description {
-  min-height: 230px;
+  min-height: 380px;
 }
 
 /* Transaction Field Row */
@@ -548,7 +592,7 @@
 /* Description Textarea */
 .sprout-transaction__textarea {
   width: 100%;
-  min-height: 175px;
+  min-height: 280px;
   border: none;
   outline: none;
   resize: none;
@@ -562,8 +606,8 @@
 .sprout-transaction__actions {
   display: flex;
   width: 100%;
-  margin-top: 4px;
-  padding-bottom: 6px;
+  margin-top: 10px;
+  padding-bottom: 0;
 }
 
 /* Base Action Button */
@@ -1396,6 +1440,106 @@
   border: 1.4px solid #00F36B;
   background: #FFFFFF;
   color: #00C957;
+}
+
+.sprout-photo-viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  box-sizing: border-box;
+}
+
+.sprout-photo-viewer--hidden {
+  display: none;
+}
+
+.sprout-photo-viewer__backdrop {
+  position: absolute;
+  inset: 0;
+  border: none;
+  background: rgba(10, 20, 14, 0.72);
+  backdrop-filter: blur(2px);
+  padding: 0;
+  margin: 0;
+}
+
+.sprout-photo-viewer__content {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 420px);
+  max-height: calc(100dvh - 36px);
+  border-radius: 24px;
+  background: #ffffff;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.22);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.sprout-photo-viewer__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px 10px;
+  gap: 12px;
+}
+
+.sprout-photo-viewer__title {
+  margin: 0;
+  color: #1f1f1f;
+  font-family: 'Inter', sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.sprout-photo-viewer__close {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 999px;
+  background: #f3f6f3;
+  color: #1f1f1f;
+  cursor: pointer;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.sprout-photo-viewer__close::before,
+.sprout-photo-viewer__close::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 14px;
+  height: 2px;
+  background: #1f1f1f;
+  border-radius: 999px;
+}
+
+.sprout-photo-viewer__close::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.sprout-photo-viewer__close::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+.sprout-photo-viewer__body {
+  padding: 0 18px 18px;
+  overflow: auto;
+}
+
+.sprout-photo-viewer__image {
+  width: 100%;
+  max-height: calc(100dvh - 140px);
+  display: block;
+  object-fit: contain;
+  border-radius: 18px;
+  background: #eef4ef;
 }
 
 .sprout-budget-warning {
