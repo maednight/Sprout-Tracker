@@ -1,11 +1,29 @@
+.sprout-appshell,
+.sprout-appshell .sprout-view--mobile,
+.sprout-appshell .sprout-view--desktop,
+.sprout-shell,
+.sprout-phone.sprout-transactions,
+.sprout-transactions__page {
+  height: auto;
+  overflow: visible;
+}
+
+.sprout-shell {
+  align-items: flex-start;
+}
+
 .sprout-phone.sprout-transactions {
   width: 100%;
   max-width: 414px;
   min-height: 100vh;
+  height: 100vh;
   margin: 0 auto;
   position: relative;
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   background:
     radial-gradient(circle at top center, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.78) 22%, rgba(244, 251, 246, 0.94) 58%, rgba(188, 249, 196, 0.95) 100%),
     linear-gradient(180deg, #ffffff 0%, #f5fbf6 62%, #b9f7c3 100%);
@@ -21,15 +39,25 @@
 
 .sprout-transactions__page {
   flex: 1;
-  min-height: 100vh;
-  padding-bottom: 110px;
+  min-height: 100%;
+  padding-bottom: calc(170px + env(safe-area-inset-bottom));
+}
+
+body.sprout-font {
+  overflow: hidden;
 }
 
 .sprout-transactions__content {
-  padding: 18px 8px 28px;
+  padding: 18px 8px calc(56px + env(safe-area-inset-bottom));
   max-width: 372px;
   margin: 0 auto;
   position: relative;
+}
+
+.sprout-transactions__content::after {
+  content: '';
+  display: block;
+  height: calc(76px + env(safe-area-inset-bottom));
 }
 
 @media (min-width: 900px) {
@@ -51,6 +79,15 @@
   .sprout-transactions__content {
     max-width: 1160px;
     padding: 20px 24px 40px;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 899px) {
+  .sprout-phone.sprout-transactions {
+    min-height: 100vh;
+    height: 100vh;
+    overflow-x: hidden;
+    overflow-y: auto;
   }
 }
 
@@ -1056,6 +1093,7 @@
   display: flex;
   flex-direction: column;
   gap: 0;
+  padding-bottom: calc(76px + env(safe-area-inset-bottom));
 }
 
 .sprout-transactions__history-timestamp {

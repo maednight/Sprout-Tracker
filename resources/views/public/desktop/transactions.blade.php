@@ -5,7 +5,7 @@
         <main class="sprout-transactions__page">
             <div
                 class="sprout-transactions__content"
-                id="transaction-analytics-app"
+                data-transaction-analytics-app
                 data-transaction-analytics='@json($transactionAnalyticsPayload)'
             >
                 <div class="sprout-transactions__panel-overlay sprout-transactions__panel-overlay--hidden" data-panel-overlay></div>
@@ -306,8 +306,10 @@
 </div>
 
 <script>
+const desktopTransactionAnalyticsScript = document.currentScript
+
 document.addEventListener('DOMContentLoaded', () => {
-    const root = document.getElementById('transaction-analytics-app')
+    const root = desktopTransactionAnalyticsScript?.previousElementSibling?.querySelector('[data-transaction-analytics-app]')
 
     if (!root || typeof Chart === 'undefined') {
         return
@@ -357,7 +359,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const piePopup = root.querySelector('[data-pie-popup]')
     const piePopupName = root.querySelector('[data-pie-popup-name]')
     const piePopupAmount = root.querySelector('[data-pie-popup-amount]')
-    const pieCanvas = document.getElementById('transactions-pie-chart')
+    const pieCanvas = root.querySelector('#transactions-pie-chart')
     const lineLegend = root.querySelector('[data-line-legend]')
     const categoryFilters = root.querySelector('[data-category-filters]')
     const detailClose = root.querySelector('[data-detail-close]')
@@ -923,7 +925,7 @@ document.addEventListener('DOMContentLoaded', () => {
         )
     }
 
-    const lineChart = new Chart(document.getElementById('transactions-line-chart'), {
+    const lineChart = new Chart(root.querySelector('#transactions-line-chart'), {
         type: 'line',
         data: {
             labels: [],
@@ -1022,7 +1024,7 @@ document.addEventListener('DOMContentLoaded', () => {
         },
     })
 
-    const pieChart = new Chart(document.getElementById('transactions-pie-chart'), {
+    const pieChart = new Chart(root.querySelector('#transactions-pie-chart'), {
         type: 'doughnut',
         data: {
             labels: [],
@@ -1051,7 +1053,7 @@ document.addEventListener('DOMContentLoaded', () => {
         },
     })
 
-    const detailChart = new Chart(document.getElementById('transactions-detail-chart'), {
+    const detailChart = new Chart(root.querySelector('#transactions-detail-chart'), {
         type: 'doughnut',
         data: {
             labels: ['Spent', 'Remaining'],
@@ -1415,6 +1417,9 @@ document.addEventListener('DOMContentLoaded', () => {
         pieChart.update()
 
         renderCategoryArea(categories)
+        statsPanel?.classList.toggle('sprout-transactions__stats--hidden', !state.showStats)
+        showToggle?.setAttribute('aria-expanded', state.showStats ? 'true' : 'false')
+        showToggleText.textContent = state.showStats ? 'show less' : 'show more'
 
         if (state.scope === 'year') {
             periodLabel.textContent = state.anchorDate.toLocaleDateString('en-US', {
@@ -1625,5 +1630,3 @@ document.addEventListener('DOMContentLoaded', () => {
     render()
 })
 </script>
-
-

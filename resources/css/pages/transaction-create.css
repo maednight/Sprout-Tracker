@@ -1,5 +1,7 @@
 :root {
   --sprout-green: #00F36B;
+  --sprout-savings-blue: #2D9AF0;
+  --sprout-savings-blue-dark: #1D7FD5;
   --sprout-tab-bg: #F3FFF5;
   --sprout-ink: #2B2B2B;
   --sprout-gray: #8D8D8D;
@@ -109,12 +111,12 @@ body.sprout-transaction-screen {
 
 .sprout-savings-transfer__type-picker {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
   margin-bottom: 18px;
   padding: 6px;
   border-radius: 16px;
-  background: #eefaf1;
+  background: #edf6ff;
 }
 
 .sprout-savings-transfer__type-option {
@@ -132,8 +134,8 @@ body.sprout-transaction-screen {
 
 .sprout-savings-transfer__type-option--active {
   background: #ffffff;
-  color: #0f1d14;
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+  color: var(--sprout-savings-blue-dark);
+  box-shadow: 0 0 0 1px rgba(45, 154, 240, 0.4), 0 8px 18px rgba(45, 154, 240, 0.08);
 }
 
 .sprout-savings-transfer__type-option:disabled {
@@ -149,10 +151,14 @@ body.sprout-transaction-screen {
   margin-bottom: 18px;
 }
 
+.sprout-savings-transfer__flow--withdraw {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .sprout-savings-transfer__selector {
   min-height: 72px;
   border-radius: 13px;
-  border: 1.3px solid #d9f7e2;
+  border: 1.3px solid rgba(45, 154, 240, 0.22);
   background: #ffffff;
   display: flex;
   flex-direction: column;
@@ -163,6 +169,11 @@ body.sprout-transaction-screen {
   cursor: pointer;
   padding: 8px 10px;
   box-sizing: border-box;
+}
+
+.sprout-savings-transfer__selector--hidden,
+.sprout-savings-transfer__swap--hidden {
+  display: none;
 }
 
 .sprout-savings-transfer__selector-label {
@@ -186,7 +197,7 @@ body.sprout-transaction-screen {
 }
 
 .sprout-savings-transfer__selector-meta {
-  color: var(--sprout-green);
+  color: var(--sprout-savings-blue);
   font-family: 'Inter', sans-serif;
   font-size: 10px;
   font-weight: 600;
@@ -201,12 +212,12 @@ body.sprout-transaction-screen {
   width: 38px;
   height: 38px;
   border-radius: 999px;
-  background: var(--sprout-green);
+  background: var(--sprout-savings-blue);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   margin: 0 auto;
-  box-shadow: 0 12px 24px rgba(0, 243, 107, 0.2);
+  box-shadow: 0 12px 24px rgba(45, 154, 240, 0.2);
 }
 
 .sprout-savings-transfer__swap-icon {
@@ -242,7 +253,7 @@ body.sprout-transaction-screen {
 .sprout-savings-transfer__row-pill {
   min-height: 42px;
   border-radius: 12px;
-  border: 1px solid #d9f7e2;
+  border: 1px solid rgba(45, 154, 240, 0.22);
   background: #ffffff;
   display: flex;
   align-items: center;

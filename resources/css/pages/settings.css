@@ -116,6 +116,19 @@
   align-items: center;
 }
 
+.sprout-settings-mobile__photo-menu {
+  position: relative;
+  display: inline-block;
+}
+
+.sprout-settings-mobile__photo-menu > summary {
+  list-style: none;
+}
+
+.sprout-settings-mobile__photo-menu > summary::-webkit-details-marker {
+  display: none;
+}
+
 .sprout-settings-mobile__avatar-wrapper {
   position: relative;
   width: 84px;
@@ -184,6 +197,61 @@
 
 .sprout-settings-mobile__profile-text {
   margin-top: 14px;
+}
+
+.sprout-settings-mobile__photo-delete-form {
+  margin: 0;
+  width: 100%;
+}
+
+.sprout-settings-mobile__photo-actions {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 140px;
+  padding: 8px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 5;
+}
+
+.sprout-settings-mobile__photo-action,
+.sprout-settings-mobile__photo-delete {
+  width: 100%;
+  min-height: 38px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+  background: #FFFFFF;
+  color: var(--sprout-settings-text);
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  padding: 10px 12px;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.sprout-settings-mobile__photo-delete {
+  color: var(--sprout-settings-danger);
+}
+
+.sprout-settings-mobile__photo-action:hover,
+.sprout-settings-mobile__photo-action:focus-visible,
+.sprout-settings-mobile__photo-delete:hover,
+.sprout-settings-mobile__photo-delete:focus-visible {
+  background: var(--sprout-settings-soft-surface);
+  outline: none;
 }
 
 .sprout-settings-mobile__name-row {

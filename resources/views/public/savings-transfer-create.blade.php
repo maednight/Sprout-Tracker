@@ -115,17 +115,17 @@
 
                             <button
                                 type="button"
-                                class="sprout-savings-transfer__type-option {{ $transferTypeValue === 'savings_to_income' ? 'sprout-savings-transfer__type-option--active' : '' }}"
+                                class="sprout-savings-transfer__type-option {{ $transferTypeValue === 'savings_withdraw' ? 'sprout-savings-transfer__type-option--active' : '' }}"
                                 data-transfer-type-option
-                                data-transfer-type="savings_to_income"
-                                aria-pressed="{{ $transferTypeValue === 'savings_to_income' ? 'true' : 'false' }}"
+                                data-transfer-type="savings_withdraw"
+                                aria-pressed="{{ $transferTypeValue === 'savings_withdraw' ? 'true' : 'false' }}"
                                 {{ $transferTypeLocked ? 'disabled' : '' }}
                             >
-                                Savings to Income
+                                Withdraw
                             </button>
                         </div>
 
-                        <div class="sprout-savings-transfer__flow">
+                        <div class="sprout-savings-transfer__flow {{ $transferTypeValue === 'savings_withdraw' ? 'sprout-savings-transfer__flow--withdraw' : '' }}" data-transfer-flow>
                             <div
                                 class="sprout-savings-transfer__selector"
                                 data-transfer-category-trigger
@@ -145,17 +145,18 @@
                                 </div>
                             </div>
 
-                            <div class="sprout-savings-transfer__swap">
+                            <div class="sprout-savings-transfer__swap {{ $transferTypeValue === 'savings_withdraw' ? 'sprout-savings-transfer__swap--hidden' : '' }}" data-transfer-swap>
                                 <img src="/projectassets/icons/transfer.svg" alt="" class="sprout-savings-transfer__swap-icon">
                             </div>
 
                             <div
-                                class="sprout-savings-transfer__selector"
+                                class="sprout-savings-transfer__selector {{ $transferTypeValue === 'savings_withdraw' ? 'sprout-savings-transfer__selector--hidden' : '' }}"
                                 data-transfer-account-trigger
                                 aria-expanded="false"
                                 aria-controls="sproutTransferAccountModal"
                                 role="button"
                                 tabindex="0"
+                                data-transfer-target-selector
                             >
                                 <div class="sprout-savings-transfer__selector-label">To</div>
                                 <div class="sprout-savings-transfer__selector-value {{ $transferAccountValue ? '' : 'sprout-savings-transfer__selector-value--empty' }}" data-transfer-account-text>

@@ -689,6 +689,7 @@
                         if (periodPanel && periodTrigger && !periodPanel.contains(event.target) && !periodTrigger.contains(event.target)) {
                             closePeriodPanel()
                         }
+
                     })
                 }
 

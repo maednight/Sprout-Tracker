@@ -86,6 +86,26 @@ class SettingsController extends Controller
             ->with('settings_success', 'Profile photo updated successfully.');
     }
 
+    public function destroyPhoto(Request $request): RedirectResponse
+    {
+        $user = Auth::user();
+
+        if ($user->profile_photo_path && Storage::disk('public')->exists($user->profile_photo_path)) {
+            Storage::disk('public')->delete($user->profile_photo_path);
+        }
+
+        $user->profile_photo_path = null;
+        $user->save();
+
+        $freshUser = $user->fresh();
+        Auth::login($freshUser);
+        $request->session()->regenerate();
+
+        return redirect()
+            ->route('settings.index')
+            ->with('settings_success', 'Profile photo removed successfully.');
+    }
+
     public function updateEmail(Request $request): RedirectResponse
     {
         $user = Auth::user();

@@ -59,15 +59,8 @@ $passwordSectionHasError = $errors->has('current_password') || $errors->has('new
             @endif
 
             <section class="sprout-settings-mobile__card sprout-settings-mobile__profile-card">
-                <form
-                    action="{{ route('settings.photo.update') }}"
-                    method="POST"
-                    enctype="multipart/form-data"
-                    class="sprout-settings-mobile__photo-form"
-                >
-                    @csrf
-
-                    <label for="profile_photo" class="sprout-settings-mobile__avatar-wrapper">
+                <details class="sprout-settings-mobile__photo-menu">
+                    <summary class="sprout-settings-mobile__avatar-wrapper">
                         @if ($profilePhotoUrl)
                             <img
                                 src="{{ $profilePhotoUrl }}"
@@ -81,23 +74,56 @@ $passwordSectionHasError = $errors->has('current_password') || $errors->has('new
                         @endif
 
                         <span class="sprout-settings-mobile__avatar-badge">Edit</span>
-                    </label>
+                    </summary>
 
-                    <input
-                        id="profile_photo"
-                        name="profile_photo"
-                        type="file"
-                        accept="image/*"
-                        class="sprout-settings-mobile__file-input"
-                        onchange="this.form.submit()"
-                    >
+                    <div class="sprout-settings-mobile__photo-actions">
+                        <form
+                            action="{{ route('settings.photo.update') }}"
+                            method="POST"
+                            enctype="multipart/form-data"
+                            class="sprout-settings-mobile__photo-form"
+                        >
+                            @csrf
 
-                    @error('profile_photo')
-                        <p class="sprout-settings-mobile__error sprout-settings-mobile__error--center">
-                            {{ $message }}
-                        </p>
-                    @enderror
-                </form>
+                            <input
+                                id="profile_photo"
+                                name="profile_photo"
+                                type="file"
+                                accept="image/*"
+                                class="sprout-settings-mobile__file-input"
+                                onchange="this.form.submit()"
+                            >
+
+                            <label for="profile_photo" class="sprout-settings-mobile__photo-action">
+                                Edit photo
+                            </label>
+                        </form>
+
+                        @if ($profilePhotoUrl)
+                            <form
+                                action="{{ route('settings.photo.destroy') }}"
+                                method="POST"
+                                class="sprout-settings-mobile__photo-delete-form"
+                            >
+                                @csrf
+                                @method('DELETE')
+
+                                <button
+                                    type="submit"
+                                    class="sprout-settings-mobile__photo-delete"
+                                >
+                                    Delete photo
+                                </button>
+                            </form>
+                        @endif
+                    </div>
+                </details>
+
+                @error('profile_photo')
+                    <p class="sprout-settings-mobile__error sprout-settings-mobile__error--center">
+                        {{ $message }}
+                    </p>
+                @enderror
 
                 <div class="sprout-settings-mobile__profile-text">
                     <div class="sprout-settings-mobile__name-header">
@@ -440,15 +466,8 @@ $passwordSectionHasError = $errors->has('current_password') || $errors->has('new
                 @endif
 
                 <section class="sprout-settings-desktop__profile-card">
-                    <form
-                        action="{{ route('settings.photo.update') }}"
-                        method="POST"
-                        enctype="multipart/form-data"
-                        class="sprout-settings-mobile__photo-form"
-                    >
-                        @csrf
-
-                        <label for="desktop_profile_photo" class="sprout-settings-mobile__avatar-wrapper sprout-settings-mobile__avatar-wrapper--desktop">
+                    <details class="sprout-settings-mobile__photo-menu">
+                        <summary class="sprout-settings-mobile__avatar-wrapper sprout-settings-mobile__avatar-wrapper--desktop">
                             @if ($profilePhotoUrl)
                                 <img
                                     src="{{ $profilePhotoUrl }}"
@@ -462,23 +481,56 @@ $passwordSectionHasError = $errors->has('current_password') || $errors->has('new
                             @endif
 
                             <span class="sprout-settings-mobile__avatar-badge">Edit</span>
-                        </label>
+                        </summary>
 
-                        <input
-                            id="desktop_profile_photo"
-                            name="profile_photo"
-                            type="file"
-                            accept="image/*"
-                            class="sprout-settings-mobile__file-input"
-                            onchange="this.form.submit()"
-                        >
+                        <div class="sprout-settings-mobile__photo-actions">
+                            <form
+                                action="{{ route('settings.photo.update') }}"
+                                method="POST"
+                                enctype="multipart/form-data"
+                                class="sprout-settings-mobile__photo-form"
+                            >
+                                @csrf
 
-                        @error('profile_photo')
-                            <p class="sprout-settings-mobile__error sprout-settings-mobile__error--center">
-                                {{ $message }}
-                            </p>
-                        @enderror
-                    </form>
+                                <input
+                                    id="desktop_profile_photo"
+                                    name="profile_photo"
+                                    type="file"
+                                    accept="image/*"
+                                    class="sprout-settings-mobile__file-input"
+                                    onchange="this.form.submit()"
+                                >
+
+                                <label for="desktop_profile_photo" class="sprout-settings-mobile__photo-action">
+                                    Edit photo
+                                </label>
+                            </form>
+
+                            @if ($profilePhotoUrl)
+                                <form
+                                    action="{{ route('settings.photo.destroy') }}"
+                                    method="POST"
+                                    class="sprout-settings-mobile__photo-delete-form"
+                                >
+                                    @csrf
+                                    @method('DELETE')
+
+                                    <button
+                                        type="submit"
+                                        class="sprout-settings-mobile__photo-delete"
+                                    >
+                                        Delete photo
+                                    </button>
+                                </form>
+                            @endif
+                        </div>
+                    </details>
+
+                    @error('profile_photo')
+                        <p class="sprout-settings-mobile__error sprout-settings-mobile__error--center">
+                            {{ $message }}
+                        </p>
+                    @enderror
 
                     <div class="sprout-settings-desktop__profile-text">
                         <div class="sprout-settings-mobile__name-header">

@@ -98,6 +98,7 @@ if (transferRoot) {
     }
 
     const isSavingsToSavings = () => getTransferType() === 'savings_to_savings'
+    const isSavingsWithdraw = () => getTransferType() === 'savings_withdraw'
 
     const getSelectedCategory = (inputSelector = selectors.categoryInput) => {
         const categoryId = String(document.querySelector(inputSelector)?.value || '')
@@ -143,6 +144,9 @@ if (transferRoot) {
     const syncTransferFlow = () => {
         const categoryTrigger = document.querySelector(selectors.categoryTrigger)
         const accountTrigger = document.querySelector(selectors.accountTrigger)
+        const flow = document.querySelector('[data-transfer-flow]')
+        const swap = document.querySelector('[data-transfer-swap]')
+        const targetSelector = document.querySelector('[data-transfer-target-selector]')
         const categoryLabel = categoryTrigger?.querySelector('.sprout-savings-transfer__selector-label')
         const accountLabel = accountTrigger?.querySelector('.sprout-savings-transfer__selector-label')
         const categoryText = document.querySelector(selectors.categoryText)
@@ -156,11 +160,14 @@ if (transferRoot) {
         const selectedAccount = document.querySelector(selectors.accountInput)?.value || ''
 
         if (categoryLabel) categoryLabel.textContent = 'From'
-        if (accountLabel) accountLabel.textContent = 'To'
         setSelectorValue(categoryText, selectedCategory?.name || '')
         setSelectorMeta(categoryAmount, selectedCategory?.amount || 0, Boolean(selectedCategory))
+        flow?.classList.toggle('sprout-savings-transfer__flow--withdraw', isSavingsWithdraw())
+        swap?.classList.toggle('sprout-savings-transfer__swap--hidden', isSavingsWithdraw())
+        targetSelector?.classList.toggle('sprout-savings-transfer__selector--hidden', isSavingsWithdraw())
 
         if (isSavingsToSavings()) {
+            if (accountLabel) accountLabel.textContent = 'To'
             setSelectorValue(accountText, selectedDestinationCategory?.name || '')
             setSelectorMeta(accountAmount, 0, false)
             if (categoryModalTitle) {
@@ -169,7 +176,14 @@ if (transferRoot) {
                     : 'Source Savings Category'
             }
             if (accountModalTitle) accountModalTitle.textContent = 'Savings Category'
+        } else if (isSavingsWithdraw()) {
+            if (accountLabel) accountLabel.textContent = 'Withdraw'
+            setSelectorValue(accountText, '')
+            setSelectorMeta(accountAmount, 0, false)
+            if (categoryModalTitle) categoryModalTitle.textContent = 'Savings Category'
+            if (accountModalTitle) accountModalTitle.textContent = 'Withdraw'
         } else {
+            if (accountLabel) accountLabel.textContent = 'To'
             setSelectorValue(accountText, selectedAccount)
             setSelectorMeta(accountAmount, 0, false)
             if (categoryModalTitle) categoryModalTitle.textContent = 'Source Savings Category'
@@ -283,7 +297,9 @@ if (transferRoot) {
         return Boolean(dateInput?.value?.trim())
             && Boolean(parseWholeAmountDigits(amountInput?.value ?? ''))
             && Boolean(categoryInput?.value?.trim())
-            && (isSavingsToSavings()
+            && (isSavingsWithdraw()
+                ? true
+                : isSavingsToSavings()
                 ? Boolean(destinationCategoryInput?.value?.trim())
                 : Boolean(accountInput?.value?.trim()))
     }
@@ -708,6 +724,10 @@ if (transferRoot) {
 
         const openHandler = (event) => {
             event.preventDefault()
+            if (isSavingsWithdraw()) {
+                return
+            }
+
             if (isSavingsToSavings()) {
                 activeCategoryField = 'destination'
                 activeCategoryTrigger = triggerElement
@@ -776,7 +796,9 @@ if (transferRoot) {
             if (!dateInput?.value?.trim()) missingFields.push('date')
             if (!parseWholeAmountDigits(amountInput?.value ?? '')) missingFields.push('amount')
             if (!categoryInput?.value?.trim()) missingFields.push('source savings')
-            if (isSavingsToSavings()) {
+            if (isSavingsWithdraw()) {
+                // no target field needed
+            } else if (isSavingsToSavings()) {
                 if (!destinationCategoryInput?.value?.trim()) missingFields.push('destination savings')
             } else if (!accountInput?.value?.trim()) {
                 missingFields.push('income account')

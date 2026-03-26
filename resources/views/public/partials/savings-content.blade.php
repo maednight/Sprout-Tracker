@@ -184,9 +184,9 @@
 </section>
 
 <a
-    href="{{ route('savings.transfer.create', ['date' => $defaultTransferDate]) }}"
+    href="{{ route('savings.transfer.create', ['date' => $defaultTransferDate, 'type' => 'savings_to_savings']) }}"
     class="sprout-savings__fab"
-    aria-label="Transfer savings to income"
+    aria-label="Transfer savings"
     @if($categories->isEmpty()) aria-disabled="true" @endif
 >
     <img src="/projectassets/icons/transfer.svg" alt="" class="sprout-savings__fab-icon">

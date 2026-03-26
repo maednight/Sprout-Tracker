@@ -51,6 +51,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
     Route::put('/settings/name', [SettingsController::class, 'updateName'])->name('settings.name.update');
     Route::post('/settings/photo', [SettingsController::class, 'updatePhoto'])->name('settings.photo.update');
+    Route::delete('/settings/photo', [SettingsController::class, 'destroyPhoto'])->name('settings.photo.destroy');
     Route::put('/settings/email', [SettingsController::class, 'updateEmail'])->name('settings.email.update');
     Route::put('/settings/password', [SettingsController::class, 'updatePassword'])->name('settings.password.update');
     Route::post('/logout', [SproutAuthController::class, 'logout'])->name('logout');

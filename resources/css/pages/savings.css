@@ -16,7 +16,7 @@
 
 .sprout-savings-mobile {
   min-height: calc(100vh - 72px);
-  padding: 18px 10px 96px;
+  padding: 18px 16px 108px;
   box-sizing: border-box;
   background:
     radial-gradient(circle at top center, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.78) 22%, rgba(244, 251, 246, 0.94) 58%, rgba(188, 249, 196, 0.95) 100%),
@@ -41,7 +41,7 @@
 
 .sprout-savings__panel {
   width: 100%;
-  max-width: 372px;
+  max-width: 352px;
   margin: 0 auto;
 }
 
@@ -441,6 +441,7 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
+  padding-bottom: calc(8px + env(safe-area-inset-bottom));
 }
 
 .sprout-savings__fab {
