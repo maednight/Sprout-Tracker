@@ -16,9 +16,9 @@ use Illuminate\View\View;
 
 class SproutAuthController extends Controller
 {
-    public function home(): View
+    public function home(): RedirectResponse
     {
-        return view('public.auth.home');
+        return redirect()->route('dashboard');
     }
 
     public function login(Request $request): RedirectResponse

@@ -34,7 +34,7 @@ class SettingsController extends Controller
             'transactions' => $transactions->count(),
         ];
 
-        return view('settings', [
+        return view('public.settings.settings', [
             'user' => $user,
             'stats' => $stats,
         ]);

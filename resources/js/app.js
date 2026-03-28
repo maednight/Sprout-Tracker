@@ -1,4 +1,3 @@
-/* App Entry */
 import './bootstrap'
 import './transactions/transaction-create'
 import './savings/savings-transfer-create'
@@ -6,7 +5,6 @@ import './savings/savings-transfer-create'
 import { createApp } from 'vue'
 import DashboardHome from './home/DashboardHome.vue'
 
-/* Dashboard Mount */
 const dashboardElements = document.querySelectorAll('[data-dashboard-app]')
 
 dashboardElements.forEach((dashboardElement) => {
@@ -44,7 +42,6 @@ dashboardElements.forEach((dashboardElement) => {
     }).mount(dashboardElement)
 })
 
-/* Settings Page */
 document.addEventListener('DOMContentLoaded', () => {
     const passwordToggleButtons = document.querySelectorAll('[data-password-toggle]')
 

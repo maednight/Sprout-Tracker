@@ -1,5 +1,4 @@
-(() => {
-  const sanitizeFileNamePart = (value) => {
+const sanitizeFileNamePart = (value) => {
     return String(value || '')
       .trim()
       .toLowerCase()
@@ -7,7 +6,7 @@
       .replace(/^-+|-+$/g, '')
   }
 
-  const escapeHtml = (value) => {
+const escapeHtml = (value) => {
     return String(value ?? '')
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
@@ -16,7 +15,7 @@
       .replace(/'/g, '&#39;')
   }
 
-  const escapeCsvValue = (value) => {
+const escapeCsvValue = (value) => {
     const stringValue = String(value ?? '')
 
     if (/[",\n]/.test(stringValue)) {
@@ -26,25 +25,25 @@
     return stringValue
   }
 
-  const resolveLogoUrl = () => {
+const resolveLogoUrl = () => {
     return `${window.location.origin}/projectassets/images/logo/sprout-logo.svg`
   }
 
-  const buildMetaItems = (subtitle) => {
+const buildMetaItems = (subtitle) => {
     return String(subtitle || '')
       .split('|')
       .map((part) => part.trim())
       .filter(Boolean)
   }
 
-  const formatAmount = (value) => {
+const formatAmount = (value) => {
     return Number(value || 0).toLocaleString('en-PH', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     })
   }
 
-  const buildSummaryItemsHtml = (summaryItems = []) => {
+const buildSummaryItemsHtml = (summaryItems = []) => {
     return summaryItems
       .map((item) => {
         const tone = String(item.tone || '').trim().toLowerCase()
@@ -64,7 +63,7 @@
       .join('')
   }
 
-  const resolveTypeClass = (value) => {
+const resolveTypeClass = (value) => {
     const normalizedValue = String(value || '').trim().toLowerCase()
 
     if (normalizedValue === 'income') {
@@ -82,7 +81,7 @@
     return ''
   }
 
-  const resolveTypeColor = (value) => {
+const resolveTypeColor = (value) => {
     const normalizedValue = String(value || '').trim().toLowerCase()
 
     if (normalizedValue === 'income') {
@@ -100,7 +99,7 @@
     return '#111111'
   }
 
-  const buildHeaderCellStyle = () => {
+const buildHeaderCellStyle = () => {
     return [
       'background:#00c957',
       'color:#ffffff',
@@ -114,7 +113,7 @@
     ].join(';')
   }
 
-  const buildBodyCellStyle = (index, value, rowIndex, alignments = []) => {
+const buildBodyCellStyle = (index, value, rowIndex, alignments = []) => {
     const styles = [
       'background:#ffffff',
       'color:#111111',
@@ -139,7 +138,7 @@
     return styles.join(';')
   }
 
-  const downloadBlob = (blob, fileName) => {
+const downloadBlob = (blob, fileName) => {
     const objectUrl = window.URL.createObjectURL(blob)
     const anchor = document.createElement('a')
 
@@ -154,7 +153,7 @@
     }, 1000)
   }
 
-  const buildFileBaseName = (parts) => {
+const buildFileBaseName = (parts) => {
     const sanitizedParts = parts
       .map((part) => sanitizeFileNamePart(part))
       .filter(Boolean)
@@ -162,7 +161,7 @@
     return sanitizedParts.length > 0 ? sanitizedParts.join('-') : 'export'
   }
 
-  const downloadCsv = ({ fileName, headers, rows }) => {
+const downloadCsv = ({ fileName, headers, rows }) => {
     const csvLines = [
       headers.map(escapeCsvValue).join(','),
       ...rows.map((row) => row.map(escapeCsvValue).join(','))
@@ -174,7 +173,7 @@
     )
   }
 
-  const downloadExcel = ({ fileName, title, subtitle, summaryItems = [], headers, rows, alignments = [] }) => {
+const downloadExcel = ({ fileName, title, subtitle, summaryItems = [], headers, rows, alignments = [] }) => {
     const metaItems = buildMetaItems(subtitle)
     const summaryHtml = buildSummaryItemsHtml(summaryItems)
     const tableHeaders = headers
@@ -237,7 +236,7 @@
     )
   }
 
-  const printPdf = ({ title, subtitle, summaryItems = [], headers, rows, alignments = [] }) => {
+const printPdf = ({ title, subtitle, summaryItems = [], headers, rows, alignments = [] }) => {
     const metaItems = buildMetaItems(subtitle)
     const summaryHtml = buildSummaryItemsHtml(summaryItems)
     const tableHeaders = headers
@@ -343,10 +342,9 @@
     printFrame.onload = triggerPrint
   }
 
-  window.SproutExportUtils = {
-    buildFileBaseName,
-    downloadCsv,
-    downloadExcel,
-    printPdf
-  }
-})()
+export {
+  buildFileBaseName,
+  downloadCsv,
+  downloadExcel,
+  printPdf
+}

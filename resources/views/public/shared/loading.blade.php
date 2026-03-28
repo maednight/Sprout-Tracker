@@ -61,7 +61,7 @@
     </div>
 
       <script>
-          setTimeout(() => window.location.href = "{{ route('home') }}", 1000)
+          setTimeout(() => window.location.href = "{{ route('dashboard') }}", 1000)
       </script>
 </body>
 

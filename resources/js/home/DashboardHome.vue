@@ -889,6 +889,13 @@
 </template>
 
 <script setup>
+import {
+  buildFileBaseName,
+  downloadCsv,
+  downloadExcel,
+  printPdf
+} from '../shared/export-utils'
+
 /* Vue Imports */
 import { computed, nextTick, ref } from 'vue'
 
@@ -1429,9 +1436,7 @@ const resolveExportPeriodLabel = () => {
 }
 
 const handleExport = (format) => {
-  const exportUtils = window.SproutExportUtils
-
-  if (!exportUtils || exportRows.value.length === 0) {
+  if (exportRows.value.length === 0) {
     isExportMenuVisible.value = false
     return
   }
@@ -1441,7 +1446,7 @@ const handleExport = (format) => {
   const filterLabel = selectedFilter.value
   const title = 'Financial Report'
   const subtitle = `Period: ${periodLabel} | Filter: ${filterLabel}`
-  const baseName = exportUtils.buildFileBaseName(['sprout-income-expense-tracker', periodLabel, filterLabel])
+  const baseName = buildFileBaseName(['sprout-income-expense-tracker', periodLabel, filterLabel])
   const alignments = ['left', 'left', 'left', 'left', 'left', 'right', 'left', 'left']
   const summaryItems = [
     { label: 'Income', value: exportSummary.value.income, tone: 'income' },
@@ -1450,7 +1455,7 @@ const handleExport = (format) => {
   ]
 
   if (format === 'excel') {
-    exportUtils.downloadExcel({
+    downloadExcel({
       fileName: `${baseName}.xls`,
       title,
       subtitle,
@@ -1460,7 +1465,7 @@ const handleExport = (format) => {
       alignments
     })
   } else if (format === 'pdf') {
-    exportUtils.printPdf({
+    printPdf({
       title,
       subtitle,
       summaryItems,
@@ -1469,7 +1474,7 @@ const handleExport = (format) => {
       alignments
     })
   } else {
-    exportUtils.downloadCsv({
+    downloadCsv({
       fileName: `${baseName}.csv`,
       headers,
       rows: exportRows.value
