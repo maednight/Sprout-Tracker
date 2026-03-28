@@ -299,14 +299,6 @@
                             </div>
                         </div>
 
-                        @if ($isOverrideBudget || $budget->is_reused || !$budget->is_reused)
-                            <div class="sprout-budget-card__status-center">
-                                <span class="sprout-budget-card__state-badge sprout-budget-card__state-badge--neutral">
-                                    {{ $isOverrideBudget ? 'Override budget' : ($budget->is_reused ? 'Reused budget' : 'One-time budget') }}
-                                </span>
-                            </div>
-                        @endif
-
                         <div class="sprout-budget-card__summary">
                             <div class="sprout-budget-card__chart-wrap">
                                 <div
@@ -341,6 +333,14 @@
                                 <p class="sprout-budget-card__per-day">
                                     ~&#8369;{{ number_format($plannedPerDay, 2) }} per day
                                 </p>
+
+                                @if ($isOverrideBudget || $budget->is_reused || !$budget->is_reused)
+                                    <div class="sprout-budget-card__status-center">
+                                        <span class="sprout-budget-card__state-badge sprout-budget-card__state-badge--neutral">
+                                            {{ $isOverrideBudget ? 'Override budget' : ($budget->is_reused ? 'Reused budget' : 'One-time budget') }}
+                                        </span>
+                                    </div>
+                                @endif
                             </div>
                         </div>
 
@@ -1315,3 +1315,114 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 @endif
 
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const hasBudgetViewPanels = document.querySelectorAll('[data-budget-view-panel]').length > 0
+
+    if (hasBudgetViewPanels) {
+        return
+    }
+
+    const pickerTrigger = document.querySelector('[data-budget-picker-trigger]')
+    const pickerPanel = document.querySelector('[data-budget-picker]')
+    const pickerOverlay = document.querySelector('[data-budget-picker-overlay]')
+    const pickerYearLabel = document.querySelector('[data-budget-picker-year-label]')
+    const pickerYearButtons = document.querySelectorAll('[data-budget-picker-year-shift]')
+    const pickerMonthLinks = document.querySelectorAll('[data-budget-picker-month]')
+    const monthNavigationLinks = document.querySelectorAll('[data-budget-month-link]')
+    const selectedYear = {{ $pickerYear }}
+    const selectedMonth = {{ $pickerMonth }}
+    let pickerOpen = false
+
+    const formatMonthValue = (year, month) => `${year}-${String(month).padStart(2, '0')}`
+
+    const syncMonthNavigationLinks = () => {
+        monthNavigationLinks.forEach((link) => {
+            const url = new URL(link.href, window.location.origin)
+
+            link.href = url.toString()
+        })
+    }
+
+    const syncPickerMonthLinks = () => {
+        if (!pickerPanel || !pickerYearLabel) {
+            return
+        }
+
+        const activeYear = Number(pickerPanel.getAttribute('data-year') || selectedYear)
+
+        pickerYearLabel.textContent = String(activeYear)
+
+        pickerMonthLinks.forEach((link) => {
+            const month = Number(link.getAttribute('data-month') || 1)
+            const monthValue = formatMonthValue(activeYear, month)
+            const url = new URL(link.href, window.location.origin)
+
+            url.searchParams.set('month', monthValue)
+            link.href = url.toString()
+            link.classList.toggle(
+                'sprout-budget__picker-month--active',
+                activeYear === selectedYear && month === selectedMonth
+            )
+        })
+    }
+
+    const closePicker = () => {
+        if (!pickerPanel || !pickerOverlay || !pickerTrigger) {
+            return
+        }
+
+        pickerOpen = false
+        pickerPanel.classList.add('sprout-budget__picker--hidden')
+        pickerOverlay.classList.add('sprout-budget__picker-overlay--hidden')
+        pickerTrigger.setAttribute('aria-expanded', 'false')
+    }
+
+    const openPicker = () => {
+        if (!pickerPanel || !pickerOverlay || !pickerTrigger) {
+            return
+        }
+
+        pickerOpen = true
+        pickerPanel.classList.remove('sprout-budget__picker--hidden')
+        pickerOverlay.classList.remove('sprout-budget__picker-overlay--hidden')
+        pickerTrigger.setAttribute('aria-expanded', 'true')
+    }
+
+    syncMonthNavigationLinks()
+    syncPickerMonthLinks()
+
+    if (pickerTrigger && pickerPanel && pickerOverlay) {
+        pickerTrigger.addEventListener('click', function () {
+            if (pickerOpen) {
+                closePicker()
+                return
+            }
+
+            openPicker()
+        })
+
+        pickerOverlay.addEventListener('click', closePicker)
+
+        pickerYearButtons.forEach((button) => {
+            button.addEventListener('click', function () {
+                const shift = Number(button.getAttribute('data-budget-picker-year-shift') || 0)
+                const currentYear = Number(pickerPanel.getAttribute('data-year') || selectedYear)
+
+                pickerPanel.setAttribute('data-year', String(currentYear + shift))
+                syncPickerMonthLinks()
+            })
+        })
+
+        pickerMonthLinks.forEach((link) => {
+            link.addEventListener('click', closePicker)
+        })
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') {
+                closePicker()
+            }
+        })
+    }
+})
+</script>

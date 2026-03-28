@@ -11,6 +11,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -209,7 +210,8 @@ class SavingsService
                 $sourceCategory,
                 $transferAmount,
                 $transferredAt,
-                $validated
+                $validated,
+                $request
             );
 
             return;
@@ -308,7 +310,8 @@ class SavingsService
                 $sourceCategory,
                 $transferAmount,
                 $transferredAt,
-                $validated
+                $validated,
+                $request
             );
 
             return;
@@ -344,6 +347,7 @@ class SavingsService
         DB::transaction(function () use ($savingsTransfer) {
             $this->deleteLinkedTransferTransaction($savingsTransfer->incomeTransaction);
             $this->deleteLinkedTransferTransaction($savingsTransfer->savingsTransaction);
+            $this->deleteSavingsTransferPhotos($savingsTransfer);
             $savingsTransfer->delete();
         });
     }
@@ -460,14 +464,14 @@ class SavingsService
         Category $sourceCategory,
         float $transferAmount,
         Carbon $transferredAt,
-        array $validated
+        array $validated,
+        Request $request
     ): void {
         $description = trim((string) ($validated['description'] ?? ''));
         $transferDescription = $description !== ''
             ? $description
             : 'Withdrew from savings: '.$sourceCategory->name;
-
-        SavingsTransfer::create([
+        $savingsTransferData = [
             'user_id' => $userId,
             'source_category_id' => $sourceCategory->id,
             'destination_category_id' => null,
@@ -477,7 +481,15 @@ class SavingsService
             'amount' => $transferAmount,
             'transferred_at' => $transferredAt,
             'description' => $transferDescription,
-        ]);
+        ];
+
+        if ($this->savingsTransferSupportsPhotos()) {
+            $receiptPhotoPaths = $this->receiptPhotoService->storeReceiptPhotos($request);
+            $savingsTransferData['receipt_photo_path'] = $receiptPhotoPaths[0] ?? null;
+            $savingsTransferData['receipt_photo_paths'] = $receiptPhotoPaths;
+        }
+
+        SavingsTransfer::create($savingsTransferData);
     }
 
     private function updateSavingsToSavingsTransfer(
@@ -618,14 +630,16 @@ class SavingsService
         Category $sourceCategory,
         float $transferAmount,
         Carbon $transferredAt,
-        array $validated
+        array $validated,
+        Request $request
     ): void {
         DB::transaction(function () use (
             $savingsTransfer,
             $sourceCategory,
             $transferAmount,
             $transferredAt,
-            $validated
+            $validated,
+            $request
         ) {
             $description = trim((string) ($validated['description'] ?? ''));
             $transferDescription = $description !== ''
@@ -635,7 +649,7 @@ class SavingsService
             $this->deleteLinkedTransferTransaction($savingsTransfer->incomeTransaction);
             $this->deleteLinkedTransferTransaction($savingsTransfer->savingsTransaction);
 
-            $savingsTransfer->update([
+            $transferUpdateData = [
                 'source_category_id' => $sourceCategory->id,
                 'destination_category_id' => null,
                 'account_id' => null,
@@ -644,7 +658,15 @@ class SavingsService
                 'amount' => $transferAmount,
                 'transferred_at' => $transferredAt,
                 'description' => $transferDescription,
-            ]);
+            ];
+
+            if ($this->savingsTransferSupportsPhotos()) {
+                $receiptPhotoPaths = $this->resolveUpdatedSavingsTransferPhotoPaths($request, $savingsTransfer);
+                $transferUpdateData['receipt_photo_path'] = $receiptPhotoPaths[0] ?? null;
+                $transferUpdateData['receipt_photo_paths'] = $receiptPhotoPaths;
+            }
+
+            $savingsTransfer->update($transferUpdateData);
         });
     }
 
@@ -842,7 +864,10 @@ class SavingsService
                         ->map(fn (string $photoPath) => Storage::url($photoPath))
                         ->values()
                         ->all()
-                    : [],
+                    : collect($this->getSavingsTransferPhotoPaths($transfer))
+                        ->map(fn (string $photoPath) => Storage::url($photoPath))
+                        ->values()
+                        ->all(),
                 'editUrl' => route('savings_transfer_edit', $transfer),
                 'deleteUrl' => route('savings_transfer_destroy', $transfer),
                 'editLabel' => $isSavingsWithdraw ? 'Edit Withdraw' : 'Edit Transfer',
@@ -928,6 +953,14 @@ class SavingsService
 
     private function resolveTransferExistingPhotoPaths(?SavingsTransfer $editingTransfer, mixed $oldExistingPhotoPaths = null): array
     {
+        if (! $this->savingsTransferSupportsPhotos()) {
+            $linkedTransaction = $editingTransfer?->incomeTransaction ?? $editingTransfer?->savingsTransaction;
+
+            return $linkedTransaction
+                ? $this->receiptPhotoService->getTransactionPhotoPaths($linkedTransaction)
+                : [];
+        }
+
         if (is_string($oldExistingPhotoPaths) && $oldExistingPhotoPaths !== '') {
             $decodedOldPhotoPaths = json_decode($oldExistingPhotoPaths, true);
 
@@ -939,10 +972,80 @@ class SavingsService
         $linkedTransaction = $editingTransfer?->incomeTransaction ?? $editingTransfer?->savingsTransaction;
 
         if (! $linkedTransaction) {
-            return [];
+            return $editingTransfer
+                ? $this->getSavingsTransferPhotoPaths($editingTransfer)
+                : [];
         }
 
         return $this->receiptPhotoService->getTransactionPhotoPaths($linkedTransaction);
+    }
+
+    private function getSavingsTransferPhotoPaths(SavingsTransfer $savingsTransfer): array
+    {
+        if (! $this->savingsTransferSupportsPhotos()) {
+            return [];
+        }
+
+        $photoPaths = is_array($savingsTransfer->receipt_photo_paths)
+            ? $savingsTransfer->receipt_photo_paths
+            : [];
+
+        if (empty($photoPaths) && $savingsTransfer->receipt_photo_path) {
+            $photoPaths = [$savingsTransfer->receipt_photo_path];
+        }
+
+        return array_values(array_filter($photoPaths));
+    }
+
+    private function resolveUpdatedSavingsTransferPhotoPaths(Request $request, SavingsTransfer $savingsTransfer): array
+    {
+        if (! $this->savingsTransferSupportsPhotos()) {
+            return [];
+        }
+
+        $currentPhotoPaths = $this->getSavingsTransferPhotoPaths($savingsTransfer);
+        $keptExistingPhotoPaths = $this->receiptPhotoService->decodeExistingPhotoPaths(
+            $request->input('existing_receipt_photo_paths')
+        );
+        $removedPhotoPaths = array_diff($currentPhotoPaths, $keptExistingPhotoPaths);
+
+        foreach ($removedPhotoPaths as $removedPhotoPath) {
+            Storage::disk('public')->delete($removedPhotoPath);
+        }
+
+        $newPhotoPaths = $this->receiptPhotoService->storeReceiptPhotos($request);
+
+        return array_values(array_filter([
+            ...$keptExistingPhotoPaths,
+            ...$newPhotoPaths,
+        ]));
+    }
+
+    private function deleteSavingsTransferPhotos(SavingsTransfer $savingsTransfer): void
+    {
+        if (! $this->savingsTransferSupportsPhotos()) {
+            return;
+        }
+
+        foreach ($this->getSavingsTransferPhotoPaths($savingsTransfer) as $photoPath) {
+            Storage::disk('public')->delete($photoPath);
+        }
+    }
+
+    private function savingsTransferSupportsPhotos(): bool
+    {
+        static $supportsPhotos;
+
+        if ($supportsPhotos !== null) {
+            return $supportsPhotos;
+        }
+
+        $supportsPhotos = Schema::hasColumns('savings_transfers', [
+            'receipt_photo_path',
+            'receipt_photo_paths',
+        ]);
+
+        return $supportsPhotos;
     }
 
     private function resolveTransferType(SavingsTransfer $savingsTransfer): string

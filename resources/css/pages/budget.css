@@ -419,12 +419,9 @@
 }
 
 .sprout-budget-card__status-center {
-  position: absolute;
-  left: 158px;
-  top: 156px;
   display: flex;
   justify-content: flex-start;
-  margin: 0;
+  margin: 4px 0 0;
   pointer-events: none;
   z-index: 1;
 }
@@ -564,7 +561,7 @@
 
 /* Budget Summary Per Day */
 .sprout-budget-card__per-day {
-  margin: 1px 0 0;
+  margin: 3px 0 0;
   color: #9f9f9f;
   font-family: 'Inter', sans-serif;
   font-size: 13px;

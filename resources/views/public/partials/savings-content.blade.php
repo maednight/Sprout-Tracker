@@ -14,6 +14,7 @@
 @endphp
 
 <div class="sprout-savings__panel-shell" data-savings-panel data-savings-index-url="{{ route('savings_index') }}" data-savings-scope="{{ $scope }}" data-savings-anchor="{{ $anchorDate }}">
+<script type="application/json" data-savings-history-json>@json($historyItems->values())</script>
 <input type="hidden" value="{{ csrf_token() }}" data-savings-csrf-token>
 <button type="button" class="sprout-savings__backdrop sprout-savings__backdrop--hidden" data-savings-backdrop aria-label="Close savings period picker"></button>
 <section class="sprout-savings__panel">
@@ -136,50 +137,95 @@
 
     </div>
 
-    <section class="sprout-savings__history">
-        <div class="sprout-savings__section-title">Savings Activity</div>
+    <section class="sprout-savings__categories">
+        <div class="sprout-savings__section-title">Savings Categories</div>
 
-        @forelse ($historyItems as $item)
+        @forelse ($categories as $category)
             <button
                 type="button"
-                class="sprout-savings__history-card sprout-savings__history-card--button"
+                class="sprout-savings__category-card sprout-savings__category-card--button"
+                data-savings-category-name="{{ $category['name'] }}"
+            >
+                <span class="sprout-savings__category-left">
+                    <span class="sprout-savings__category-icon">
+                        <img
+                            src="{{ $category['iconPath'] }}"
+                            alt="{{ $category['name'] }}"
+                            class="sprout-savings__category-icon-image"
+                        >
+                    </span>
+
+                    <span class="sprout-savings__category-copy">
+                        <span class="sprout-savings__category-name">{{ $category['name'] }}</span>
+                        <span class="sprout-savings__category-meta">
+                            {{ $category['txCount'] ?? 0 }} tx
+                        </span>
+                    </span>
+                </span>
+
+                <span class="sprout-savings__category-amount">
+                    &#8369;{{ number_format((float) ($category['amount'] ?? 0), 0) }}
+                </span>
+                <span class="sprout-savings__category-chevron">&rsaquo;</span>
+            </button>
+        @empty
+            <div class="sprout-savings__history-empty">
+                No savings categories yet.
+            </div>
+        @endforelse
+    </section>
+
+    <section class="sprout-savings__history">
+        <div class="sprout-savings__section-title">Savings Activity</div>
+        <button type="button" class="sprout-savings__show-toggle" data-savings-show-toggle aria-expanded="true">
+            <span class="sprout-savings__show-toggle-line"></span>
+            <span class="sprout-savings__show-toggle-text" data-savings-show-toggle-text>show less</span>
+            <span class="sprout-savings__show-toggle-line"></span>
+        </button>
+
+        <div class="sprout-savings__history-list" data-savings-history-list>
+            @forelse ($historyItems as $item)
+                <button
+                    type="button"
+                    class="sprout-savings__history-card sprout-savings__history-card--button"
                 data-savings-history-item='@json($item)'
             >
                 <div class="sprout-savings__history-head">
                     <div class="sprout-savings__history-date">{{ $item['dateLabel'] }}</div>
-                    <div class="sprout-savings__history-state sprout-savings__history-state--{{ $item['direction'] }}">
-                        {{ $item['direction'] === 'out' ? 'OUT' : 'IN' }} &#8369;{{ number_format($item['amount'], 0) }}
+                    <div class="sprout-savings__history-state sprout-savings__history-state--{{ $item['kind'] === 'transfer' ? 'transfer' : $item['direction'] }}">
+                        {{ $item['kind'] === 'transfer' ? 'TRANSFER' : ($item['direction'] === 'out' ? 'OUT' : 'IN') }} &#8369;{{ number_format($item['amount'], 0) }}
                     </div>
                 </div>
 
-                <div class="sprout-savings__history-row">
-                    <div class="sprout-savings__history-left">
-                        <div class="sprout-savings__history-icon" style="background: {{ $item['categoryColor'] ?? '#2d9af0' }};">
-                            <img src="{{ $item['iconPath'] }}" alt="{{ $item['category'] }}" class="sprout-savings__history-icon-image">
+                    <div class="sprout-savings__history-row">
+                        <div class="sprout-savings__history-left">
+                            <div class="sprout-savings__history-icon">
+                                <img src="{{ $item['iconPath'] }}" alt="{{ $item['category'] }}" class="sprout-savings__history-icon-image">
+                            </div>
+
+                            <div class="sprout-savings__history-copy">
+                                <div class="sprout-savings__history-category">{{ $item['category'] }}</div>
+
+                                @if (!empty($item['description']))
+                                    <div class="sprout-savings__history-description">Desc: {{ $item['description'] }}</div>
+                                @endif
+                            </div>
                         </div>
 
-                        <div class="sprout-savings__history-copy">
-                            <div class="sprout-savings__history-category">{{ $item['category'] }}</div>
-
-                            @if (!empty($item['description']))
-                                <div class="sprout-savings__history-description">Desc: {{ $item['description'] }}</div>
-                            @endif
+                        <div class="sprout-savings__history-right">
+                            <div class="sprout-savings__history-amount sprout-savings__history-amount--{{ $item['direction'] }}">
+                                {{ $item['direction'] === 'out' ? '-' : '+' }}&#8369;{{ number_format($item['amount'], 0) }}
+                            </div>
+                            <div class="sprout-savings__history-time">{{ $item['time'] }}</div>
                         </div>
                     </div>
-
-                    <div class="sprout-savings__history-right">
-                        <div class="sprout-savings__history-amount sprout-savings__history-amount--{{ $item['direction'] }}">
-                            {{ $item['direction'] === 'out' ? '-' : '+' }}&#8369;{{ number_format($item['amount'], 0) }}
-                        </div>
-                        <div class="sprout-savings__history-time">{{ $item['time'] }}</div>
-                    </div>
+                </button>
+            @empty
+                <div class="sprout-savings__history-empty">
+                    No savings activity yet.
                 </div>
-            </button>
-        @empty
-            <div class="sprout-savings__history-empty">
-                No savings activity yet.
-            </div>
-        @endforelse
+            @endforelse
+        </div>
     </section>
 </section>
 
@@ -286,6 +332,41 @@
                 <div class="sprout-savings__detail-photos-grid" data-savings-detail-photos></div>
             </div>
         </div>
+    </div>
+</div>
+
+<div class="sprout-savings__category-modal sprout-savings__category-modal--hidden" data-savings-category-modal>
+    <div class="sprout-savings__category-screen">
+        <div class="sprout-savings__category-head">
+            <button type="button" class="sprout-savings__category-head-button" data-savings-category-close aria-label="Close category history">
+                &#215;
+            </button>
+
+            <h2 class="sprout-savings__category-title" data-savings-category-title>Category</h2>
+
+            <div class="sprout-savings__category-filter-wrap">
+                <button type="button" class="sprout-savings__category-head-button" data-savings-category-sort-trigger aria-label="Sort category history">
+                    <img src="/projectassets/icons/filtericon.svg" alt="">
+                </button>
+
+                <div class="sprout-savings__category-filter-menu sprout-savings__category-filter-menu--hidden" data-savings-category-sort-menu>
+                    <button type="button" class="sprout-savings__category-filter-option sprout-savings__category-filter-option--active" data-savings-category-sort="newest">
+                        Newest to oldest
+                    </button>
+                    <button type="button" class="sprout-savings__category-filter-option" data-savings-category-sort="oldest">
+                        Oldest to newest
+                    </button>
+                    <button type="button" class="sprout-savings__category-filter-option" data-savings-category-sort="highest">
+                        Price: highest to lowest
+                    </button>
+                    <button type="button" class="sprout-savings__category-filter-option" data-savings-category-sort="lowest">
+                        Price: lowest to highest
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <section class="sprout-savings__category-history" data-savings-category-history></section>
     </div>
 </div>
 </div>

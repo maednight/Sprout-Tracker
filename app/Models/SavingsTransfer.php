@@ -17,11 +17,14 @@ class SavingsTransfer extends Model
         'amount',
         'transferred_at',
         'description',
+        'receipt_photo_path',
+        'receipt_photo_paths',
     ];
 
     protected $casts = [
         'amount' => 'decimal:2',
         'transferred_at' => 'datetime',
+        'receipt_photo_paths' => 'array',
     ];
 
     public function user(): BelongsTo

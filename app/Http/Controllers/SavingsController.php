@@ -70,7 +70,9 @@ class SavingsController extends Controller
             [
                 'transferTypeValue' => old(
                     'transfer_type',
-                    $savingsTransfer->destination_category_id ? 'savings_to_savings' : 'savings_to_income'
+                    $savingsTransfer->destination_category_id
+                        ? 'savings_to_savings'
+                        : ($savingsTransfer->account_id ? 'savings_to_income' : 'savings_withdraw')
                 ),
                 'transferDateValue' => old('transfer_date'),
                 'transferAmountValue' => old('amount'),

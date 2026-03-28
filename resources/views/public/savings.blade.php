@@ -57,6 +57,14 @@
                 const indexUrl = panel.getAttribute('data-savings-index-url') || '/savings'
                 const initialScope = panel.getAttribute('data-savings-scope') || 'month'
                 const initialAnchor = panel.getAttribute('data-savings-anchor') || new Date().toISOString().slice(0, 10)
+                const historyJson = panel.querySelector('[data-savings-history-json]')
+                let allHistoryItems = []
+
+                try {
+                    allHistoryItems = JSON.parse(historyJson?.textContent || '[]')
+                } catch (error) {
+                    allHistoryItems = []
+                }
                 const backdrop = panel.querySelector('[data-savings-backdrop]')
                 const periodTrigger = panel.querySelector('[data-savings-period-trigger]')
                 const periodPanel = panel.querySelector('[data-savings-period-panel]')
@@ -73,6 +81,9 @@
                 const worthIcon = panel.querySelector('[data-savings-worth-icon]')
                 const sortTrigger = panel.querySelector('[data-savings-sort-trigger]')
                 const sortMenu = panel.querySelector('[data-savings-sort-menu]')
+                const showToggle = panel.querySelector('[data-savings-show-toggle]')
+                const showToggleText = panel.querySelector('[data-savings-show-toggle-text]')
+                const historyList = panel.querySelector('[data-savings-history-list]')
                 const csrfToken = panel.querySelector('[data-savings-csrf-token]')?.value || ''
                 const actionModal = panel.querySelector('[data-savings-action-modal]')
                 const actionCloseButtons = panel.querySelectorAll('[data-savings-action-close]')
@@ -103,17 +114,27 @@
                 const detailDescription = panel.querySelector('[data-savings-detail-description]')
                 const detailPhotosRow = panel.querySelector('[data-savings-detail-photos-row]')
                 const detailPhotos = panel.querySelector('[data-savings-detail-photos]')
+                const categoryCards = panel.querySelectorAll('[data-savings-category-name]')
+                const categoryModal = panel.querySelector('[data-savings-category-modal]')
+                const categoryCloseButtons = panel.querySelectorAll('[data-savings-category-close]')
+                const categoryTitle = panel.querySelector('[data-savings-category-title]')
+                const categoryHistory = panel.querySelector('[data-savings-category-history]')
+                const categorySortTrigger = panel.querySelector('[data-savings-category-sort-trigger]')
+                const categorySortMenu = panel.querySelector('[data-savings-category-sort-menu]')
 
                 let selectedPeriodView = initialScope
                 let currentDisplayDate = new Date(`${initialAnchor}T00:00:00`)
                 let selectedDate = new Date(`${initialAnchor}T00:00:00`)
                 let displayYear = currentDisplayDate.getFullYear()
                 let activeHistoryItem = null
+                let activeCategoryHistoryItems = []
+                let showHistory = true
 
                 const periodPanelHiddenClass = 'sprout-savings__period-panel--hidden'
                 const detailHiddenClass = 'sprout-savings__detail-modal--hidden'
                 const actionHiddenClass = 'sprout-savings__action-modal--hidden'
                 const deleteHiddenClass = 'sprout-savings__delete-modal--hidden'
+                const categoryHiddenClass = 'sprout-savings__category-modal--hidden'
 
                 const pad = (value) => String(value).padStart(2, '0')
 
@@ -200,6 +221,100 @@
 
                 const closeDetailModal = () => {
                     detailModal?.classList.add(detailHiddenClass)
+                }
+
+                const sortHistoryItems = (items, sortKey) => {
+                    return [...items].sort((leftItem, rightItem) => {
+                        const leftTimestamp = Number(leftItem.timestamp || 0)
+                        const rightTimestamp = Number(rightItem.timestamp || 0)
+                        const leftAmount = Number(leftItem.amount || 0)
+                        const rightAmount = Number(rightItem.amount || 0)
+
+                        if (sortKey === 'oldest') {
+                            return leftTimestamp - rightTimestamp
+                        }
+
+                        if (sortKey === 'highest') {
+                            return rightAmount - leftAmount || rightTimestamp - leftTimestamp
+                        }
+
+                        if (sortKey === 'lowest') {
+                            return leftAmount - rightAmount || rightTimestamp - leftTimestamp
+                        }
+
+                        return rightTimestamp - leftTimestamp
+                    })
+                }
+
+                const renderCategoryHistory = (items) => {
+                    if (!categoryHistory) {
+                        return
+                    }
+
+                    if (!Array.isArray(items) || items.length === 0) {
+                        categoryHistory.innerHTML = '<div class="sprout-savings__history-empty">No transactions for this category in the selected period.</div>'
+                        return
+                    }
+
+                    categoryHistory.innerHTML = items.map((item) => `
+                        <button
+                            type="button"
+                            class="sprout-savings__history-card sprout-savings__history-card--button"
+                            data-savings-category-history-item="${encodeURIComponent(JSON.stringify(item))}"
+                        >
+                            <div class="sprout-savings__history-head">
+                                <div class="sprout-savings__history-date">${item.dateLabel || ''}</div>
+                                <div class="sprout-savings__history-state sprout-savings__history-state--${item.kind === 'transfer' ? 'transfer' : (item.direction || 'in')}">
+                                    ${item.kind === 'transfer' ? 'TRANSFER' : (item.direction === 'out' ? 'OUT' : 'IN')} ₱${Number(item.amount || 0).toLocaleString('en-PH')}
+                                </div>
+                            </div>
+
+                            <div class="sprout-savings__history-row">
+                                <div class="sprout-savings__history-left">
+                                    <div class="sprout-savings__history-icon">
+                                        <img src="${item.iconPath || '/projectassets/icons/savings.svg'}" alt="${item.category || 'Savings'}" class="sprout-savings__history-icon-image">
+                                    </div>
+
+                                    <div class="sprout-savings__history-copy">
+                                        <div class="sprout-savings__history-category">${item.category || 'Savings'}</div>
+                                        ${item.description ? `<div class="sprout-savings__history-description">Desc: ${item.description}</div>` : ''}
+                                    </div>
+                                </div>
+
+                                <div class="sprout-savings__history-right">
+                                    <div class="sprout-savings__history-amount sprout-savings__history-amount--${item.direction || 'in'}">
+                                        ${item.direction === 'out' ? '-' : '+'}₱${Number(item.amount || 0).toLocaleString('en-PH')}
+                                    </div>
+                                    <div class="sprout-savings__history-time">${item.time || ''}</div>
+                                </div>
+                            </div>
+                        </button>
+                    `).join('')
+
+                    categoryHistory.querySelectorAll('[data-savings-category-history-item]').forEach((button) => {
+                        button.addEventListener('click', () => {
+                            const item = JSON.parse(
+                                decodeURIComponent(button.getAttribute('data-savings-category-history-item') || '%7B%7D')
+                            )
+                            openDetail(item)
+                        })
+                    })
+                }
+
+                const closeCategoryModal = () => {
+                    categoryModal?.classList.add(categoryHiddenClass)
+                    categorySortMenu?.classList.add('sprout-savings__category-filter-menu--hidden')
+                }
+
+                const openCategoryModal = (categoryName, items) => {
+                    if (!categoryModal || !categoryTitle) {
+                        return
+                    }
+
+                    activeCategoryHistoryItems = sortHistoryItems(items, 'newest')
+                    categoryTitle.textContent = categoryName || 'Category'
+                    renderCategoryHistory(activeCategoryHistoryItems)
+                    categoryModal.classList.remove(categoryHiddenClass)
                 }
 
                 const openDetail = (item) => {
@@ -613,9 +728,60 @@
                     })
                 })
 
-                deleteForm?.addEventListener('submit', (event) => {
+                    deleteForm?.addEventListener('submit', (event) => {
                     if (!csrfToken || !activeHistoryItem?.deleteUrl) {
                         event.preventDefault()
+                    }
+                })
+
+                categoryCards.forEach((button) => {
+                    const openCategoryCard = () => {
+                        const categoryName = button.getAttribute('data-savings-category-name') || 'Category'
+                        const items = Array.isArray(allHistoryItems)
+                            ? allHistoryItems.filter((item) => (item.category || '') === categoryName)
+                            : []
+
+                        openCategoryModal(categoryName, items)
+                    }
+
+                    button.addEventListener('click', openCategoryCard)
+                })
+
+                categoryCloseButtons.forEach((button) => {
+                    button.addEventListener('click', () => {
+                        closeCategoryModal()
+                    })
+                })
+
+                categorySortTrigger?.addEventListener('click', (event) => {
+                    event.stopPropagation()
+                    categorySortMenu?.classList.toggle('sprout-savings__category-filter-menu--hidden')
+                })
+
+                categorySortMenu?.querySelectorAll('[data-savings-category-sort]').forEach((button) => {
+                    button.addEventListener('click', () => {
+                        const sortKey = button.getAttribute('data-savings-category-sort') || 'newest'
+                        activeCategoryHistoryItems = sortHistoryItems(activeCategoryHistoryItems, sortKey)
+                        renderCategoryHistory(activeCategoryHistoryItems)
+
+                        categorySortMenu.querySelectorAll('[data-savings-category-sort]').forEach((option) => {
+                            option.classList.toggle(
+                                'sprout-savings__category-filter-option--active',
+                                option === button
+                            )
+                        })
+
+                        categorySortMenu.classList.add('sprout-savings__category-filter-menu--hidden')
+                    })
+                })
+
+                showToggle?.addEventListener('click', () => {
+                    showHistory = !showHistory
+                    historyList?.classList.toggle('sprout-savings__history-list--hidden', !showHistory)
+                    showToggle.setAttribute('aria-expanded', showHistory ? 'true' : 'false')
+
+                    if (showToggleText) {
+                        showToggleText.textContent = showHistory ? 'show less' : 'show more'
                     }
                 })
 
@@ -690,11 +856,21 @@
                             closePeriodPanel()
                         }
 
+                        if (categorySortMenu && categorySortTrigger && !categorySortMenu.contains(event.target) && !categorySortTrigger.contains(event.target)) {
+                            categorySortMenu.classList.add('sprout-savings__category-filter-menu--hidden')
+                        }
+
                     })
                 }
 
                 backdrop?.addEventListener('click', () => {
                     closePeriodPanel()
+                })
+
+                document.addEventListener('click', (event) => {
+                    if (categorySortMenu && categorySortTrigger && !categorySortMenu.contains(event.target) && !categorySortTrigger.contains(event.target)) {
+                        categorySortMenu.classList.add('sprout-savings__category-filter-menu--hidden')
+                    }
                 })
             })
         })()

@@ -52,7 +52,7 @@ class BudgetController extends Controller
         );
 
         $schedulePayload = $budget
-            ? $this->buildSchedulePayload($budget, $categories, $selectedMonthDate)
+            ? $this->buildSchedulePayload($budget, $categories, $selectedMonthDate, $reusableBudget)
             : [
                 'filters' => [],
                 'rows' => [],
@@ -393,8 +393,14 @@ class BudgetController extends Controller
     }
 
     /* Schedule Payload */
-    private function buildSchedulePayload(Budget $budget, array $categories, Carbon $selectedMonthDate): array
-    {
+    private function buildSchedulePayload(
+        Budget $budget,
+        array $categories,
+        Carbon $selectedMonthDate,
+        ?Budget $reusableBudget = null
+    ): array {
+        $timelineBudget = $budget->is_reused ? $budget : ($reusableBudget ?? $budget);
+
         $filters = [
             [
                 'value' => 'all',
@@ -412,6 +418,7 @@ class BudgetController extends Controller
         $rows = [
             'all' => $this->buildScheduleRowsForFilter(
                 $budget,
+                $timelineBudget,
                 $categories,
                 $selectedMonthDate,
                 null
@@ -421,6 +428,7 @@ class BudgetController extends Controller
         foreach ($categories as $category) {
             $rows[$category['key']] = $this->buildScheduleRowsForFilter(
                 $budget,
+                $timelineBudget,
                 $categories,
                 $selectedMonthDate,
                 $category
@@ -484,17 +492,18 @@ class BudgetController extends Controller
     /* Schedule Rows */
     private function buildScheduleRowsForFilter(
         Budget $budget,
+        Budget $timelineBudget,
         array $categories,
         Carbon $selectedMonthDate,
         ?array $selectedCategory
     ): array {
         $periods = $this->generateSchedulePeriods(
-            $budget,
+            $timelineBudget,
             $selectedMonthDate
         );
 
-        return collect($periods)->map(function ($period) use ($budget, $categories, $selectedCategory) {
-            $rowBudget = $budget->is_reused
+        return collect($periods)->map(function ($period) use ($budget, $timelineBudget, $categories, $selectedCategory) {
+            $rowBudget = $timelineBudget->is_reused || $timelineBudget->id !== $budget->id
                 ? $this->resolveBudgetForSelectedMonth($budget->user_id, $period['anchor'])
                 : $budget;
 
@@ -513,7 +522,7 @@ class BudgetController extends Controller
 
             return [
                 'period' => $period['label'],
-                'budget_name' => $rowBudget?->name ?? $budget->name,
+                'budget_name' => $rowBudget?->name ?? $timelineBudget->name,
                 'plan' => round($planAmount, 2),
                 'spent' => round($spentAmount, 2),
                 'remain' => round($planAmount - $spentAmount, 2),
