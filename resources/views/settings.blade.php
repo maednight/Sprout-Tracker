@@ -17,20 +17,20 @@ use Illuminate\Support\Str;
 
 $mobileNavItems = [
     ['label' => 'Home', 'route' => 'dashboard', 'icon' => '/projectassets/icons/home.svg'],
-    ['label' => 'Transaction', 'route' => 'transaction.index', 'icon' => '/projectassets/icons/transactions.svg'],
-    ['label' => 'Budget', 'route' => 'budget.index', 'icon' => '/projectassets/icons/budget.svg'],
-    ['label' => 'Savings', 'route' => 'savings.index', 'icon' => '/projectassets/icons/savings.svg'],
-    ['label' => 'Settings', 'route' => 'settings.index', 'icon' => '/projectassets/icons/settings.svg'],
+    ['label' => 'Transaction', 'route' => 'transaction_index', 'icon' => '/projectassets/icons/transactions.svg'],
+    ['label' => 'Budget', 'route' => 'budget_index', 'icon' => '/projectassets/icons/budget.svg'],
+    ['label' => 'Savings', 'route' => 'savings_index', 'icon' => '/projectassets/icons/savings.svg'],
+    ['label' => 'Settings', 'route' => 'settings_index', 'icon' => '/projectassets/icons/settings.svg'],
 ];
 
 $mobileActive = request()->route()?->getName();
 
 $desktopNavItems = [
     ['label' => 'Home', 'route' => 'dashboard', 'icon' => '/projectassets/icons/home.svg'],
-    ['label' => 'Transaction', 'route' => 'transaction.index', 'icon' => '/projectassets/icons/transactions.svg'],
-    ['label' => 'Budget', 'route' => 'budget.index', 'icon' => '/projectassets/icons/budget.svg'],
-    ['label' => 'Savings', 'route' => 'savings.index', 'icon' => '/projectassets/icons/savings.svg'],
-    ['label' => 'Settings', 'route' => 'settings.index', 'icon' => '/projectassets/icons/settings.svg'],
+    ['label' => 'Transaction', 'route' => 'transaction_index', 'icon' => '/projectassets/icons/transactions.svg'],
+    ['label' => 'Budget', 'route' => 'budget_index', 'icon' => '/projectassets/icons/budget.svg'],
+    ['label' => 'Savings', 'route' => 'savings_index', 'icon' => '/projectassets/icons/savings.svg'],
+    ['label' => 'Settings', 'route' => 'settings_index', 'icon' => '/projectassets/icons/settings.svg'],
 ];
 
 $desktopActive = request()->route()?->getName();
@@ -78,7 +78,7 @@ $passwordSectionHasError = $errors->has('current_password') || $errors->has('new
 
                     <div class="sprout-settings-mobile__photo-actions">
                         <form
-                            action="{{ route('settings.photo.update') }}"
+                            action="{{ route('settings_photo_update') }}"
                             method="POST"
                             enctype="multipart/form-data"
                             class="sprout-settings-mobile__photo-form"
@@ -101,7 +101,7 @@ $passwordSectionHasError = $errors->has('current_password') || $errors->has('new
 
                         @if ($profilePhotoUrl)
                             <form
-                                action="{{ route('settings.photo.destroy') }}"
+                                action="{{ route('settings_photo_destroy') }}"
                                 method="POST"
                                 class="sprout-settings-mobile__photo-delete-form"
                             >
@@ -143,7 +143,7 @@ $passwordSectionHasError = $errors->has('current_password') || $errors->has('new
 
                     <form
                         id="edit-name-form-mobile"
-                        action="{{ route('settings.name.update') }}"
+                        action="{{ route('settings_name_update') }}"
                         method="POST"
                         class="sprout-settings-mobile__edit-form {{ $errors->has('name') ? 'show' : '' }}"
                     >
@@ -205,7 +205,7 @@ $passwordSectionHasError = $errors->has('current_password') || $errors->has('new
                     </summary>
 
                     <form
-                        action="{{ route('settings.email.update') }}"
+                        action="{{ route('settings_email_update') }}"
                         method="POST"
                         class="sprout-settings-mobile__form sprout-settings-mobile__menu-form"
                     >
@@ -278,7 +278,7 @@ $passwordSectionHasError = $errors->has('current_password') || $errors->has('new
                     </summary>
 
                     <form
-                        action="{{ route('settings.password.update') }}"
+                        action="{{ route('settings_password_update') }}"
                         method="POST"
                         class="sprout-settings-mobile__form sprout-settings-mobile__menu-form"
                     >
@@ -485,7 +485,7 @@ $passwordSectionHasError = $errors->has('current_password') || $errors->has('new
 
                         <div class="sprout-settings-mobile__photo-actions">
                             <form
-                                action="{{ route('settings.photo.update') }}"
+                                action="{{ route('settings_photo_update') }}"
                                 method="POST"
                                 enctype="multipart/form-data"
                                 class="sprout-settings-mobile__photo-form"
@@ -508,7 +508,7 @@ $passwordSectionHasError = $errors->has('current_password') || $errors->has('new
 
                             @if ($profilePhotoUrl)
                                 <form
-                                    action="{{ route('settings.photo.destroy') }}"
+                                    action="{{ route('settings_photo_destroy') }}"
                                     method="POST"
                                     class="sprout-settings-mobile__photo-delete-form"
                                 >
@@ -550,7 +550,7 @@ $passwordSectionHasError = $errors->has('current_password') || $errors->has('new
 
                         <form
                             id="edit-name-form-desktop"
-                            action="{{ route('settings.name.update') }}"
+                            action="{{ route('settings_name_update') }}"
                             method="POST"
                             class="sprout-settings-mobile__edit-form sprout-settings-mobile__inline-form--desktop {{ $errors->has('name') ? 'show' : '' }}"
                         >
@@ -611,7 +611,7 @@ $passwordSectionHasError = $errors->has('current_password') || $errors->has('new
                             </summary>
 
                             <form
-                                action="{{ route('settings.email.update') }}"
+                                action="{{ route('settings_email_update') }}"
                                 method="POST"
                                 class="sprout-settings-mobile__form sprout-settings-mobile__menu-form"
                             >
@@ -686,7 +686,7 @@ $passwordSectionHasError = $errors->has('current_password') || $errors->has('new
                             </summary>
 
                             <form
-                                action="{{ route('settings.password.update') }}"
+                                action="{{ route('settings_password_update') }}"
                                 method="POST"
                                 class="sprout-settings-mobile__form sprout-settings-mobile__menu-form"
                             >

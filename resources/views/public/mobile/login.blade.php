@@ -85,13 +85,13 @@
                     <div class="sprout-error">{{ $message }}</div>
                 @enderror
 
-                <a href="{{ route('password.request') }}" class="sprout-forgot-link">Forgot Password?</a>
+                <a href="{{ route('password_request') }}" class="sprout-forgot-link">Forgot Password?</a>
 
                 <button type="submit" class="sprout-btn">Log In</button>
 
                 <p class="sprout-foot">
                     Doesn’t have an account?
-                    <a href="{{ route('signup.view') }}" class="sprout-link">Sign Up</a>
+                    <a href="{{ route('signup_view') }}" class="sprout-link">Sign Up</a>
                 </p>
             </form>
 

@@ -170,7 +170,7 @@ class BudgetController extends Controller
         }
 
         return redirect()
-            ->route('budget.allocate', [
+            ->route('budget_allocate', [
                 'budget' => $budget,
                 'month' => $selectedMonthDate->format('Y-m'),
             ])
@@ -249,7 +249,7 @@ class BudgetController extends Controller
             ->delete();
 
         return redirect()
-            ->route('budget.index', [
+            ->route('budget_index', [
                 'month' => $validatedData['month'] ?? optional($budget->period_date)->format('Y-m'),
             ])
             ->with('success', 'Budget allocation saved successfully.');
@@ -265,7 +265,7 @@ class BudgetController extends Controller
         $budget->delete();
 
         return redirect()
-            ->route('budget.index', [
+            ->route('budget_index', [
                 'month' => $periodMonth,
             ])
             ->with('success', 'Budget was reset successfully.');
@@ -291,7 +291,7 @@ class BudgetController extends Controller
 
         if (! $reusableBudget || $reusableBudget->id === $budget->id) {
             return redirect()
-                ->route('budget.index', [
+                ->route('budget_index', [
                     'month' => $validatedData['month'],
                 ])
                 ->with('success', 'Reusable budget is already active for this month.');
@@ -300,7 +300,7 @@ class BudgetController extends Controller
         $budget->delete();
 
         return redirect()
-            ->route('budget.index', [
+            ->route('budget_index', [
                 'month' => $validatedData['month'],
             ])
             ->with('success', 'Reverted to reusable budget for this month.');

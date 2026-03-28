@@ -56,7 +56,7 @@ class SettingsController extends Controller
         $request->session()->regenerate();
 
         return redirect()
-            ->route('settings.index')
+            ->route('settings_index')
             ->with('settings_success', 'Name updated successfully.');
     }
 
@@ -82,7 +82,7 @@ class SettingsController extends Controller
         $request->session()->regenerate();
 
         return redirect()
-            ->route('settings.index')
+            ->route('settings_index')
             ->with('settings_success', 'Profile photo updated successfully.');
     }
 
@@ -102,7 +102,7 @@ class SettingsController extends Controller
         $request->session()->regenerate();
 
         return redirect()
-            ->route('settings.index')
+            ->route('settings_index')
             ->with('settings_success', 'Profile photo removed successfully.');
     }
 
@@ -119,7 +119,7 @@ class SettingsController extends Controller
 
         if (! Hash::check($validated['current_password_for_email'], $user->password)) {
             return redirect()
-                ->route('settings.index')
+                ->route('settings_index')
                 ->withErrors([
                     'current_password_for_email' => 'Current password is incorrect.',
                 ])
@@ -134,7 +134,7 @@ class SettingsController extends Controller
         $request->session()->regenerate();
 
         return redirect()
-            ->route('settings.index')
+            ->route('settings_index')
             ->with('settings_success', 'Email updated successfully.');
     }
 
@@ -153,7 +153,7 @@ class SettingsController extends Controller
 
         if (! Hash::check($validated['current_password'], $user->password)) {
             return redirect()
-                ->route('settings.index')
+                ->route('settings_index')
                 ->withErrors([
                     'current_password' => 'Current password is incorrect.',
                 ])
@@ -168,7 +168,7 @@ class SettingsController extends Controller
         $request->session()->regenerate();
 
         return redirect()
-            ->route('settings.index')
+            ->route('settings_index')
             ->with('settings_success', 'Password updated successfully.');
     }
 

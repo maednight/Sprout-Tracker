@@ -14,8 +14,7 @@ class DashboardService
     public function __construct(
         private ReceiptPhotoService $receiptPhotoService,
         private TransactionPresentationService $transactionPresentationService
-    ) {
-    }
+    ) {}
 
     public function buildPayload(int $userId): array
     {

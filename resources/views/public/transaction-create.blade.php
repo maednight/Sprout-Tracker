@@ -2,7 +2,7 @@
   $isEditMode = isset($transaction) && $transaction;
 
   $pageTitle = $isEditMode ? 'Edit Transaction - Sprout' : 'Add Transaction - Sprout';
-  $formAction = $isEditMode ? route('transaction.update', $transaction) : route('transaction.store');
+  $formAction = $isEditMode ? route('transaction_update', $transaction) : route('transaction_store');
   $requestedDateValue = request()->query('date');
   $prefilledCreateDateValue = '';
 

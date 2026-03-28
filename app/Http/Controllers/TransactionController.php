@@ -12,8 +12,7 @@ class TransactionController extends Controller
 {
     public function __construct(
         private TransactionService $transactionService
-    ) {
-    }
+    ) {}
 
     public function index(): View
     {
@@ -49,7 +48,7 @@ class TransactionController extends Controller
 
         if (! $user) {
             return redirect()
-                ->route('login.view')
+                ->route('login_view')
                 ->withErrors([
                     'email' => 'Please log in again.',
                 ]);

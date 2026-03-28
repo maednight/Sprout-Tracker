@@ -8,12 +8,12 @@
     $scope = $savingsPayload['scope'] ?? 'month';
     $anchorDate = $savingsPayload['anchorDate'] ?? now()->format('Y-m-d');
     $periodLabel = $savingsPayload['periodLabel'] ?? now()->format('F Y');
-    $previousPeriodUrl = $savingsPayload['previousPeriodUrl'] ?? route('savings.index');
-    $nextPeriodUrl = $savingsPayload['nextPeriodUrl'] ?? route('savings.index');
+    $previousPeriodUrl = $savingsPayload['previousPeriodUrl'] ?? route('savings_index');
+    $nextPeriodUrl = $savingsPayload['nextPeriodUrl'] ?? route('savings_index');
     $scopeUrls = $savingsPayload['scopeUrls'] ?? [];
 @endphp
 
-<div class="sprout-savings__panel-shell" data-savings-panel data-savings-index-url="{{ route('savings.index') }}" data-savings-scope="{{ $scope }}" data-savings-anchor="{{ $anchorDate }}">
+<div class="sprout-savings__panel-shell" data-savings-panel data-savings-index-url="{{ route('savings_index') }}" data-savings-scope="{{ $scope }}" data-savings-anchor="{{ $anchorDate }}">
 <input type="hidden" value="{{ csrf_token() }}" data-savings-csrf-token>
 <button type="button" class="sprout-savings__backdrop sprout-savings__backdrop--hidden" data-savings-backdrop aria-label="Close savings period picker"></button>
 <section class="sprout-savings__panel">
@@ -184,7 +184,7 @@
 </section>
 
 <a
-    href="{{ route('savings.transfer.create', ['date' => $defaultTransferDate, 'type' => 'savings_to_savings']) }}"
+    href="{{ route('savings_transfer_create', ['date' => $defaultTransferDate, 'type' => 'savings_to_savings']) }}"
     class="sprout-savings__fab"
     aria-label="Transfer savings"
     @if($categories->isEmpty()) aria-disabled="true" @endif

@@ -40,7 +40,7 @@
             >
                 <header class="sprout-transaction__header">
                     <div class="sprout-transaction__header-side sprout-transaction__header-side--left">
-                        <a href="{{ $transferCancelUrl ?? route('savings.index') }}" class="sprout-transaction__back">
+                        <a href="{{ $transferCancelUrl ?? route('savings_index') }}" class="sprout-transaction__back">
                             &lsaquo; Savings
                         </a>
                     </div>
@@ -65,7 +65,7 @@
                 <form
                     class="sprout-transaction__form"
                     method="POST"
-                    action="{{ $transferFormAction ?? route('savings.transfer') }}"
+                    action="{{ $transferFormAction ?? route('savings_transfer') }}"
                     data-transfer-form
                     enctype="multipart/form-data"
                     novalidate

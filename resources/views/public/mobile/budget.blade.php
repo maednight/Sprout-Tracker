@@ -38,7 +38,7 @@
                 <!-- Budget Header -->
                 <header class="sprout-budget__header">
                     <a
-                        href="{{ route('budget.index', array_filter(['month' => $previousMonthValue, 'view' => $activeBudgetView !== 'budget' ? $activeBudgetView : null])) }}"
+                        href="{{ route('budget_index', array_filter(['month' => $previousMonthValue, 'view' => $activeBudgetView !== 'budget' ? $activeBudgetView : null])) }}"
                         class="sprout-budget__month-arrow"
                         data-budget-month-link
                         aria-label="Previous month"
@@ -57,7 +57,7 @@
                     </button>
 
                     <a
-                        href="{{ route('budget.index', array_filter(['month' => $nextMonthValue, 'view' => $activeBudgetView !== 'budget' ? $activeBudgetView : null])) }}"
+                        href="{{ route('budget_index', array_filter(['month' => $nextMonthValue, 'view' => $activeBudgetView !== 'budget' ? $activeBudgetView : null])) }}"
                         class="sprout-budget__month-arrow"
                         data-budget-month-link
                         aria-label="Next month"
@@ -197,7 +197,7 @@
                                 $monthValue = sprintf('%04d-%02d', $pickerYear, $monthNumber);
                             @endphp
                             <a
-                                href="{{ route('budget.index', array_filter(['month' => $monthValue, 'view' => $activeBudgetView !== 'budget' ? $activeBudgetView : null])) }}"
+                                href="{{ route('budget_index', array_filter(['month' => $monthValue, 'view' => $activeBudgetView !== 'budget' ? $activeBudgetView : null])) }}"
                                 class="sprout-budget__picker-month {{ $monthNumber === $pickerMonth ? 'sprout-budget__picker-month--active' : '' }}"
                                 data-budget-picker-month
                                 data-month="{{ $monthNumber }}"
@@ -221,7 +221,7 @@
                         </p>
 
                         <a
-                            href="{{ route('budget.create', ['month' => $selectedMonthValue]) }}"
+                            href="{{ route('budget_create', ['month' => $selectedMonthValue]) }}"
                             class="sprout-budget__empty-link"
                         >
                             Set Now
@@ -275,14 +275,14 @@
                             <div class="sprout-budget-card__topline-right">
                                 @if ($isInheritedBudget)
                                     <a
-                                        href="{{ route('budget.create', ['month' => $selectedMonthValue, 'source_budget_id' => $budget->id]) }}"
+                                        href="{{ route('budget_create', ['month' => $selectedMonthValue, 'source_budget_id' => $budget->id]) }}"
                                         class="sprout-budget-card__override-link sprout-budget-card__override-link--danger"
                                     >
                                         Customize this month
                                     </a>
                                 @elseif ($isOverrideBudget)
                                     <form
-                                        action="{{ route('budget.override.revert', $budget) }}"
+                                        action="{{ route('budget_override_revert', $budget) }}"
                                         method="POST"
                                         class="sprout-budget-card__revert-form"
                                     >
@@ -328,7 +328,7 @@
                                     &#8369;{{ number_format($totalAllocated, 0) }}
                                 </p>
                                 <a
-                                    href="{{ route('budget.allocate', ['budget' => $budget, 'month' => $selectedMonthValue]) }}"
+                                    href="{{ route('budget_allocate', ['budget' => $budget, 'month' => $selectedMonthValue]) }}"
                                     class="sprout-budget-card__edit-button sprout-budget-card__edit-button--inline"
                                     aria-label="{{ $isInheritedBudget ? 'Edit reusable budget' : 'Edit budget' }}"
                                 >
@@ -1314,5 +1314,4 @@ document.addEventListener('DOMContentLoaded', function () {
 })
 </script>
 @endif
-
 

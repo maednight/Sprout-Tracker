@@ -27,7 +27,7 @@
                     <h1 class="sprout-title">Create new <span>password</span></h1>
                     <p class="sprout-subtitle">Choose a strong new password for your Sprout account.</p>
 
-                    <form method="POST" action="{{ route('password.update') }}" class="sprout-form" novalidate>
+                    <form method="POST" action="{{ route('password_update') }}" class="sprout-form" novalidate>
                         @csrf
 
                         <input type="hidden" name="token" value="{{ $token }}">
@@ -86,7 +86,7 @@
 
                         <p class="sprout-foot">
                             Back to
-                            <a href="{{ route('login.view') }}" class="sprout-link">Login</a>
+                            <a href="{{ route('login_view') }}" class="sprout-link">Login</a>
                         </p>
                     </form>
                 </div>

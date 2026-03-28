@@ -24,7 +24,7 @@
 
                 <header class="sprout-budget-summary__topbar">
                     <a
-                        href="{{ route('budget.index', ['month' => $selectedMonthValue]) }}"
+                        href="{{ route('budget_index', ['month' => $selectedMonthValue]) }}"
                         class="sprout-budget-summary__back"
                         aria-label="Back to budget page"
                     >
@@ -49,7 +49,7 @@
                 @endif
 
                 <div class="sprout-budget-allocation__card">
-                <form action="{{ route('budget.allocate.update', $budget) }}" method="POST" id="budget-allocation-form">
+                <form action="{{ route('budget_allocate_update', $budget) }}" method="POST" id="budget-allocation-form">
                     @csrf
                     @method('PUT')
                     <input type="hidden" name="month" value="{{ $selectedMonthValue }}">
@@ -154,7 +154,7 @@
                 </form>
 
                 <form
-                    action="{{ route('budget.destroy', $budget) }}"
+                    action="{{ route('budget_destroy', $budget) }}"
                     method="POST"
                     class="sprout-budget-summary__reset-form"
                     onsubmit="return confirm('Reset this budget? This will remove the budget and its allocation.')"
@@ -171,7 +171,7 @@
 
                 @if ($isInheritedView)
                     <a
-                        href="{{ route('budget.create', ['month' => $selectedMonthValue, 'source_budget_id' => $budget->id]) }}"
+                        href="{{ route('budget_create', ['month' => $selectedMonthValue, 'source_budget_id' => $budget->id]) }}"
                         class="sprout-budget-allocation__override-link"
                     >
                         Customize only this month

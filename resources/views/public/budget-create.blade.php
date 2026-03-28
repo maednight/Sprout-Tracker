@@ -22,7 +22,7 @@
 
                 <header class="sprout-budget-form__header">
                     <a
-                        href="{{ route('budget.index', ['month' => $selectedMonthValue]) }}"
+                        href="{{ route('budget_index', ['month' => $selectedMonthValue]) }}"
                         class="sprout-budget-form__close"
                         aria-label="Close set budget"
                     >
@@ -41,7 +41,7 @@
                 @endif
 
                 <form
-                    action="{{ route('budget.store') }}"
+                    action="{{ route('budget_store') }}"
                     method="POST"
                     class="sprout-budget-form__form"
                 >

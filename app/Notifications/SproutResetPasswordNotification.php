@@ -21,7 +21,7 @@ class SproutResetPasswordNotification extends Notification
 
     public function toMail(object $notifiable): MailMessage
     {
-        $resetUrl = route('password.reset', [
+        $resetUrl = route('password_reset', [
             'token' => $this->token,
             'email' => $notifiable->getEmailForPasswordReset(),
         ]);

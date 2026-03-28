@@ -12,8 +12,7 @@ class SavingsController extends Controller
 {
     public function __construct(
         private SavingsService $savingsService
-    ) {
-    }
+    ) {}
 
     public function index(Request $request): View
     {
@@ -53,7 +52,7 @@ class SavingsController extends Controller
         $this->savingsService->createTransfer($user->id, $validated, $request);
 
         return redirect()
-            ->route('savings.index')
+            ->route('savings_index')
             ->with(
                 'savings_success',
                 $validated['transfer_type'] === 'savings_to_savings'
@@ -93,7 +92,7 @@ class SavingsController extends Controller
         $this->savingsService->updateTransfer($savingsTransfer, $user->id, $validated, $request);
 
         return redirect()
-            ->route('savings.index')
+            ->route('savings_index')
             ->with('savings_success', 'Savings transfer updated successfully.');
     }
 
@@ -104,7 +103,7 @@ class SavingsController extends Controller
         $this->savingsService->deleteTransfer($savingsTransfer);
 
         return redirect()
-            ->route('savings.index')
+            ->route('savings_index')
             ->with('savings_success', 'Savings transfer deleted successfully.');
     }
 

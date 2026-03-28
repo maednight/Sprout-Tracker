@@ -21,8 +21,7 @@ class TransactionService
     public function __construct(
         private ReceiptPhotoService $receiptPhotoService,
         private TransactionPresentationService $transactionPresentationService
-    ) {
-    }
+    ) {}
 
     public function buildIndexPayload(int $userId): array
     {

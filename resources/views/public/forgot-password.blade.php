@@ -27,7 +27,7 @@
                     <h1 class="sprout-title">Forgot your <span>password</span>?</h1>
                     <p class="sprout-subtitle">We will send a secure reset link to your email.</p>
 
-                    <form method="POST" action="{{ route('password.email') }}" class="sprout-form" novalidate>
+                    <form method="POST" action="{{ route('password_email') }}" class="sprout-form" novalidate>
                         @csrf
 
                         @if (session('status'))
@@ -58,7 +58,7 @@
 
                         <p class="sprout-foot">
                             Remembered your password?
-                            <a href="{{ route('login.view') }}" class="sprout-link">Back to Login</a>
+                            <a href="{{ route('login_view') }}" class="sprout-link">Back to Login</a>
                         </p>
                     </form>
                 </div>

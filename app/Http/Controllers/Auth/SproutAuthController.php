@@ -110,7 +110,7 @@ class SproutAuthController extends Controller
 
         if ($status === PasswordFacade::PASSWORD_RESET) {
             return redirect()
-                ->route('login.view')
+                ->route('login_view')
                 ->with('status', __($status));
         }
 
@@ -161,6 +161,6 @@ class SproutAuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('login.view');
+        return redirect()->route('login_view');
     }
 }

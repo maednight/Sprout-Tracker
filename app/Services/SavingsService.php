@@ -19,8 +19,7 @@ class SavingsService
 {
     public function __construct(
         private ReceiptPhotoService $receiptPhotoService
-    ) {
-    }
+    ) {}
 
     public function buildIndexPayload(int $userId, ?string $scope, ?string $anchor): array
     {
@@ -72,18 +71,18 @@ class SavingsService
             'scope' => $selectedScope,
             'anchorDate' => $anchorDate->format('Y-m-d'),
             'periodLabel' => $this->formatPeriodLabel($anchorDate, $selectedScope),
-            'previousPeriodUrl' => route('savings.index', [
+            'previousPeriodUrl' => route('savings_index', [
                 'scope' => $selectedScope,
                 'anchor' => $this->shiftAnchorDate($anchorDate, $selectedScope, -1)->format('Y-m-d'),
             ]),
-            'nextPeriodUrl' => route('savings.index', [
+            'nextPeriodUrl' => route('savings_index', [
                 'scope' => $selectedScope,
                 'anchor' => $this->shiftAnchorDate($anchorDate, $selectedScope, 1)->format('Y-m-d'),
             ]),
             'scopeUrls' => [
-                'week' => route('savings.index', ['scope' => 'week', 'anchor' => $anchorDate->format('Y-m-d')]),
-                'month' => route('savings.index', ['scope' => 'month', 'anchor' => $anchorDate->format('Y-m-d')]),
-                'year' => route('savings.index', ['scope' => 'year', 'anchor' => $anchorDate->format('Y-m-d')]),
+                'week' => route('savings_index', ['scope' => 'week', 'anchor' => $anchorDate->format('Y-m-d')]),
+                'month' => route('savings_index', ['scope' => 'month', 'anchor' => $anchorDate->format('Y-m-d')]),
+                'year' => route('savings_index', ['scope' => 'year', 'anchor' => $anchorDate->format('Y-m-d')]),
             ],
         ];
     }
@@ -764,14 +763,14 @@ class SavingsService
             'transferDescriptionValue' => '',
             'transferExistingPhotoPaths' => $this->resolveTransferExistingPhotoPaths($editingTransfer, $overrides['transferExistingPhotoPaths'] ?? old('existing_receipt_photo_paths')),
             'transferFormAction' => $editingTransfer
-                ? route('savings.transfer.update', $editingTransfer)
-                : route('savings.transfer'),
+                ? route('savings_transfer_update', $editingTransfer)
+                : route('savings_transfer'),
             'transferFormMethod' => $editingTransfer ? 'PUT' : 'POST',
             ...$this->resolveTransferFormLabels(
                 $overrides['transferTypeValue'] ?? ($editingTransfer ? $this->resolveTransferType($editingTransfer) : 'savings_to_savings'),
                 $editingTransfer !== null
             ),
-            'transferCancelUrl' => route('savings.index'),
+            'transferCancelUrl' => route('savings_index'),
         ], $overrides);
     }
 
@@ -805,8 +804,8 @@ class SavingsService
                         ->map(fn (string $photoPath) => Storage::url($photoPath))
                         ->values()
                         ->all(),
-                    'editUrl' => route('transaction.edit', $transaction),
-                    'deleteUrl' => route('transaction.destroy', $transaction),
+                    'editUrl' => route('transaction_edit', $transaction),
+                    'deleteUrl' => route('transaction_destroy', $transaction),
                     'editLabel' => 'Edit Transaction',
                     'deleteLabel' => 'Delete Transaction',
                 ];
@@ -844,8 +843,8 @@ class SavingsService
                         ->values()
                         ->all()
                     : [],
-                'editUrl' => route('savings.transfer.edit', $transfer),
-                'deleteUrl' => route('savings.transfer.destroy', $transfer),
+                'editUrl' => route('savings_transfer_edit', $transfer),
+                'deleteUrl' => route('savings_transfer_destroy', $transfer),
                 'editLabel' => $isSavingsWithdraw ? 'Edit Withdraw' : 'Edit Transfer',
                 'deleteLabel' => $isSavingsWithdraw ? 'Delete Withdraw' : 'Delete Transfer',
             ];

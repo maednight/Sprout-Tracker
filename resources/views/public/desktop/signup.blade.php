@@ -159,7 +159,7 @@
 
                     <p class="sprout-foot">
                         Already have an account?
-                        <a href="{{ route('login.view') }}" class="sprout-link">Log In</a>
+                        <a href="{{ route('login_view') }}" class="sprout-link">Log In</a>
                     </p>
                 </form>
             </div>
