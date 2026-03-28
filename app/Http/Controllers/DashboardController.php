@@ -15,7 +15,7 @@ class DashboardController extends Controller
     {
         $user = auth()->user();
 
-        return view('public.dashboard', [
+        return view('public.home.dashboard', [
             'dashboardPayload' => $this->dashboardService->buildPayload($user->id),
         ]);
     }

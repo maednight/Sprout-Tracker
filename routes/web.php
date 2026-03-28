@@ -9,18 +9,18 @@ use App\Http\Controllers\TransactionController;
 use Illuminate\Support\Facades\Route;
 
 /* Public Route */
-Route::get('/', fn () => view('public.loading'))->name('loading');
+Route::get('/', fn () => view('public.shared.loading'))->name('loading');
 
 /* Guest Routes */
 Route::middleware('guest')->group(function () {
-    Route::get('/login', fn () => view('public.home'))->name('login_view');
+    Route::get('/login', fn () => view('public.auth.home'))->name('login_view');
     Route::post('/login', [SproutAuthController::class, 'login'])->name('login');
     Route::get('/forgot-password', [SproutAuthController::class, 'forgotPassword'])->name('password_request');
     Route::post('/forgot-password', [SproutAuthController::class, 'sendResetLink'])->name('password_email');
     Route::get('/reset-password/{token}', [SproutAuthController::class, 'resetPassword'])->name('password_reset');
     Route::post('/reset-password', [SproutAuthController::class, 'updateForgottenPassword'])->name('password_update');
 
-    Route::get('/signup', fn () => view('public.signup'))->name('signup_view');
+    Route::get('/signup', fn () => view('public.auth.signup'))->name('signup_view');
     Route::post('/signup', [SproutAuthController::class, 'register'])->name('signup');
 });
 

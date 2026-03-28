@@ -69,7 +69,7 @@ class BudgetController extends Controller
                 'rows' => [],
             ];
 
-        return view('public.budget', [
+        return view('public.budget.budget', [
             'budget' => $budget,
             'categoryRows' => $categoryRows,
             'totalAllocated' => $totalAllocated,
@@ -105,7 +105,7 @@ class BudgetController extends Controller
                 ->find($sourceBudgetId);
         }
 
-        return view('public.budget-create', [
+        return view('public.budget.budget-create', [
             'selectedMonthLabel' => $selectedMonthDate->format('F'),
             'selectedMonthValue' => $selectedMonthDate->format('Y-m'),
             'sourceBudget' => $sourceBudget,
@@ -191,7 +191,7 @@ class BudgetController extends Controller
         $categoryRows = $this->buildBudgetRows($budget, $categories);
         $totalAllocated = collect($categoryRows)->sum('amount');
 
-        return view('public.budget-allocation', [
+        return view('public.budget.budget-allocation', [
             'budget' => $budget,
             'categoryRows' => $categoryRows,
             'totalAllocated' => $totalAllocated,

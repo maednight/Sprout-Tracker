@@ -1,10 +1,10 @@
 /* App Entry */
 import './bootstrap'
-import './pages/transaction-create'
-import './pages/savings-transfer-create'
+import './transactions/transaction-create'
+import './savings/savings-transfer-create'
 
 import { createApp } from 'vue'
-import DashboardHome from './pages/DashboardHome.vue'
+import DashboardHome from './home/DashboardHome.vue'
 
 /* Dashboard Mount */
 const dashboardElements = document.querySelectorAll('[data-dashboard-app]')

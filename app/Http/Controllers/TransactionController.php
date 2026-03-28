@@ -18,7 +18,7 @@ class TransactionController extends Controller
     {
         $user = auth()->user();
 
-        return view('public.transactions', [
+        return view('public.transactions.transactions', [
             'transactionAnalyticsPayload' => $this->transactionService->buildIndexPayload($user->id),
         ]);
     }
@@ -27,7 +27,7 @@ class TransactionController extends Controller
     {
         $user = auth()->user();
 
-        return view('public.transaction-create', $user
+        return view('public.transactions.transaction-create', $user
             ? $this->transactionService->buildCreatePayload($user->id)
             : [
                 'transaction' => null,
@@ -39,7 +39,7 @@ class TransactionController extends Controller
     {
         $this->authorizeTransaction($transaction);
 
-        return view('public.transaction-create', $this->transactionService->buildEditPayload($transaction));
+        return view('public.transactions.transaction-create', $this->transactionService->buildEditPayload($transaction));
     }
 
     public function store(Request $request): RedirectResponse

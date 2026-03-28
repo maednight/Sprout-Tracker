@@ -18,7 +18,7 @@ class SavingsController extends Controller
     {
         $user = auth()->user();
 
-        return view('public.savings', [
+        return view('public.savings.savings', [
             'savingsPayload' => $this->savingsService->buildIndexPayload(
                 $user->id,
                 $request->query('scope'),
@@ -29,7 +29,7 @@ class SavingsController extends Controller
 
     public function createTransfer(Request $request): View
     {
-        return view('public.savings-transfer-create', $this->savingsService->buildCreateTransferViewData(
+        return view('public.savings.savings-transfer-create', $this->savingsService->buildCreateTransferViewData(
             auth()->id(),
             $request->query('date'),
             [
@@ -65,7 +65,7 @@ class SavingsController extends Controller
     {
         $this->authorizeSavingsTransfer($savingsTransfer);
 
-        return view('public.savings-transfer-create', $this->savingsService->buildEditTransferViewData(
+        return view('public.savings.savings-transfer-create', $this->savingsService->buildEditTransferViewData(
             $savingsTransfer,
             [
                 'transferTypeValue' => old(

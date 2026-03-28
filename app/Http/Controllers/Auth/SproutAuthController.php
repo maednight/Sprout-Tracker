@@ -18,7 +18,7 @@ class SproutAuthController extends Controller
 {
     public function home(): View
     {
-        return view('public.home');
+        return view('public.auth.home');
     }
 
     public function login(Request $request): RedirectResponse
@@ -43,7 +43,7 @@ class SproutAuthController extends Controller
 
     public function forgotPassword(): View
     {
-        return view('public.forgot-password');
+        return view('public.auth.forgot-password');
     }
 
     public function sendResetLink(Request $request): RedirectResponse
@@ -69,7 +69,7 @@ class SproutAuthController extends Controller
 
     public function resetPassword(Request $request, string $token): View
     {
-        return view('public.reset-password', [
+        return view('public.auth.reset-password', [
             'token' => $token,
             'email' => $request->query('email', old('email', '')),
         ]);
