@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sprout Login</title>
+    <title>Login | Sprout Income Expense Tracker</title>
+    <link rel="icon" type="image/svg+xml" href="/projectassets/images/logo/sprout-logo.svg">
 
     <!-- Fonts (same as loading) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

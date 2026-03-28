@@ -23,6 +23,7 @@
   width: 100%;
   max-width: 414px;
   min-height: 100vh;
+  height: 100vh;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -32,6 +33,7 @@
     #f7fbf8 60%,
     #b8f7c2 100%
   );
+  overflow: hidden;
 }
 
 .sprout-budget-shell {
@@ -55,14 +57,16 @@
 /* Budget Main Area */
 .sprout-budget__page {
   flex: 1;
-  min-height: 100vh;
-  padding-bottom: 110px;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 148px;
 }
 
 /* Budget Content */
 .sprout-budget__content {
   width: 100%;
-  padding: 24px 24px 24px;
+  padding: 24px 24px 112px;
   box-sizing: border-box;
   position: relative;
 }
@@ -718,9 +722,9 @@
 .sprout-budget__mode-toggle {
   position: fixed;
   left: 50%;
-  bottom: calc(84px + env(safe-area-inset-bottom));
+  bottom: calc(86px + env(safe-area-inset-bottom));
   transform: translateX(-50%);
-  width: min(240px, calc(100% - 48px));
+  width: min(228px, calc(100% - 72px));
   padding: 4px;
   border-radius: 999px;
   background: #ffffff;
@@ -742,6 +746,13 @@
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0 14px;
 }
 
 .sprout-budget__mode-toggle-button--active {
@@ -2347,7 +2358,7 @@
 /* Responsive Small */
 @media (max-width: 380px) {
   .sprout-budget__content {
-    padding: 22px 20px 20px;
+    padding: 22px 20px 118px;
   }
 
   .sprout-budget-card {

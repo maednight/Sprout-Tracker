@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Create New Password - Sprout</title>
+    <title>Reset Password | Sprout Income Expense Tracker</title>
+    <link rel="icon" type="image/svg+xml" href="/projectassets/images/logo/sprout-logo.svg">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

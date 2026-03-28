@@ -31,16 +31,18 @@
     @endif
 
     <div class="sprout-savings__controls">
-        <div class="sprout-savings__period">
-            <a href="{{ $previousPeriodUrl }}" class="sprout-savings__period-arrow" aria-label="Previous period">
-                &lsaquo;
-            </a>
-            <button type="button" class="sprout-savings__period-label" data-savings-period-trigger>
-                {{ $periodLabel }}
-            </button>
-            <a href="{{ $nextPeriodUrl }}" class="sprout-savings__period-arrow" aria-label="Next period">
-                &rsaquo;
-            </a>
+        <div class="sprout-savings__controls-head">
+            <div class="sprout-savings__period">
+                <a href="{{ $previousPeriodUrl }}" class="sprout-savings__period-arrow" aria-label="Previous period">
+                    &lsaquo;
+                </a>
+                <button type="button" class="sprout-savings__period-label" data-savings-period-trigger>
+                    {{ $periodLabel }}
+                </button>
+                <a href="{{ $nextPeriodUrl }}" class="sprout-savings__period-arrow" aria-label="Next period">
+                    &rsaquo;
+                </a>
+            </div>
         </div>
 
         <section class="sprout-savings__period-panel sprout-savings__period-panel--hidden" data-savings-period-panel>

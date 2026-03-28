@@ -566,21 +566,23 @@
 
         @if ($budget)
             <div class="sprout-budget__mode-toggle" data-budget-view-toggle-shell>
-                <button
-                    type="button"
+                <a
+                    href="{{ route('budget_index', ['month' => $selectedMonthValue]) }}"
                     class="sprout-budget__mode-toggle-button sprout-budget__mode-toggle-button--active"
                     data-budget-view-toggle="budget"
+                    aria-pressed="{{ $activeBudgetView === 'budget' ? 'true' : 'false' }}"
                 >
                     Budget
-                </button>
+                </a>
 
-                <button
-                    type="button"
+                <a
+                    href="{{ route('budget_index', ['month' => $selectedMonthValue, 'view' => 'remain']) }}"
                     class="sprout-budget__mode-toggle-button"
                     data-budget-view-toggle="remain"
+                    aria-pressed="{{ $activeBudgetView === 'remain' ? 'true' : 'false' }}"
                 >
                     Remain
-                </button>
+                </a>
             </div>
         @endif
 
@@ -721,7 +723,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     viewToggleButtons.forEach((button) => {
-        button.addEventListener('click', function () {
+        button.addEventListener('click', function (event) {
+            event.preventDefault()
             setBudgetView(button.getAttribute('data-budget-view-toggle') || 'budget')
         })
     })

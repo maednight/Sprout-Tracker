@@ -1,7 +1,16 @@
   @php
   $isEditMode = isset($transaction) && $transaction;
 
-  $pageTitle = $isEditMode ? 'Edit Transaction - Sprout' : 'Add Transaction - Sprout';
+  $pageTitle = $isEditMode
+      ? 'Edit Transaction | Sprout Income Expense Tracker'
+      : 'Add Transaction | Sprout Income Expense Tracker';
+  $returnToValue = request()->query('return_to');
+  $resolvedBackUrl = route('dashboard');
+
+  if (is_string($returnToValue) && $returnToValue !== '' && str_starts_with($returnToValue, '/')) {
+      $resolvedBackUrl = $returnToValue;
+  }
+
   $formAction = $isEditMode ? route('transaction_update', $transaction) : route('transaction_store');
   $requestedDateValue = request()->query('date');
   $prefilledCreateDateValue = '';
@@ -59,6 +68,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <title>{{ $pageTitle }}</title>
+  <link rel="icon" type="image/svg+xml" href="/projectassets/images/logo/sprout-logo.svg">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -84,7 +94,7 @@
 
         <header class="sprout-transaction__header">
             <div class="sprout-transaction__header-side sprout-transaction__header-side--left">
-                <a href="{{ route('dashboard') }}" class="sprout-transaction__back">
+                <a href="{{ $resolvedBackUrl }}" class="sprout-transaction__back">
                     &lsaquo; Home
                 </a>
             </div>

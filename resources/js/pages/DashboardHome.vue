@@ -3,7 +3,7 @@
   <div class="sprout-dashboard-mobile">
     <!-- Dashboard Backdrop -->
     <div
-      v-if="isFilterMenuVisible || isPeriodMenuVisible || isActionModalVisible || isDeleteModalVisible"
+      v-if="isFilterMenuVisible || isPeriodMenuVisible || isExportMenuVisible || isActionModalVisible || isDeleteModalVisible"
       class="sprout-dashboard-mobile__backdrop"
       @click="closePanels"
     ></div>
@@ -47,7 +47,51 @@
         </button>
       </div>
 
-      <div class="sprout-dashboard-mobile__topbar-space"></div>
+      <div class="sprout-dashboard-mobile__topbar-actions">
+        <button
+          type="button"
+          class="sprout-dashboard-mobile__export-button"
+          :aria-expanded="isExportMenuVisible ? 'true' : 'false'"
+          aria-label="Export home data"
+          @click.stop="toggleExportMenu"
+        >
+          <svg viewBox="0 0 24 24" class="sprout-dashboard-mobile__export-icon" aria-hidden="true">
+            <path d="M12 4v9"></path>
+            <path d="m8.5 9.5 3.5 3.5 3.5-3.5"></path>
+            <path d="M6 15.5v1.25A1.25 1.25 0 0 0 7.25 18h9.5A1.25 1.25 0 0 0 18 16.75V15.5"></path>
+          </svg>
+        </button>
+
+        <div
+          v-if="isExportMenuVisible"
+          class="sprout-dashboard-mobile__export-menu"
+        >
+          <button type="button" class="sprout-dashboard-mobile__export-option" @click="handleExport('csv')">
+            <svg viewBox="0 0 24 24" class="sprout-dashboard-mobile__export-option-icon" aria-hidden="true">
+              <path d="M12 4v9"></path>
+              <path d="m8.5 9.5 3.5 3.5 3.5-3.5"></path>
+              <path d="M6 15.5v1.25A1.25 1.25 0 0 0 7.25 18h9.5A1.25 1.25 0 0 0 18 16.75V15.5"></path>
+            </svg>
+            <span>CSV</span>
+          </button>
+          <button type="button" class="sprout-dashboard-mobile__export-option" @click="handleExport('excel')">
+            <svg viewBox="0 0 24 24" class="sprout-dashboard-mobile__export-option-icon" aria-hidden="true">
+              <path d="M12 4v9"></path>
+              <path d="m8.5 9.5 3.5 3.5 3.5-3.5"></path>
+              <path d="M6 15.5v1.25A1.25 1.25 0 0 0 7.25 18h9.5A1.25 1.25 0 0 0 18 16.75V15.5"></path>
+            </svg>
+            <span>Excel</span>
+          </button>
+          <button type="button" class="sprout-dashboard-mobile__export-option" @click="handleExport('pdf')">
+            <svg viewBox="0 0 24 24" class="sprout-dashboard-mobile__export-option-icon" aria-hidden="true">
+              <path d="M12 4v9"></path>
+              <path d="m8.5 9.5 3.5 3.5 3.5-3.5"></path>
+              <path d="M6 15.5v1.25A1.25 1.25 0 0 0 7.25 18h9.5A1.25 1.25 0 0 0 18 16.75V15.5"></path>
+            </svg>
+            <span>PDF</span>
+          </button>
+        </div>
+      </div>
     </header>
 
     <!-- Dashboard Filter Dropdown -->
@@ -906,6 +950,7 @@ const selectedFilter = ref('All')
 const selectedPeriodView = ref('month')
 const isFilterMenuVisible = ref(false)
 const isPeriodMenuVisible = ref(false)
+const isExportMenuVisible = ref(false)
 const currentDisplayDate = ref(new Date(resolvedInitialDate))
 const selectedDate = ref(new Date(resolvedInitialDate))
 const displayYear = ref(resolvedInitialDate.getFullYear())
@@ -918,7 +963,12 @@ const activeTransactionDateLabel = ref('')
 /* Dashboard Create Transaction Href */
 const createTransactionHref = computed(() => {
   const selectedDateKey = formatDateKey(selectedDate.value)
-  return `/transactions/create?date=${selectedDateKey}`
+  const nextUrl = new URL('/transactions/create', window.location.origin)
+
+  nextUrl.searchParams.set('date', selectedDateKey)
+  nextUrl.searchParams.set('return_to', window.location.pathname + window.location.search)
+
+  return nextUrl.toString()
 })
 
 /* Dashboard Transaction Data */
@@ -1083,6 +1133,43 @@ const visiblePeriodGroups = computed(() => {
 
 const periodTransactionGroups = computed(() => {
   return filterGroupsBySelectedPeriod(normalizedTransactionGroups.value)
+})
+
+const exportRows = computed(() => {
+  return visiblePeriodGroups.value.flatMap((transactionGroup) => {
+    return (transactionGroup.transactions || []).map((transactionItem) => [
+      transactionGroup.dateLabel || '',
+      transactionItem.time || '',
+      formatTransactionTypeLabel(transactionItem.type),
+      transactionItem.category || '',
+      transactionItem.account || '',
+      Number(transactionItem.amount || 0).toFixed(2),
+      transactionItem.isSavingsTransfer ? 'Savings Transfer' : '',
+      transactionItem.description || ''
+    ])
+  })
+})
+
+const exportSummary = computed(() => {
+  return visiblePeriodGroups.value.reduce((totals, transactionGroup) => {
+    ;(transactionGroup.transactions || []).forEach((transactionItem) => {
+      const amount = Number(transactionItem.amount || 0)
+
+      if (transactionItem.type === 'income') {
+        totals.income += amount
+      } else if (transactionItem.type === 'expense') {
+        totals.expense += amount
+      } else if (transactionItem.type === 'savings') {
+        totals.savings += amount
+      }
+    })
+
+    return totals
+  }, {
+    income: 0,
+    expense: 0,
+    savings: 0
+  })
 })
 
 /* Dashboard Period Summary */
@@ -1286,6 +1373,7 @@ const scrollToTransactionGroup = async (date) => {
 const closePanels = () => {
   isFilterMenuVisible.value = false
   isPeriodMenuVisible.value = false
+  isExportMenuVisible.value = false
   isActionModalVisible.value = false
   isViewModalVisible.value = false
   isDeleteModalVisible.value = false
@@ -1297,6 +1385,7 @@ const closePanels = () => {
 const toggleFilterMenu = () => {
   isFilterMenuVisible.value = !isFilterMenuVisible.value
   isPeriodMenuVisible.value = false
+  isExportMenuVisible.value = false
   isActionModalVisible.value = false
 }
 
@@ -1304,6 +1393,14 @@ const toggleFilterMenu = () => {
 const togglePeriodMenu = () => {
   isPeriodMenuVisible.value = !isPeriodMenuVisible.value
   isFilterMenuVisible.value = false
+  isExportMenuVisible.value = false
+  isActionModalVisible.value = false
+}
+
+const toggleExportMenu = () => {
+  isExportMenuVisible.value = !isExportMenuVisible.value
+  isFilterMenuVisible.value = false
+  isPeriodMenuVisible.value = false
   isActionModalVisible.value = false
 }
 
@@ -1311,6 +1408,75 @@ const togglePeriodMenu = () => {
 const selectFilter = (filterOption) => {
   selectedFilter.value = filterOption
   isFilterMenuVisible.value = false
+}
+
+const resolveExportPeriodLabel = () => {
+  if (selectedPeriodView.value === 'week') {
+    const weekStart = startOfWeek(selectedDate.value)
+    const weekEnd = endOfWeek(selectedDate.value)
+
+    return `${weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} to ${weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+  }
+
+  if (selectedPeriodView.value === 'year') {
+    return String(displayYear.value)
+  }
+
+  return currentDisplayDate.value.toLocaleDateString('en-US', {
+    month: 'long',
+    year: 'numeric'
+  })
+}
+
+const handleExport = (format) => {
+  const exportUtils = window.SproutExportUtils
+
+  if (!exportUtils || exportRows.value.length === 0) {
+    isExportMenuVisible.value = false
+    return
+  }
+
+  const headers = ['Date', 'Time', 'Type', 'Category', 'Account', 'Amount', 'Indicator', 'Description']
+  const periodLabel = resolveExportPeriodLabel()
+  const filterLabel = selectedFilter.value
+  const title = 'Financial Report'
+  const subtitle = `Period: ${periodLabel} | Filter: ${filterLabel}`
+  const baseName = exportUtils.buildFileBaseName(['sprout-income-expense-tracker', periodLabel, filterLabel])
+  const alignments = ['left', 'left', 'left', 'left', 'left', 'right', 'left', 'left']
+  const summaryItems = [
+    { label: 'Income', value: exportSummary.value.income, tone: 'income' },
+    { label: 'Expense', value: exportSummary.value.expense, tone: 'expense' },
+    { label: 'Savings', value: exportSummary.value.savings, tone: 'savings' }
+  ]
+
+  if (format === 'excel') {
+    exportUtils.downloadExcel({
+      fileName: `${baseName}.xls`,
+      title,
+      subtitle,
+      summaryItems,
+      headers,
+      rows: exportRows.value,
+      alignments
+    })
+  } else if (format === 'pdf') {
+    exportUtils.printPdf({
+      title,
+      subtitle,
+      summaryItems,
+      headers,
+      rows: exportRows.value,
+      alignments
+    })
+  } else {
+    exportUtils.downloadCsv({
+      fileName: `${baseName}.csv`,
+      headers,
+      rows: exportRows.value
+    })
+  }
+
+  isExportMenuVisible.value = false
 }
 
 /* Dashboard Set Period View */
@@ -1455,6 +1621,7 @@ const openTransactionActionModal = (transactionItem, transactionDateLabel) => {
   isDeleteModalVisible.value = false
   isFilterMenuVisible.value = false
   isPeriodMenuVisible.value = false
+  isExportMenuVisible.value = false
 }
 
 /* Dashboard Open Transaction View Modal */
@@ -1596,5 +1763,3 @@ const transactionDisplayPrefix = (transactionType) => {
   return transactionType === 'expense' ? '-' : '+'
 }
 </script>
-
-

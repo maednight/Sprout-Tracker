@@ -57,8 +57,92 @@
   min-height: 36px;
 }
 
-.sprout-dashboard-mobile__topbar-space {
+.sprout-dashboard-mobile__topbar-actions {
   width: 56px;
+  position: relative;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.sprout-dashboard-mobile__export-button {
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: var(--sprout-dashboard-green-dark);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.sprout-dashboard-mobile__export-icon {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sprout-dashboard-mobile__export-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 172px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.98);
+  border-radius: 16px;
+  border: 1px solid var(--sprout-dashboard-border);
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 23;
+}
+
+.sprout-dashboard-mobile__export-option {
+  width: 100%;
+  border: none;
+  border-radius: 12px;
+  background: #ffffff;
+  color: var(--sprout-dashboard-green-dark);
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  text-align: left;
+  padding: 10px 11px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.sprout-dashboard-mobile__export-option:hover {
+  background: rgba(0, 243, 107, 0.08);
+  color: var(--sprout-dashboard-green-dark);
+}
+
+.sprout-dashboard-mobile__export-option:focus-visible,
+.sprout-dashboard-mobile__export-option:active {
+  background: rgba(0, 243, 107, 0.08);
+  color: var(--sprout-dashboard-green-dark);
+  outline: none;
+}
+
+.sprout-dashboard-mobile__export-option-icon {
+  width: 13px;
+  height: 13px;
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .sprout-dashboard-mobile__filter {
