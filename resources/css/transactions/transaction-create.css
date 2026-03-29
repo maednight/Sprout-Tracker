@@ -714,6 +714,7 @@ body.sprout-savings-transfer-screen .sprout-phone.sprout-savings-transfer-page .
 .sprout-category-modal__title {
   margin: 0;
   color: #1F1F1F;
+  font-family: 'Inter', sans-serif;
   font-size: 16px;
   font-weight: 700;
   line-height: 1.2;
@@ -725,6 +726,7 @@ body.sprout-savings-transfer-screen .sprout-phone.sprout-savings-transfer-page .
   padding: 0;
   margin: 0;
   color: #1F1F1F;
+  font-family: 'Inter', sans-serif;
   font-size: 28px;
   line-height: 1;
   cursor: pointer;
@@ -868,6 +870,7 @@ body.sprout-savings-transfer-screen .sprout-phone.sprout-savings-transfer-page .
 .sprout-account-modal__title {
   margin: 0;
   color: #1F1F1F;
+  font-family: 'Inter', sans-serif;
   font-size: 16px;
   font-weight: 700;
   line-height: 1.2;
@@ -879,6 +882,7 @@ body.sprout-savings-transfer-screen .sprout-phone.sprout-savings-transfer-page .
   padding: 0;
   margin: 0;
   color: #1F1F1F;
+  font-family: 'Inter', sans-serif;
   font-size: 28px;
   line-height: 1;
   cursor: pointer;
