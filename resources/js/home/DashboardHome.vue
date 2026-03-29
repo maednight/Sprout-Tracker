@@ -1195,7 +1195,7 @@ const periodSummary = computed(() => {
     income: totalIncome,
     expense: totalExpense,
     savings: totalSavings,
-    balance: totalIncome - totalExpense - totalSavings
+    balance: totalIncome - totalExpense
   }
 })
 
