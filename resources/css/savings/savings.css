@@ -14,6 +14,19 @@
   --sprout-savings-danger: #ff6f5d;
 }
 
+body.sprout-savings-screen,
+body.sprout-savings-screen button,
+body.sprout-savings-screen input,
+body.sprout-savings-screen select,
+body.sprout-savings-screen textarea,
+body.sprout-savings-transfer-screen,
+body.sprout-savings-transfer-screen button,
+body.sprout-savings-transfer-screen input,
+body.sprout-savings-transfer-screen select,
+body.sprout-savings-transfer-screen textarea {
+  font-family: 'Inter', sans-serif;
+}
+
 .sprout-savings-mobile {
   min-height: calc(100vh - 72px);
   padding: 18px 16px 108px;
@@ -136,6 +149,7 @@
   border-radius: 999px;
   background: #f3f6f3;
   color: var(--sprout-savings-green-dark);
+  font-family: 'Inter', sans-serif;
   font-size: 22px;
   line-height: 1;
   cursor: pointer;
@@ -380,6 +394,7 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  font-family: 'Inter', sans-serif;
 }
 
 .sprout-savings__activity-filter-button img {
@@ -536,6 +551,7 @@
 
 .sprout-savings__category-chevron {
   color: #c3c3c3;
+  font-family: 'Inter', sans-serif;
   font-size: 18px;
   line-height: 1;
   flex-shrink: 0;
@@ -999,6 +1015,7 @@
   border: none;
   background: transparent;
   color: #202020;
+  font-family: 'Inter', sans-serif;
   font-size: 24px;
   line-height: 1;
   display: inline-flex;
@@ -1249,6 +1266,7 @@
   border: none;
   background: transparent;
   color: var(--sprout-savings-text);
+  font-family: 'Inter', sans-serif;
   font-size: 24px;
   line-height: 1;
   cursor: pointer;
