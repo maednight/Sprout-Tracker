@@ -419,30 +419,47 @@
     </button>
 
     <div class="sprout-date-modal__controls">
-        <select
-            class="sprout-date-modal__select"
-            data-date-month-select
-            aria-label="Select month"
-        >
-            <option value="0">January</option>
-            <option value="1">February</option>
-            <option value="2">March</option>
-            <option value="3">April</option>
-            <option value="4">May</option>
-            <option value="5">June</option>
-            <option value="6">July</option>
-            <option value="7">August</option>
-            <option value="8">September</option>
-            <option value="9">October</option>
-            <option value="10">November</option>
-            <option value="11">December</option>
-        </select>
+        <div class="sprout-date-modal__picker" data-date-month-picker>
+            <button
+                type="button"
+                class="sprout-date-modal__picker-button"
+                data-date-month-button
+                aria-haspopup="listbox"
+                aria-expanded="false"
+                aria-label="Select month"
+            >
+                <span data-date-month-label>January</span>
+                <span class="sprout-date-modal__picker-chevron" aria-hidden="true">⌄</span>
+            </button>
 
-        <select
-            class="sprout-date-modal__select"
-            data-date-year-select
-            aria-label="Select year"
-        ></select>
+            <div
+                class="sprout-date-modal__picker-menu sprout-date-modal__picker-menu--hidden"
+                data-date-month-menu
+                role="listbox"
+                aria-label="Month options"
+            ></div>
+        </div>
+
+        <div class="sprout-date-modal__picker" data-date-year-picker>
+            <button
+                type="button"
+                class="sprout-date-modal__picker-button"
+                data-date-year-button
+                aria-haspopup="listbox"
+                aria-expanded="false"
+                aria-label="Select year"
+            >
+                <span data-date-year-label>2026</span>
+                <span class="sprout-date-modal__picker-chevron" aria-hidden="true">⌄</span>
+            </button>
+
+            <div
+                class="sprout-date-modal__picker-menu sprout-date-modal__picker-menu--hidden"
+                data-date-year-menu
+                role="listbox"
+                aria-label="Year options"
+            ></div>
+        </div>
     </div>
 
     <button

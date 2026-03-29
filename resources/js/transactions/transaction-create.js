@@ -15,8 +15,14 @@ const transactionSelectors = {
     dateNextButton: '[data-date-next]',
     dateGrid: '[data-date-grid]',
     dateTodayButton: '[data-date-today]',
-    dateMonthSelect: '[data-date-month-select]',
-    dateYearSelect: '[data-date-year-select]',
+    dateMonthPicker: '[data-date-month-picker]',
+    dateMonthButton: '[data-date-month-button]',
+    dateMonthLabel: '[data-date-month-label]',
+    dateMonthMenu: '[data-date-month-menu]',
+    dateYearPicker: '[data-date-year-picker]',
+    dateYearButton: '[data-date-year-button]',
+    dateYearLabel: '[data-date-year-label]',
+    dateYearMenu: '[data-date-year-menu]',
     dateIndicator: '[data-date-indicator]',
 
     amountInput: '#amount',
@@ -70,6 +76,8 @@ const transactionSelectors = {
 const transactionClasses = {
     activeTab: 'sprout-transaction__tab--active',
     hiddenDateModal: 'sprout-date-modal--hidden',
+    hiddenDatePickerMenu: 'sprout-date-modal__picker-menu--hidden',
+    activeDatePickerOption: 'sprout-date-modal__picker-option--active',
     hiddenCategoryModal: 'sprout-category-modal--hidden',
     selectedCategoryItem: 'sprout-category-modal__item--selected',
     hiddenAccountModal: 'sprout-account-modal--hidden',
@@ -92,6 +100,21 @@ const transactionStorageKeys = {
     categories: `sprout_custom_categories_${transactionStorageScope}`,
     accounts: `sprout_custom_accounts_${transactionStorageScope}`
 }
+
+const calendarMonthLabels = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December'
+]
 
 /* Category Options Per Transaction Type */
 const categoryOptionsByType = {
@@ -545,9 +568,60 @@ const isSameDate = (firstDate, secondDate) => {
         && firstDate.getDate() === secondDate.getDate()
 }
 
-/* Populate Year Select */
-const populateYearSelect = (yearSelectElement, selectedYear) => {
-    if (!yearSelectElement) {
+const closeDatePickerMenu = (menuElement, buttonElement) => {
+    if (!menuElement || !buttonElement) {
+        return
+    }
+
+    menuElement.classList.add(transactionClasses.hiddenDatePickerMenu)
+    buttonElement.setAttribute('aria-expanded', 'false')
+}
+
+const openDatePickerMenu = (menuElement, buttonElement) => {
+    if (!menuElement || !buttonElement) {
+        return
+    }
+
+    menuElement.classList.remove(transactionClasses.hiddenDatePickerMenu)
+    buttonElement.setAttribute('aria-expanded', 'true')
+}
+
+const closeAllDatePickerMenus = (monthMenuElement, monthButtonElement, yearMenuElement, yearButtonElement) => {
+    closeDatePickerMenu(monthMenuElement, monthButtonElement)
+    closeDatePickerMenu(yearMenuElement, yearButtonElement)
+}
+
+const populateMonthMenu = (menuElement, selectedMonth, onSelect) => {
+    if (!menuElement) {
+        return
+    }
+
+    menuElement.innerHTML = ''
+
+    calendarMonthLabels.forEach((monthLabel, monthIndex) => {
+        const optionElement = document.createElement('button')
+
+        optionElement.type = 'button'
+        optionElement.className = 'sprout-date-modal__picker-option'
+        optionElement.textContent = monthLabel
+        optionElement.setAttribute('role', 'option')
+        optionElement.setAttribute('aria-selected', String(monthIndex === selectedMonth))
+
+        if (monthIndex === selectedMonth) {
+            optionElement.classList.add(transactionClasses.activeDatePickerOption)
+        }
+
+        optionElement.addEventListener('click', () => {
+            onSelect(monthIndex)
+        })
+
+        menuElement.appendChild(optionElement)
+    })
+}
+
+/* Populate Year Menu */
+const populateYearMenu = (menuElement, selectedYear, onSelect) => {
+    if (!menuElement) {
         return
     }
 
@@ -555,29 +629,52 @@ const populateYearSelect = (yearSelectElement, selectedYear) => {
     const startYear = currentYear - 20
     const endYear = currentYear + 20
 
-    yearSelectElement.innerHTML = ''
+    menuElement.innerHTML = ''
 
     for (let year = endYear; year >= startYear; year -= 1) {
-        const optionElement = document.createElement('option')
+        const optionElement = document.createElement('button')
 
-        optionElement.value = String(year)
+        optionElement.type = 'button'
+        optionElement.className = 'sprout-date-modal__picker-option'
         optionElement.textContent = String(year)
+        optionElement.setAttribute('role', 'option')
+        optionElement.setAttribute('aria-selected', String(year === selectedYear))
 
         if (year === selectedYear) {
-            optionElement.selected = true
+            optionElement.classList.add(transactionClasses.activeDatePickerOption)
         }
 
-        yearSelectElement.appendChild(optionElement)
+        optionElement.addEventListener('click', () => {
+            onSelect(year)
+        })
+
+        menuElement.appendChild(optionElement)
     }
 }
 
-/* Sync Date Selects */
-const syncDateSelects = (monthSelectElement, yearSelectElement, viewDate) => {
-    if (monthSelectElement) {
-        monthSelectElement.value = String(viewDate.getMonth())
+/* Sync Date Pickers */
+const syncDatePickers = (
+    monthLabelElement,
+    monthMenuElement,
+    yearLabelElement,
+    yearMenuElement,
+    viewDate,
+    onMonthSelect,
+    onYearSelect
+) => {
+    const selectedMonth = viewDate.getMonth()
+    const selectedYear = viewDate.getFullYear()
+
+    if (monthLabelElement) {
+        monthLabelElement.textContent = calendarMonthLabels[selectedMonth]
     }
 
-    populateYearSelect(yearSelectElement, viewDate.getFullYear())
+    if (yearLabelElement) {
+        yearLabelElement.textContent = String(selectedYear)
+    }
+
+    populateMonthMenu(monthMenuElement, selectedMonth, onMonthSelect)
+    populateYearMenu(yearMenuElement, selectedYear, onYearSelect)
 }
 
 /* Create Calendar Day Button */
@@ -631,8 +728,12 @@ const renderDateCalendar = (
     modalElement,
     triggerElement,
     gridElement,
-    monthSelectElement,
-    yearSelectElement,
+    monthLabelElement,
+    monthMenuElement,
+    yearLabelElement,
+    yearMenuElement,
+    onMonthSelect,
+    onYearSelect,
     indicatorElement
 ) => {
     if (!gridElement) {
@@ -642,7 +743,15 @@ const renderDateCalendar = (
     const selectedDate = parseInputDate(inputElement?.value ?? '')
     const today = new Date()
 
-    syncDateSelects(monthSelectElement, yearSelectElement, viewDate)
+    syncDatePickers(
+        monthLabelElement,
+        monthMenuElement,
+        yearLabelElement,
+        yearMenuElement,
+        viewDate,
+        onMonthSelect,
+        onYearSelect
+    )
     gridElement.innerHTML = ''
 
     if (indicatorElement) {
@@ -1565,8 +1674,14 @@ const initializeDateModal = () => {
     const nextButton = document.querySelector(transactionSelectors.dateNextButton)
     const gridElement = document.querySelector(transactionSelectors.dateGrid)
     const todayButton = document.querySelector(transactionSelectors.dateTodayButton)
-    const monthSelectElement = document.querySelector(transactionSelectors.dateMonthSelect)
-    const yearSelectElement = document.querySelector(transactionSelectors.dateYearSelect)
+    const monthPickerElement = document.querySelector(transactionSelectors.dateMonthPicker)
+    const monthButtonElement = document.querySelector(transactionSelectors.dateMonthButton)
+    const monthLabelElement = document.querySelector(transactionSelectors.dateMonthLabel)
+    const monthMenuElement = document.querySelector(transactionSelectors.dateMonthMenu)
+    const yearPickerElement = document.querySelector(transactionSelectors.dateYearPicker)
+    const yearButtonElement = document.querySelector(transactionSelectors.dateYearButton)
+    const yearLabelElement = document.querySelector(transactionSelectors.dateYearLabel)
+    const yearMenuElement = document.querySelector(transactionSelectors.dateYearMenu)
     const indicatorElement = document.querySelector(transactionSelectors.dateIndicator)
 
     if (!triggerElement || !inputElement || !modalElement || !gridElement) {
@@ -1580,8 +1695,30 @@ const initializeDateModal = () => {
             modalElement,
             triggerElement,
             gridElement,
-            monthSelectElement,
-            yearSelectElement,
+            monthLabelElement,
+            monthMenuElement,
+            yearLabelElement,
+            yearMenuElement,
+            (selectedMonth) => {
+                currentCalendarDate = new Date(
+                    currentCalendarDate.getFullYear(),
+                    selectedMonth,
+                    1
+                )
+
+                closeAllDatePickerMenus(monthMenuElement, monthButtonElement, yearMenuElement, yearButtonElement)
+                renderCurrentCalendar()
+            },
+            (selectedYear) => {
+                currentCalendarDate = new Date(
+                    selectedYear,
+                    currentCalendarDate.getMonth(),
+                    1
+                )
+
+                closeAllDatePickerMenus(monthMenuElement, monthButtonElement, yearMenuElement, yearButtonElement)
+                renderCurrentCalendar()
+            },
             indicatorElement
         )
     }
@@ -1610,6 +1747,7 @@ const initializeDateModal = () => {
 
     closeButtons.forEach((closeButton) => {
         closeButton.addEventListener('click', () => {
+            closeAllDatePickerMenus(monthMenuElement, monthButtonElement, yearMenuElement, yearButtonElement)
             closeDateModal(modalElement, triggerElement)
         })
     })
@@ -1638,27 +1776,33 @@ const initializeDateModal = () => {
         })
     }
 
-    if (monthSelectElement) {
-        monthSelectElement.addEventListener('change', () => {
-            currentCalendarDate = new Date(
-                currentCalendarDate.getFullYear(),
-                Number(monthSelectElement.value),
-                1
-            )
+    if (monthButtonElement && monthMenuElement) {
+        monthButtonElement.addEventListener('click', (event) => {
+            event.preventDefault()
+            event.stopPropagation()
 
-            renderCurrentCalendar()
+            const shouldOpen = monthMenuElement.classList.contains(transactionClasses.hiddenDatePickerMenu)
+
+            closeAllDatePickerMenus(monthMenuElement, monthButtonElement, yearMenuElement, yearButtonElement)
+
+            if (shouldOpen) {
+                openDatePickerMenu(monthMenuElement, monthButtonElement)
+            }
         })
     }
 
-    if (yearSelectElement) {
-        yearSelectElement.addEventListener('change', () => {
-            currentCalendarDate = new Date(
-                Number(yearSelectElement.value),
-                currentCalendarDate.getMonth(),
-                1
-            )
+    if (yearButtonElement && yearMenuElement) {
+        yearButtonElement.addEventListener('click', (event) => {
+            event.preventDefault()
+            event.stopPropagation()
 
-            renderCurrentCalendar()
+            const shouldOpen = yearMenuElement.classList.contains(transactionClasses.hiddenDatePickerMenu)
+
+            closeAllDatePickerMenus(monthMenuElement, monthButtonElement, yearMenuElement, yearButtonElement)
+
+            if (shouldOpen) {
+                openDatePickerMenu(yearMenuElement, yearButtonElement)
+            }
         })
     }
 
@@ -1671,9 +1815,20 @@ const initializeDateModal = () => {
 
             renderCurrentCalendar()
             syncTransactionSubmitState()
+            closeAllDatePickerMenus(monthMenuElement, monthButtonElement, yearMenuElement, yearButtonElement)
             closeDateModal(modalElement, triggerElement)
         })
     }
+
+    document.addEventListener('click', (event) => {
+        const target = event.target
+        const clickedInsideMonthPicker = monthPickerElement ? monthPickerElement.contains(target) : false
+        const clickedInsideYearPicker = yearPickerElement ? yearPickerElement.contains(target) : false
+
+        if (!clickedInsideMonthPicker && !clickedInsideYearPicker) {
+            closeAllDatePickerMenus(monthMenuElement, monthButtonElement, yearMenuElement, yearButtonElement)
+        }
+    })
 }
 
 /* Initialize Transaction Form Validation */
