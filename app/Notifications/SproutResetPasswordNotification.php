@@ -6,13 +6,25 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
+/**
+ * Sends the password reset email notification.
+ */
 class SproutResetPasswordNotification extends Notification
 {
     use Queueable;
 
-    public function __construct(
-        private readonly string $token
-    ) {}
+    /**
+     * @var string Password reset token included in the email.
+     */
+    private readonly string $token;
+
+    /**
+     * @param string $token Password reset token included in the email.
+     */
+    public function __construct(string $token)
+    {
+        $this->token = $token;
+    }
 
     public function via(object $notifiable): array
     {

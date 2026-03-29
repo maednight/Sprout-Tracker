@@ -7,6 +7,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
+/**
+ * Manages receipt photo storage and retrieval helpers.
+ */
 class ReceiptPhotoService
 {
     public function getTransactionPhotoPaths(Transaction $transaction): array

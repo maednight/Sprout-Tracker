@@ -12,7 +12,6 @@ use Illuminate\Http\Request;
 
 class BudgetController extends Controller
 {
-    /* Budget Page */
     public function index(Request $request): View
     {
         $user = auth()->user();
@@ -88,7 +87,6 @@ class BudgetController extends Controller
         ]);
     }
 
-    /* Set Budget Page */
     public function create(Request $request): View
     {
         $selectedMonthDate = $this->resolveSelectedMonthDate(
@@ -120,7 +118,6 @@ class BudgetController extends Controller
         ]);
     }
 
-    /* Store Budget */
     public function store(Request $request): RedirectResponse
     {
         $user = auth()->user();
@@ -177,7 +174,6 @@ class BudgetController extends Controller
             ->with('success', 'Budget basic details saved successfully.');
     }
 
-    /* Allocation Page */
     public function allocate(Budget $budget): View
     {
         abort_unless($budget->user_id === auth()->id(), 403);
@@ -207,7 +203,6 @@ class BudgetController extends Controller
         ]);
     }
 
-    /* Update Allocation */
     public function updateAllocation(Request $request, Budget $budget): RedirectResponse
     {
         abort_unless($budget->user_id === auth()->id(), 403);
@@ -255,7 +250,6 @@ class BudgetController extends Controller
             ->with('success', 'Budget allocation saved successfully.');
     }
 
-    /* Reset Budget */
     public function destroy(Budget $budget): RedirectResponse
     {
         abort_unless($budget->user_id === auth()->id(), 403);
@@ -271,7 +265,6 @@ class BudgetController extends Controller
             ->with('success', 'Budget was reset successfully.');
     }
 
-    /* Revert Month Override */
     public function revertOverride(Request $request, Budget $budget): RedirectResponse
     {
         abort_unless($budget->user_id === auth()->id(), 403);
@@ -306,7 +299,6 @@ class BudgetController extends Controller
             ->with('success', 'Reverted to reusable budget for this month.');
     }
 
-    /* Budget Categories */
     private function getBudgetCategories(): array
     {
         return [
@@ -349,7 +341,6 @@ class BudgetController extends Controller
         ];
     }
 
-    /* Budget Rows */
     private function buildBudgetRows(?Budget $budget, array $categories): array
     {
         $budgetItems = $budget?->items
@@ -371,7 +362,6 @@ class BudgetController extends Controller
         })->all();
     }
 
-    /* Planned Per Day */
     private function calculatePlannedPerDay(float $totalAllocated, string $cycle, Carbon $selectedMonthDate): float
     {
         $daysCount = match ($cycle) {
@@ -392,7 +382,6 @@ class BudgetController extends Controller
         return round($totalAllocated / $daysCount, 2);
     }
 
-    /* Schedule Payload */
     private function buildSchedulePayload(
         Budget $budget,
         array $categories,
@@ -489,7 +478,6 @@ class BudgetController extends Controller
         ];
     }
 
-    /* Schedule Rows */
     private function buildScheduleRowsForFilter(
         Budget $budget,
         Budget $timelineBudget,
@@ -531,7 +519,6 @@ class BudgetController extends Controller
         })->all();
     }
 
-    /* Generate Schedule Periods */
     private function generateSchedulePeriods(Budget $budget, Carbon $selectedMonthDate): array
     {
         $baseDate = $budget->is_reused
@@ -574,7 +561,6 @@ class BudgetController extends Controller
         return $rows;
     }
 
-    /* Resolve Budget For Month */
     private function resolveBudgetForSelectedMonth(int $userId, Carbon $selectedMonthDate): ?Budget
     {
         $exactBudget = Budget::query()
@@ -596,7 +582,6 @@ class BudgetController extends Controller
             ->first();
     }
 
-    /* Calculate Plan Amount */
     private function calculatePlanAmountForPeriod(
         ?Budget $budget,
         array $categories,
@@ -623,7 +608,6 @@ class BudgetController extends Controller
         });
     }
 
-    /* Calculate Spent Amount */
     private function calculateSpentAmountForPeriod(
         Budget $budget,
         Carbon $startDate,
@@ -662,7 +646,6 @@ class BudgetController extends Controller
         return (float) $transactions->sum('amount');
     }
 
-    /* Resolve Budget Category Key */
     private function resolveBudgetCategoryKey(?string $categoryName): ?string
     {
         $normalizedName = mb_strtolower(trim((string) $categoryName));
@@ -688,7 +671,6 @@ class BudgetController extends Controller
         };
     }
 
-    /* Shift Period Date */
     private function shiftPeriodDate(Carbon $date, string $cycle, int $offset): Carbon
     {
         return match ($cycle) {
@@ -701,7 +683,6 @@ class BudgetController extends Controller
         };
     }
 
-    /* Period Start */
     private function resolvePeriodStart(Carbon $date, string $cycle): Carbon
     {
         return match ($cycle) {
@@ -714,7 +695,6 @@ class BudgetController extends Controller
         };
     }
 
-    /* Period End */
     private function resolvePeriodEnd(Carbon $date, string $cycle): Carbon
     {
         return match ($cycle) {
@@ -727,7 +707,6 @@ class BudgetController extends Controller
         };
     }
 
-    /* Period Label */
     private function formatPeriodLabel(Carbon $date, string $cycle): string
     {
         return match ($cycle) {
@@ -740,7 +719,6 @@ class BudgetController extends Controller
         };
     }
 
-    /* Resolve Month */
     private function resolveSelectedMonthDate(?string $monthValue): Carbon
     {
         if (! $monthValue) {

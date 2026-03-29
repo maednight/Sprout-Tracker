@@ -6,8 +6,14 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
+/**
+ * Represents an income, expense, or savings transaction record.
+ */
 class Transaction extends Model
 {
+    /**
+     * @var array<int, string> Attributes allowed for mass assignment.
+     */
     protected $fillable = [
         'user_id',
         'type',
@@ -20,6 +26,9 @@ class Transaction extends Model
         'receipt_photo_paths',
     ];
 
+    /**
+     * @var array<string, string> Attribute cast rules applied by the model.
+     */
     protected $casts = [
         'occurred_at' => 'datetime',
         'amount' => 'decimal:2',

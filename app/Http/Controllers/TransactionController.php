@@ -8,11 +8,23 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
+/**
+ * Handles transaction page and form requests.
+ */
 class TransactionController extends Controller
 {
-    public function __construct(
-        private TransactionService $transactionService
-    ) {}
+    /**
+     * @var TransactionService Service used to manage transaction workflows.
+     */
+    private TransactionService $transactionService;
+
+    /**
+     * @param TransactionService $transactionService Service used to manage transaction workflows.
+     */
+    public function __construct(TransactionService $transactionService)
+    {
+        $this->transactionService = $transactionService;
+    }
 
     public function index(): View
     {

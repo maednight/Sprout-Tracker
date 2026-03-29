@@ -8,10 +8,16 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
+/**
+ * Represents an authenticated application user.
+ */
 class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 
+    /**
+     * @var array<int, string> Attributes allowed for mass assignment.
+     */
     protected $fillable = [
         'name',
         'email',
@@ -19,6 +25,9 @@ class User extends Authenticatable
         'profile_photo_path',
     ];
 
+    /**
+     * @var array<int, string> Attributes hidden from serialized output.
+     */
     protected $hidden = [
         'password',
         'remember_token',

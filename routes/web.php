@@ -8,10 +8,10 @@ use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\TransactionController;
 use Illuminate\Support\Facades\Route;
 
-/* Public Route */
+/** Public routes. */
 Route::get('/', fn () => view('public.shared.loading'))->name('loading');
 
-/* Guest Routes */
+/** Guest routes. */
 Route::middleware('guest')->group(function () {
     Route::get('/login', fn () => view('public.auth.home'))->name('login_view');
     Route::post('/login', [SproutAuthController::class, 'login'])->name('login');
@@ -24,14 +24,14 @@ Route::middleware('guest')->group(function () {
     Route::post('/signup', [SproutAuthController::class, 'register'])->name('signup');
 });
 
-/* Authenticated Routes */
+/** Authenticated routes. */
 Route::middleware('auth')->group(function () {
     Route::get('/home', [SproutAuthController::class, 'home'])->name('home');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/transactions', [TransactionController::class, 'index'])->name('transaction_index');
 
-    /* Budget Routes */
+    /** Budget routes. */
     Route::get('/budget', [BudgetController::class, 'index'])->name('budget_index');
     Route::get('/budget/create', [BudgetController::class, 'create'])->name('budget_create');
     Route::post('/budget', [BudgetController::class, 'store'])->name('budget_store');
@@ -47,7 +47,7 @@ Route::middleware('auth')->group(function () {
     Route::put('/savings/transfer/{savingsTransfer}', [SavingsController::class, 'updateTransfer'])->name('savings_transfer_update');
     Route::delete('/savings/transfer/{savingsTransfer}', [SavingsController::class, 'destroyTransfer'])->name('savings_transfer_destroy');
 
-    /* Settings Routes */
+    /** Settings routes. */
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings_index');
     Route::put('/settings/name', [SettingsController::class, 'updateName'])->name('settings_name_update');
     Route::post('/settings/photo', [SettingsController::class, 'updatePhoto'])->name('settings_photo_update');

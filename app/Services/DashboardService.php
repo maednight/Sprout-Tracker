@@ -9,12 +9,32 @@ use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
+/**
+ * Builds dashboard data payloads for the home page.
+ */
 class DashboardService
 {
+    /**
+     * @var ReceiptPhotoService Service used to resolve receipt photo URLs.
+     */
+    private ReceiptPhotoService $receiptPhotoService;
+
+    /**
+     * @var TransactionPresentationService Service used to format dashboard transaction details.
+     */
+    private TransactionPresentationService $transactionPresentationService;
+
+    /**
+     * @param ReceiptPhotoService $receiptPhotoService Service used to resolve receipt photo URLs.
+     * @param TransactionPresentationService $transactionPresentationService Service used to format dashboard transaction details.
+     */
     public function __construct(
-        private ReceiptPhotoService $receiptPhotoService,
-        private TransactionPresentationService $transactionPresentationService
-    ) {}
+        ReceiptPhotoService $receiptPhotoService,
+        TransactionPresentationService $transactionPresentationService
+    ) {
+        $this->receiptPhotoService = $receiptPhotoService;
+        $this->transactionPresentationService = $transactionPresentationService;
+    }
 
     public function buildPayload(int $userId): array
     {

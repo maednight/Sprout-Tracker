@@ -5,8 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * Represents a transfer involving savings balances.
+ */
 class SavingsTransfer extends Model
 {
+    /**
+     * @var array<int, string> Attributes allowed for mass assignment.
+     */
     protected $fillable = [
         'user_id',
         'source_category_id',
@@ -21,6 +27,9 @@ class SavingsTransfer extends Model
         'receipt_photo_paths',
     ];
 
+    /**
+     * @var array<string, string> Attribute cast rules applied by the model.
+     */
     protected $casts = [
         'amount' => 'decimal:2',
         'transferred_at' => 'datetime',

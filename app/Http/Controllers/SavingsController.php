@@ -8,11 +8,23 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
+/**
+ * Handles savings page and transfer requests.
+ */
 class SavingsController extends Controller
 {
-    public function __construct(
-        private SavingsService $savingsService
-    ) {}
+    /**
+     * @var SavingsService Service used to manage savings data and transfers.
+     */
+    private SavingsService $savingsService;
+
+    /**
+     * @param SavingsService $savingsService Service used to manage savings data and transfers.
+     */
+    public function __construct(SavingsService $savingsService)
+    {
+        $this->savingsService = $savingsService;
+    }
 
     public function index(Request $request): View
     {

@@ -16,11 +16,23 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * Handles savings dashboards and transfer workflows.
+ */
 class SavingsService
 {
-    public function __construct(
-        private ReceiptPhotoService $receiptPhotoService
-    ) {}
+    /**
+     * @var ReceiptPhotoService Service used to manage savings receipt photos.
+     */
+    private ReceiptPhotoService $receiptPhotoService;
+
+    /**
+     * @param ReceiptPhotoService $receiptPhotoService Service used to manage savings receipt photos.
+     */
+    public function __construct(ReceiptPhotoService $receiptPhotoService)
+    {
+        $this->receiptPhotoService = $receiptPhotoService;
+    }
 
     public function buildIndexPayload(int $userId, ?string $scope, ?string $anchor): array
     {

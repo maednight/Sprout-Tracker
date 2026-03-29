@@ -4,6 +4,9 @@ namespace App\Services\Support;
 
 use Illuminate\Support\Str;
 
+/**
+ * Resolves transaction labels, colors, and icons for presentation.
+ */
 class TransactionPresentationService
 {
     public function defaultCategoryCatalog(): array

@@ -16,12 +16,32 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * Handles transaction payload building and persistence workflows.
+ */
 class TransactionService
 {
+    /**
+     * @var ReceiptPhotoService Service used to manage receipt photo storage.
+     */
+    private ReceiptPhotoService $receiptPhotoService;
+
+    /**
+     * @var TransactionPresentationService Service used to resolve presentation metadata for transactions.
+     */
+    private TransactionPresentationService $transactionPresentationService;
+
+    /**
+     * @param ReceiptPhotoService $receiptPhotoService Service used to manage receipt photo storage.
+     * @param TransactionPresentationService $transactionPresentationService Service used to resolve presentation metadata for transactions.
+     */
     public function __construct(
-        private ReceiptPhotoService $receiptPhotoService,
-        private TransactionPresentationService $transactionPresentationService
-    ) {}
+        ReceiptPhotoService $receiptPhotoService,
+        TransactionPresentationService $transactionPresentationService
+    ) {
+        $this->receiptPhotoService = $receiptPhotoService;
+        $this->transactionPresentationService = $transactionPresentationService;
+    }
 
     public function buildIndexPayload(int $userId): array
     {
