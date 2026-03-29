@@ -52,6 +52,7 @@
 /* Desktop title */
 .sprout-title--desktop {
   text-align: left;
+  font-family: 'Inter', sans-serif;
   font-size: 40px;
   line-height: 1.05;
   letter-spacing: -0.2px;
@@ -78,6 +79,7 @@
 
 .sprout-word__text {
   color: #00D95F;
+  font-family: 'Inknut Antiqua', serif;
   font-weight: 800;
   display: inline-block;
 }

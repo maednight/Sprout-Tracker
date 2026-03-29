@@ -127,6 +127,7 @@ body.sprout-auth-screen .sprout-logo__img {
 /* Title */
 body.sprout-auth-screen .sprout-title {
   text-align: center;
+  font-family: 'Inter', sans-serif;
   font-size: 26px;
   font-weight: 800;
   margin: 10px 0 6px;
@@ -135,6 +136,7 @@ body.sprout-auth-screen .sprout-title {
 
 body.sprout-auth-screen .sprout-title span {
   color: #00D95F;
+  font-family: 'Inknut Antiqua', serif;
 }
 
 body.sprout-auth-screen .sprout-subtitle {

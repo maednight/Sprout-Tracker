@@ -71,6 +71,7 @@
                                 ->map(fn (array $remainRow) => [
                                     'value' => $remainRow['key'],
                                     'label' => $remainRow['name'],
+                                    'toolbarLabel' => $remainRow['name'] === 'Transportation' ? 'Transpo' : $remainRow['name'],
                                 ])
                                 ->values();
                         @endphp
@@ -108,7 +109,7 @@
                                                 class="sprout-budget-remain-toolbar__option"
                                                 data-budget-remain-category-option
                                                 data-category-value="{{ $remainCategoryFilter['value'] }}"
-                                                data-category-label="{{ $remainCategoryFilter['label'] }}"
+                                                data-category-label="{{ $remainCategoryFilter['toolbarLabel'] }}"
                                             >
                                                 {{ $remainCategoryFilter['label'] }}
                                             </button>
@@ -667,6 +668,12 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    if (window.__sproutBudgetMainInitialized) {
+        return
+    }
+
+    window.__sproutBudgetMainInitialized = true
+
     const viewToggleButtons = document.querySelectorAll('[data-budget-view-toggle]')
     const viewPanels = document.querySelectorAll('[data-budget-view-panel]')
     const viewToggleShell = document.querySelector('[data-budget-view-toggle-shell]')
@@ -1064,63 +1071,78 @@ document.addEventListener('DOMContentLoaded', function () {
         updateRemainCardSummary()
     }
 
-    if (remainCategoryTrigger && remainCategoryMenu) {
-        remainCategoryTrigger.addEventListener('click', function (event) {
-            event.preventDefault()
-            event.stopPropagation()
-            toggleRemainMenu(remainCategoryMenu, remainCategoryTrigger)
+    const selectRemainCategoryOption = (option) => {
+        if (!option) {
+            return
+        }
+
+        activeRemainCategory = option.getAttribute('data-category-value') || 'all'
+
+        if (remainCategoryLabel) {
+            remainCategoryLabel.textContent = option.getAttribute('data-category-label') || 'All'
+        }
+
+        remainCategoryOptions.forEach((categoryOption) => {
+            const isActive = categoryOption === option
+            categoryOption.classList.toggle('sprout-budget-remain-toolbar__option--active', isActive)
+            categoryOption.setAttribute('aria-selected', isActive ? 'true' : 'false')
         })
 
-        remainCategoryOptions.forEach((option) => {
-            option.addEventListener('click', function (event) {
-                event.preventDefault()
-                event.stopPropagation()
-
-                activeRemainCategory = option.getAttribute('data-category-value') || 'all'
-
-                if (remainCategoryLabel) {
-                    remainCategoryLabel.textContent = option.getAttribute('data-category-label') || 'All'
-                }
-
-                remainCategoryOptions.forEach((categoryOption) => {
-                    const isActive = categoryOption === option
-                    categoryOption.classList.toggle('sprout-budget-remain-toolbar__option--active', isActive)
-                    categoryOption.setAttribute('aria-selected', isActive ? 'true' : 'false')
-                })
-
-                applyRemainListState()
-                closeRemainMenus()
-            })
-        })
+        applyRemainListState()
+        closeRemainMenus()
     }
 
-    if (remainSortTrigger && remainSortMenu) {
-        remainSortTrigger.addEventListener('click', function (event) {
-            event.preventDefault()
-            event.stopPropagation()
-            toggleRemainMenu(remainSortMenu, remainSortTrigger)
+    const selectRemainSortOption = (option) => {
+        if (!option) {
+            return
+        }
+
+        activeRemainSort = option.getAttribute('data-sort-value') || 'highest'
+
+        remainSortOptions.forEach((sortOption) => {
+            const isActive = sortOption === option
+            sortOption.classList.toggle('sprout-budget-remain-toolbar__option--active', isActive)
+            sortOption.setAttribute('aria-selected', isActive ? 'true' : 'false')
         })
 
-        remainSortOptions.forEach((option) => {
-            option.addEventListener('click', function (event) {
-                event.preventDefault()
-                event.stopPropagation()
-
-                activeRemainSort = option.getAttribute('data-sort-value') || 'highest'
-
-                remainSortOptions.forEach((sortOption) => {
-                    const isActive = sortOption === option
-                    sortOption.classList.toggle('sprout-budget-remain-toolbar__option--active', isActive)
-                    sortOption.setAttribute('aria-selected', isActive ? 'true' : 'false')
-                })
-
-                applyRemainListState()
-                closeRemainMenus()
-            })
-        })
+        applyRemainListState()
+        closeRemainMenus()
     }
 
     document.addEventListener('click', function (event) {
+        const categoryTrigger = event.target.closest('[data-budget-remain-category-trigger]')
+        const sortTrigger = event.target.closest('[data-budget-remain-sort-trigger]')
+        const categoryOption = event.target.closest('[data-budget-remain-category-option]')
+        const sortOption = event.target.closest('[data-budget-remain-sort-option]')
+
+        if (categoryTrigger && remainCategoryMenu && remainCategoryTrigger) {
+            event.preventDefault()
+            event.stopPropagation()
+            toggleRemainMenu(remainCategoryMenu, remainCategoryTrigger)
+            return
+        }
+
+        if (sortTrigger && remainSortMenu && remainSortTrigger) {
+            event.preventDefault()
+            event.stopPropagation()
+            toggleRemainMenu(remainSortMenu, remainSortTrigger)
+            return
+        }
+
+        if (categoryOption) {
+            event.preventDefault()
+            event.stopPropagation()
+            selectRemainCategoryOption(categoryOption)
+            return
+        }
+
+        if (sortOption) {
+            event.preventDefault()
+            event.stopPropagation()
+            selectRemainSortOption(sortOption)
+            return
+        }
+
         const clickedInsideRemainToolbar = event.target.closest('.sprout-budget-remain-toolbar__group')
 
         if (!clickedInsideRemainToolbar) {
@@ -1320,6 +1342,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    if (window.__sproutBudgetPickerFallbackInitialized) {
+        return
+    }
+
+    window.__sproutBudgetPickerFallbackInitialized = true
+
     const hasBudgetViewPanels = document.querySelectorAll('[data-budget-view-panel]').length > 0
 
     if (hasBudgetViewPanels) {

@@ -14,6 +14,14 @@
 }
 
 /* Budget Page Shell Override */
+body.sprout-budget-screen,
+body.sprout-budget-screen button,
+body.sprout-budget-screen input,
+body.sprout-budget-screen select,
+body.sprout-budget-screen textarea {
+  font-family: 'Inter', sans-serif;
+}
+
 body.sprout-budget-screen .sprout-shell {
   align-items: flex-start;
 }
@@ -115,7 +123,8 @@ body.sprout-budget-screen .sprout-shell {
   pointer-events: none;
   display: flex;
   align-items: center;
-  z-index: 6;
+  justify-content: space-between;
+  z-index: 7;
 }
 
 .sprout-budget__header-tools--hidden {
@@ -997,6 +1006,11 @@ body.sprout-budget-screen .sprout-shell {
 
 .sprout-budget-remain-toolbar__group {
   position: relative;
+  pointer-events: auto;
+  z-index: 8;
+}
+
+.sprout-budget-remain-toolbar__menu {
   pointer-events: auto;
 }
 
