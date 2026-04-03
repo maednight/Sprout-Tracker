@@ -94,6 +94,24 @@
       </div>
     </header>
 
+    <div
+      v-if="successMessage"
+      class="sprout-dashboard-mobile__alert"
+      :class="successAlertClass"
+      role="status"
+      aria-live="polite"
+    >
+      <span class="sprout-dashboard-mobile__alert-text">{{ successMessage }}</span>
+      <button
+        type="button"
+        class="sprout-dashboard-mobile__alert-close"
+        aria-label="Dismiss notification"
+        @click="dismissSuccessMessage"
+      >
+        &times;
+      </button>
+    </div>
+
     <!-- Dashboard Filter Dropdown -->
     <div
       v-if="isFilterMenuVisible"
@@ -874,6 +892,7 @@
           >
             <input type="hidden" name="_token" :value="csrfToken">
             <input type="hidden" name="_method" value="DELETE">
+            <input type="hidden" name="return_to" :value="dashboardReturnPath">
 
             <button
               type="submit"
@@ -897,7 +916,7 @@ import {
 } from '../shared/export-utils'
 
 /* Vue Imports */
-import { computed, nextTick, ref } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 
 /* Dashboard Props */
 const props = defineProps({
@@ -912,6 +931,14 @@ const props = defineProps({
   csrfToken: {
     type: String,
     default: ''
+  },
+  initialSuccessMessage: {
+    type: String,
+    default: ''
+  },
+  initialSuccessType: {
+    type: String,
+    default: 'added'
   }
 })
 
@@ -937,13 +964,27 @@ const monthOptions = [
   { value: 11, label: 'Dec' }
 ]
 
+const periodViewOptions = ['week', 'month', 'year']
+
+const resolveInitialPeriodView = () => {
+  const initialUrl = new URL(window.location.href)
+  const periodValue = initialUrl.searchParams.get('period')
+
+  return periodViewOptions.includes(periodValue)
+    ? periodValue
+    : 'month'
+}
+
 /* Dashboard Initial Date */
 const resolvedInitialDate = (() => {
-  if (!props.initialDisplayDate) {
+  const initialUrl = new URL(window.location.href)
+  const initialDateValue = initialUrl.searchParams.get('date') || props.initialDisplayDate
+
+  if (!initialDateValue) {
     return new Date()
   }
 
-  const [year, month, day] = props.initialDisplayDate.split('-').map(Number)
+  const [year, month, day] = initialDateValue.split('-').map(Number)
 
   if (!year || !month || !day) {
     return new Date()
@@ -954,7 +995,7 @@ const resolvedInitialDate = (() => {
 
 /* Dashboard Display State */
 const selectedFilter = ref('All')
-const selectedPeriodView = ref('month')
+const selectedPeriodView = ref(resolveInitialPeriodView())
 const isFilterMenuVisible = ref(false)
 const isPeriodMenuVisible = ref(false)
 const isExportMenuVisible = ref(false)
@@ -966,6 +1007,39 @@ const isViewModalVisible = ref(false)
 const isDeleteModalVisible = ref(false)
 const activeTransaction = ref(null)
 const activeTransactionDateLabel = ref('')
+const successMessage = ref(
+  typeof props.initialSuccessMessage === 'string'
+    ? props.initialSuccessMessage.trim()
+    : ''
+)
+const successType = ref(
+  ['added', 'edited', 'deleted'].includes(props.initialSuccessType)
+    ? props.initialSuccessType
+    : 'added'
+)
+
+const resolveDashboardAnchorDate = () => {
+  if (selectedPeriodView.value === 'year') {
+    return new Date(
+      displayYear.value,
+      currentDisplayDate.value.getMonth(),
+      1
+    )
+  }
+
+  return new Date(selectedDate.value)
+}
+
+const buildDashboardReturnPath = () => {
+  const nextUrl = new URL(window.location.href)
+
+  nextUrl.searchParams.set('date', formatDateKey(resolveDashboardAnchorDate()))
+  nextUrl.searchParams.set('period', selectedPeriodView.value)
+
+  return `${nextUrl.pathname}${nextUrl.search}`
+}
+
+const dashboardReturnPath = computed(() => buildDashboardReturnPath())
 
 /* Dashboard Create Transaction Href */
 const createTransactionHref = computed(() => {
@@ -973,7 +1047,7 @@ const createTransactionHref = computed(() => {
   const nextUrl = new URL('/transactions/create', window.location.origin)
 
   nextUrl.searchParams.set('date', selectedDateKey)
-  nextUrl.searchParams.set('return_to', window.location.pathname + window.location.search)
+  nextUrl.searchParams.set('return_to', dashboardReturnPath.value)
 
   return nextUrl.toString()
 })
@@ -1002,14 +1076,34 @@ const transactionGroupRefs = ref({})
 /* Dashboard Current Period Label */
 const currentPeriodLabel = computed(() => {
   if (selectedPeriodView.value === 'week') {
-    return 'This Week'
+    const weekStart = startOfWeek(selectedDate.value)
+    const weekEnd = endOfWeek(selectedDate.value)
+    const sameMonth = weekStart.getMonth() === weekEnd.getMonth()
+    const sameYear = weekStart.getFullYear() === weekEnd.getFullYear()
+
+    if (sameMonth && sameYear) {
+      return `${weekStart.toLocaleDateString('en-US', { month: 'short' })} ${weekStart.getDate()}-${weekEnd.getDate()}, ${weekEnd.getFullYear()}`
+    }
+
+    if (sameYear) {
+      return `${weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}, ${weekEnd.getFullYear()}`
+    }
+
+    return `${weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} - ${weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
   }
 
   if (selectedPeriodView.value === 'year') {
-    return 'This Year'
+    return String(displayYear.value)
   }
 
-  return 'This Month'
+  return currentDisplayDate.value.toLocaleDateString('en-US', {
+    month: 'long',
+    year: 'numeric'
+  })
+})
+
+const successAlertClass = computed(() => {
+  return `sprout-dashboard-mobile__alert--${successType.value}`
 })
 
 /* Dashboard Week Panel Label */
@@ -1359,6 +1453,20 @@ const setTransactionGroupRef = (element, dateKey) => {
   delete transactionGroupRefs.value[dateKey]
 }
 
+const dismissSuccessMessage = () => {
+  successMessage.value = ''
+}
+
+onMounted(() => {
+  if (!successMessage.value) {
+    return
+  }
+
+  window.setTimeout(() => {
+    dismissSuccessMessage()
+  }, 3500)
+})
+
 /* Dashboard Scroll To Transaction Group */
 const scrollToTransactionGroup = async (date) => {
   await nextTick()
@@ -1666,7 +1774,11 @@ const goToEditTransaction = () => {
     return
   }
 
-  window.location.href = `/transactions/${activeTransaction.value.id}/edit`
+  const nextUrl = new URL(`/transactions/${activeTransaction.value.id}/edit`, window.location.origin)
+
+  nextUrl.searchParams.set('return_to', dashboardReturnPath.value)
+
+  window.location.href = nextUrl.toString()
 }
 
 /* Dashboard Build Date From Key */
@@ -1705,6 +1817,14 @@ const formatDateKey = (date) => {
 
   return `${year}-${month}-${day}`
 }
+
+watch(
+  [selectedPeriodView, selectedDate, currentDisplayDate, displayYear],
+  () => {
+    window.history.replaceState(window.history.state, '', dashboardReturnPath.value)
+  },
+  { immediate: true }
+)
 
 /* Dashboard Same Date Check */
 const isSameDate = (firstDate, secondDate) => {

@@ -26,6 +26,8 @@
                     data-dashboard-app
                     data-dashboard='@json($dashboardPayload ?? ["transactionGroups" => [], "initialDisplayDate" => now()->format("Y-m-d")])'
                     data-csrf-token="{{ csrf_token() }}"
+                    data-flash-success='@json(session("success"))'
+                    data-flash-success-type='@json(session("success_type"))'
                 ></div>
 
                 @include('public.shared.nav-mobile')
@@ -41,6 +43,8 @@
                         data-dashboard-app
                         data-dashboard='@json($dashboardPayload ?? ["transactionGroups" => [], "initialDisplayDate" => now()->format("Y-m-d")])'
                         data-csrf-token="{{ csrf_token() }}"
+                        data-flash-success='@json(session("success"))'
+                        data-flash-success-type='@json(session("success_type"))'
                     ></div>
                 </main>
             </div>

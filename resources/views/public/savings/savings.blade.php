@@ -138,6 +138,21 @@
 
                 const pad = (value) => String(value).padStart(2, '0')
 
+                const syncHistoryVisibility = () => {
+                    if (historyList) {
+                        historyList.hidden = !showHistory
+                        historyList.classList.toggle('sprout-savings__history-list--hidden', !showHistory)
+                    }
+
+                    if (showToggle) {
+                        showToggle.setAttribute('aria-expanded', showHistory ? 'true' : 'false')
+                    }
+
+                    if (showToggleText) {
+                        showToggleText.textContent = showHistory ? 'show less' : 'show more'
+                    }
+                }
+
                 const formatDateKey = (date) => {
                     return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
                 }
@@ -777,13 +792,10 @@
 
                 showToggle?.addEventListener('click', () => {
                     showHistory = !showHistory
-                    historyList?.classList.toggle('sprout-savings__history-list--hidden', !showHistory)
-                    showToggle.setAttribute('aria-expanded', showHistory ? 'true' : 'false')
-
-                    if (showToggleText) {
-                        showToggleText.textContent = showHistory ? 'show less' : 'show more'
-                    }
+                    syncHistoryVisibility()
                 })
+
+                syncHistoryVisibility()
 
                 if (donut && popup && popupName && popupAmount) {
                     const categories = JSON.parse(donut.getAttribute('data-savings-categories') || '[]')

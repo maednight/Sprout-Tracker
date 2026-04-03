@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Transaction;
 use App\Services\TransactionService;
+use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -70,9 +71,9 @@ class TransactionController extends Controller
 
         $this->transactionService->createTransaction($user->id, $validatedData, $request);
 
-        return redirect()
-            ->route('dashboard')
-            ->with('success', 'Transaction saved successfully.');
+        return $this->redirectToDashboard($request, $validatedData['transaction_date'] ?? null)
+            ->with('success', 'Transaction saved successfully.')
+            ->with('success_type', 'added');
     }
 
     public function update(Request $request, Transaction $transaction): RedirectResponse
@@ -83,20 +84,23 @@ class TransactionController extends Controller
 
         $this->transactionService->updateTransaction($transaction, $validatedData, $request);
 
-        return redirect()
-            ->route('dashboard')
-            ->with('success', 'Transaction updated successfully.');
+        return $this->redirectToDashboard($request, $validatedData['transaction_date'] ?? null)
+            ->with('success', 'Transaction updated successfully.')
+            ->with('success_type', 'edited');
     }
 
-    public function destroy(Transaction $transaction): RedirectResponse
+    public function destroy(Request $request, Transaction $transaction): RedirectResponse
     {
         $this->authorizeTransaction($transaction);
 
         $this->transactionService->deleteTransaction($transaction);
 
-        return redirect()
-            ->route('dashboard')
-            ->with('success', 'Transaction deleted successfully.');
+        return $this->redirectToDashboard(
+            $request,
+            $transaction->occurred_at?->format('Y-m-d')
+        )
+            ->with('success', 'Transaction deleted successfully.')
+            ->with('success_type', 'deleted');
     }
 
     private function validateTransactionData(Request $request): array
@@ -121,5 +125,50 @@ class TransactionController extends Controller
             auth()->check() && auth()->id() === $transaction->user_id,
             403
         );
+    }
+
+    private function redirectToDashboard(Request $request, ?string $fallbackDate = null): RedirectResponse
+    {
+        $returnTo = $request->input('return_to');
+
+        if ($this->isSafeReturnPath($returnTo)) {
+            return redirect()->to($returnTo);
+        }
+
+        $routeParameters = ['period' => 'month'];
+        $normalizedDate = $this->normalizeDashboardDate($fallbackDate);
+
+        if ($normalizedDate) {
+            $routeParameters['date'] = $normalizedDate;
+        }
+
+        return redirect()->route('dashboard', $routeParameters);
+    }
+
+    private function normalizeDashboardDate(?string $dateValue): ?string
+    {
+        if (! is_string($dateValue) || trim($dateValue) === '') {
+            return null;
+        }
+
+        foreach (['Y-m-d', 'm/d/Y'] as $dateFormat) {
+            try {
+                return Carbon::createFromFormat($dateFormat, $dateValue)
+                    ->startOfDay()
+                    ->format('Y-m-d');
+            } catch (\Throwable $exception) {
+                continue;
+            }
+        }
+
+        return null;
+    }
+
+    private function isSafeReturnPath(mixed $returnTo): bool
+    {
+        return is_string($returnTo)
+            && $returnTo !== ''
+            && str_starts_with($returnTo, '/')
+            && ! str_starts_with($returnTo, '//');
     }
 }

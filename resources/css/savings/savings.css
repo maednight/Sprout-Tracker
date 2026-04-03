@@ -609,6 +609,10 @@ body.sprout-savings-transfer-screen textarea {
   display: none;
 }
 
+.sprout-savings__history-list[hidden] {
+  display: none !important;
+}
+
 .sprout-savings__show-toggle {
   width: 100%;
   display: flex;

@@ -1,18 +1,29 @@
   @php
   $isEditMode = isset($transaction) && $transaction;
+  $requestedDateValue = request()->query('date');
 
   $pageTitle = $isEditMode
       ? 'Edit Transaction | Sprout Income Expense Tracker'
       : 'Add Transaction | Sprout Income Expense Tracker';
   $returnToValue = request()->query('return_to');
-  $resolvedBackUrl = route('dashboard');
+  $dashboardFallbackDateValue = $isEditMode
+      ? optional($transaction->occurred_at)->format('Y-m-d')
+      : (is_string($requestedDateValue) && $requestedDateValue !== '' ? $requestedDateValue : null);
+  $resolvedBackUrl = route('dashboard', array_filter([
+      'date' => $dashboardFallbackDateValue,
+      'period' => $dashboardFallbackDateValue ? 'month' : null,
+  ]));
 
-  if (is_string($returnToValue) && $returnToValue !== '' && str_starts_with($returnToValue, '/')) {
+  if (
+      is_string($returnToValue)
+      && $returnToValue !== ''
+      && str_starts_with($returnToValue, '/')
+      && !str_starts_with($returnToValue, '//')
+  ) {
       $resolvedBackUrl = $returnToValue;
   }
 
   $formAction = $isEditMode ? route('transaction_update', $transaction) : route('transaction_store');
-  $requestedDateValue = request()->query('date');
   $prefilledCreateDateValue = '';
 
   if (!$isEditMode && is_string($requestedDateValue) && $requestedDateValue !== '') {
@@ -168,6 +179,12 @@
             @if ($isEditMode)
                 @method('PUT')
             @endif
+
+            <input
+                type="hidden"
+                name="return_to"
+                value="{{ old('return_to', $resolvedBackUrl) }}"
+            >
 
             <input
                 type="hidden"

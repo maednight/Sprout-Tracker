@@ -54,9 +54,7 @@ class TransactionService
 
         return [
             'transactionGroups' => $this->buildTransactionGroups($transactions),
-            'initialDisplayDate' => $transactions->isNotEmpty()
-                ? $transactions->first()->occurred_at->format('Y-m-d')
-                : now()->format('Y-m-d'),
+            'initialDisplayDate' => now()->format('Y-m-d'),
             'categoryMeta' => $this->buildCategoryMetaPayload($transactions, $userId),
             'budgetSnapshots' => $this->buildBudgetSnapshotsPayload($transactions, $userId),
         ];

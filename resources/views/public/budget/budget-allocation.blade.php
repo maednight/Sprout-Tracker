@@ -168,7 +168,6 @@
                         Reset Budget
                     </button>
                 </form>
-                </div>
 
                 @if ($isInheritedView)
                     <a
@@ -178,6 +177,7 @@
                         Customize only this month
                     </a>
                 @endif
+                </div>
 
             </div>
         </main>

@@ -1,0 +1,46 @@
+services:
+  - type: web
+    name: sprout-tracker
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    autoDeployTrigger: commit
+    healthCheckPath: /
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_URL
+        sync: false
+      - key: APP_KEY
+        sync: false
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DATABASE_URL
+        fromDatabase:
+          name: sprout-tracker-db
+          property: connectionString
+      - key: SESSION_DRIVER
+        value: database
+      - key: CACHE_STORE
+        value: database
+      - key: QUEUE_CONNECTION
+        value: sync
+      - key: FILESYSTEM_DISK
+        value: public
+      - key: MAIL_MAILER
+        value: log
+      - key: APP_TIMEZONE
+        value: Asia/Manila
+    # Optional on paid plans if you want uploaded files to survive redeploys.
+    # disk:
+    #   name: uploads
+    #   mountPath: /var/www/html/storage/app/public
+    #   sizeGB: 1
+
+databases:
+  - name: sprout-tracker-db
+    plan: free

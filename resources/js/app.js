@@ -14,6 +14,8 @@ dashboardElements.forEach((dashboardElement) => {
     }
 
     let csrfToken = ''
+    let flashSuccess = ''
+    let flashSuccessType = ''
 
     try {
         const rawDashboardPayload = dashboardElement.getAttribute('data-dashboard')
@@ -34,11 +36,28 @@ dashboardElements.forEach((dashboardElement) => {
     }
 
     csrfToken = dashboardElement.getAttribute('data-csrf-token') || ''
+    try {
+        const rawFlashSuccess = dashboardElement.getAttribute('data-flash-success')
+        flashSuccess = rawFlashSuccess ? JSON.parse(rawFlashSuccess) ?? '' : ''
+    } catch (error) {
+        console.error('Dashboard flash success parse error:', error)
+        flashSuccess = ''
+    }
+
+    try {
+        const rawFlashSuccessType = dashboardElement.getAttribute('data-flash-success-type')
+        flashSuccessType = rawFlashSuccessType ? JSON.parse(rawFlashSuccessType) ?? '' : ''
+    } catch (error) {
+        console.error('Dashboard flash success type parse error:', error)
+        flashSuccessType = ''
+    }
 
     createApp(DashboardHome, {
         initialTransactionGroups: dashboardPayload.transactionGroups ?? [],
         initialDisplayDate: dashboardPayload.initialDisplayDate ?? null,
-        csrfToken
+        csrfToken,
+        initialSuccessMessage: flashSuccess,
+        initialSuccessType: flashSuccessType
     }).mount(dashboardElement)
 })
 
