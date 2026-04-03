@@ -17,8 +17,6 @@ mkdir -p \
 
 chown -R www-data:www-data storage bootstrap/cache
 
-php artisan optimize:clear
-
 if [ ! -L public/storage ]; then
   php artisan storage:link || true
 fi
