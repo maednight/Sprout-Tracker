@@ -938,7 +938,7 @@ body.sprout-savings-transfer-screen textarea {
 .sprout-savings__detail-modal {
   position: fixed;
   inset: 0;
-  z-index: 70;
+  z-index: 78;
   display: flex;
   align-items: flex-end;
   justify-content: center;

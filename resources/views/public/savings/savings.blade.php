@@ -317,6 +317,7 @@
                 }
 
                 const closeCategoryModal = () => {
+                    closeDetailModal()
                     categoryModal?.classList.add(categoryHiddenClass)
                     categorySortMenu?.classList.add('sprout-savings__category-filter-menu--hidden')
                 }
