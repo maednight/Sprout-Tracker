@@ -22,9 +22,70 @@
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
 
+:root {
+    --sprout-mobile-max-width: 430px;
+}
+
 html,
 body,
 body.sprout-font,
 .sprout-font {
     font-family: var(--font-sans);
+    width: 100%;
+    min-height: 100dvh;
+    overflow-x: hidden;
+}
+
+/* Mobile-only mode */
+.sprout-view--mobile,
+.sprout-settings-page__mobile {
+    display: block !important;
+}
+
+.sprout-view--desktop,
+.sprout-settings-page__desktop {
+    display: none !important;
+}
+
+/* Wider-phone responsive overrides */
+.sprout-phone.sprout-app--mobile,
+.sprout-phone.sprout-budget,
+.sprout-phone.sprout-transactions,
+body.sprout-transaction-screen .sprout-phone.sprout-transaction,
+body.sprout-savings-transfer-screen .sprout-phone.sprout-savings-transfer-page,
+.sprout-settings-mobile,
+.sprout-savings__category-screen,
+.sprout-transactions__view-sheet,
+.sprout-budget-amount-modal__sheet,
+body.sprout-auth-screen .sprout-auth__content {
+    width: min(100%, var(--sprout-mobile-max-width));
+    max-width: var(--sprout-mobile-max-width);
+}
+
+.sprout-phone.sprout-app--mobile,
+.sprout-phone.sprout-budget,
+.sprout-phone.sprout-transactions,
+body.sprout-transaction-screen .sprout-phone.sprout-transaction,
+body.sprout-savings-transfer-screen .sprout-phone.sprout-savings-transfer-page,
+.sprout-settings-mobile,
+.sprout-savings__category-screen {
+    min-height: 100dvh;
+}
+
+.sprout-phone.sprout-budget,
+.sprout-phone.sprout-transactions,
+body.sprout-transaction-screen .sprout-phone.sprout-transaction,
+body.sprout-savings-transfer-screen .sprout-phone.sprout-savings-transfer-page {
+    height: 100dvh;
+}
+
+.sprout-settings-mobile,
+.sprout-savings__category-screen {
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+}
+
+body.sprout-auth-screen .sprout-auth__content {
+    padding-left: max(24px, env(safe-area-inset-left));
+    padding-right: max(24px, env(safe-area-inset-right));
 }

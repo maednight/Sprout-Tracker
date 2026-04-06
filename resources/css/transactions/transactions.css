@@ -14,9 +14,9 @@
 
 .sprout-phone.sprout-transactions {
   width: 100%;
-  max-width: 414px;
-  min-height: 100vh;
-  height: 100vh;
+  max-width: min(100%, var(--sprout-mobile-max-width, 430px));
+  min-height: 100dvh;
+  height: 100dvh;
   margin: 0 auto;
   position: relative;
   display: flex;
@@ -48,8 +48,10 @@ body.sprout-font {
 }
 
 .sprout-transactions__content {
-  padding: 18px 8px calc(56px + env(safe-area-inset-bottom));
-  max-width: 372px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 18px 16px calc(56px + env(safe-area-inset-bottom));
+  max-width: 100%;
   margin: 0 auto;
   position: relative;
 }
@@ -1139,7 +1141,7 @@ body.sprout-font {
 .sprout-transactions__view-sheet {
   position: relative;
   width: 100%;
-  max-width: 414px;
+  max-width: min(100%, var(--sprout-mobile-max-width, 430px));
   background: rgba(255, 255, 255, 0.96);
   border-radius: 24px 24px 0 0;
   padding: 22px 20px 28px;
