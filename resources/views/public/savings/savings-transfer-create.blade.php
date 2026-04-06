@@ -433,22 +433,47 @@
             <button type="button" class="sprout-date-modal__nav-button" data-transfer-date-prev aria-label="Previous month">&lsaquo;</button>
 
             <div class="sprout-date-modal__controls">
-                <select class="sprout-date-modal__select" data-transfer-date-month-select aria-label="Select month">
-                    <option value="0">January</option>
-                    <option value="1">February</option>
-                    <option value="2">March</option>
-                    <option value="3">April</option>
-                    <option value="4">May</option>
-                    <option value="5">June</option>
-                    <option value="6">July</option>
-                    <option value="7">August</option>
-                    <option value="8">September</option>
-                    <option value="9">October</option>
-                    <option value="10">November</option>
-                    <option value="11">December</option>
-                </select>
+                <div class="sprout-date-modal__picker" data-transfer-date-month-picker>
+                    <button
+                        type="button"
+                        class="sprout-date-modal__picker-button"
+                        data-transfer-date-month-button
+                        aria-haspopup="listbox"
+                        aria-expanded="false"
+                        aria-label="Select month"
+                    >
+                        <span data-transfer-date-month-label>January</span>
+                        <span class="sprout-date-modal__picker-chevron" aria-hidden="true">&#8964;</span>
+                    </button>
 
-                <select class="sprout-date-modal__select" data-transfer-date-year-select aria-label="Select year"></select>
+                    <div
+                        class="sprout-date-modal__picker-menu sprout-date-modal__picker-menu--hidden"
+                        data-transfer-date-month-menu
+                        role="listbox"
+                        aria-label="Month options"
+                    ></div>
+                </div>
+
+                <div class="sprout-date-modal__picker" data-transfer-date-year-picker>
+                    <button
+                        type="button"
+                        class="sprout-date-modal__picker-button"
+                        data-transfer-date-year-button
+                        aria-haspopup="listbox"
+                        aria-expanded="false"
+                        aria-label="Select year"
+                    >
+                        <span data-transfer-date-year-label>2026</span>
+                        <span class="sprout-date-modal__picker-chevron" aria-hidden="true">&#8964;</span>
+                    </button>
+
+                    <div
+                        class="sprout-date-modal__picker-menu sprout-date-modal__picker-menu--hidden"
+                        data-transfer-date-year-menu
+                        role="listbox"
+                        aria-label="Year options"
+                    ></div>
+                </div>
             </div>
 
             <button type="button" class="sprout-date-modal__nav-button" data-transfer-date-next aria-label="Next month">&rsaquo;</button>

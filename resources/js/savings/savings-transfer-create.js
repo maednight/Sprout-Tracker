@@ -15,8 +15,14 @@ if (transferRoot) {
         dateNext: '[data-transfer-date-next]',
         dateGrid: '[data-transfer-date-grid]',
         dateToday: '[data-transfer-date-today]',
-        dateMonthSelect: '[data-transfer-date-month-select]',
-        dateYearSelect: '[data-transfer-date-year-select]',
+        dateMonthPicker: '[data-transfer-date-month-picker]',
+        dateMonthButton: '[data-transfer-date-month-button]',
+        dateMonthLabel: '[data-transfer-date-month-label]',
+        dateMonthMenu: '[data-transfer-date-month-menu]',
+        dateYearPicker: '[data-transfer-date-year-picker]',
+        dateYearButton: '[data-transfer-date-year-button]',
+        dateYearLabel: '[data-transfer-date-year-label]',
+        dateYearMenu: '[data-transfer-date-year-menu]',
         dateIndicator: '[data-transfer-date-indicator]',
         amountInput: '#transfer_amount',
         categoryTrigger: '[data-transfer-category-trigger]',
@@ -54,6 +60,8 @@ if (transferRoot) {
 
     const classes = {
         hiddenDateModal: 'sprout-date-modal--hidden',
+        hiddenDatePickerMenu: 'sprout-date-modal__picker-menu--hidden',
+        activeDatePickerOption: 'sprout-date-modal__picker-option--active',
         hiddenCategoryModal: 'sprout-category-modal--hidden',
         hiddenAccountModal: 'sprout-account-modal--hidden',
         selectedCategory: 'sprout-category-modal__item--selected',
@@ -92,6 +100,20 @@ if (transferRoot) {
     let activeCategoryTrigger = null
     let activeAccountTrigger = null
     let activeCategoryField = 'source'
+    const calendarMonthLabels = [
+        'January',
+        'February',
+        'March',
+        'April',
+        'May',
+        'June',
+        'July',
+        'August',
+        'September',
+        'October',
+        'November',
+        'December'
+    ]
 
     const getTransferType = () => {
         return document.querySelector(selectors.transferTypeInput)?.value || rootPhone?.getAttribute('data-transfer-type-value') || 'savings_to_savings'
@@ -255,22 +277,107 @@ if (transferRoot) {
             && firstDate.getDate() === secondDate.getDate()
     }
 
-    const populateYearSelect = (yearSelectElement, selectedYear) => {
-        if (!yearSelectElement) return
+    const closeDatePickerMenu = (menuElement, buttonElement) => {
+        if (!menuElement || !buttonElement) {
+            return
+        }
+
+        menuElement.classList.add(classes.hiddenDatePickerMenu)
+        buttonElement.setAttribute('aria-expanded', 'false')
+    }
+
+    const openDatePickerMenu = (menuElement, buttonElement) => {
+        if (!menuElement || !buttonElement) {
+            return
+        }
+
+        menuElement.classList.remove(classes.hiddenDatePickerMenu)
+        buttonElement.setAttribute('aria-expanded', 'true')
+    }
+
+    const closeAllDatePickerMenus = (monthMenuElement, monthButtonElement, yearMenuElement, yearButtonElement) => {
+        closeDatePickerMenu(monthMenuElement, monthButtonElement)
+        closeDatePickerMenu(yearMenuElement, yearButtonElement)
+    }
+
+    const populateMonthMenu = (menuElement, selectedMonth, onSelect) => {
+        if (!menuElement) {
+            return
+        }
+
+        menuElement.innerHTML = ''
+
+        calendarMonthLabels.forEach((monthLabel, monthIndex) => {
+            const optionElement = document.createElement('button')
+
+            optionElement.type = 'button'
+            optionElement.className = 'sprout-date-modal__picker-option'
+            optionElement.textContent = monthLabel
+            optionElement.setAttribute('role', 'option')
+            optionElement.setAttribute('aria-selected', String(monthIndex === selectedMonth))
+
+            if (monthIndex === selectedMonth) {
+                optionElement.classList.add(classes.activeDatePickerOption)
+            }
+
+            optionElement.addEventListener('click', () => {
+                onSelect(monthIndex)
+            })
+
+            menuElement.appendChild(optionElement)
+        })
+    }
+
+    const populateYearMenu = (menuElement, selectedYear, onSelect) => {
+        if (!menuElement) return
         const currentYear = new Date().getFullYear()
         const startYear = currentYear - 20
         const endYear = currentYear + 20
-        yearSelectElement.innerHTML = ''
+        menuElement.innerHTML = ''
 
         for (let year = endYear; year >= startYear; year -= 1) {
-            const optionElement = document.createElement('option')
-            optionElement.value = String(year)
+            const optionElement = document.createElement('button')
+
+            optionElement.type = 'button'
+            optionElement.className = 'sprout-date-modal__picker-option'
             optionElement.textContent = String(year)
+            optionElement.setAttribute('role', 'option')
+            optionElement.setAttribute('aria-selected', String(year === selectedYear))
+
             if (year === selectedYear) {
-                optionElement.selected = true
+                optionElement.classList.add(classes.activeDatePickerOption)
             }
-            yearSelectElement.appendChild(optionElement)
+
+            optionElement.addEventListener('click', () => {
+                onSelect(year)
+            })
+
+            menuElement.appendChild(optionElement)
         }
+    }
+
+    const syncDatePickers = (
+        monthLabelElement,
+        monthMenuElement,
+        yearLabelElement,
+        yearMenuElement,
+        viewDate,
+        onMonthSelect,
+        onYearSelect
+    ) => {
+        const selectedMonth = viewDate.getMonth()
+        const selectedYear = viewDate.getFullYear()
+
+        if (monthLabelElement) {
+            monthLabelElement.textContent = calendarMonthLabels[selectedMonth]
+        }
+
+        if (yearLabelElement) {
+            yearLabelElement.textContent = String(selectedYear)
+        }
+
+        populateMonthMenu(monthMenuElement, selectedMonth, onMonthSelect)
+        populateYearMenu(yearMenuElement, selectedYear, onYearSelect)
     }
 
     const showValidation = (message) => {
@@ -527,11 +634,16 @@ if (transferRoot) {
         })
     }
 
-    const renderCalendar = () => {
+    const renderCalendar = (
+        monthLabelElement,
+        monthMenuElement,
+        yearLabelElement,
+        yearMenuElement,
+        modalElement,
+        triggerElement
+    ) => {
         const inputElement = document.querySelector(selectors.dateInput)
         const gridElement = document.querySelector(selectors.dateGrid)
-        const monthSelectElement = document.querySelector(selectors.dateMonthSelect)
-        const yearSelectElement = document.querySelector(selectors.dateYearSelect)
         const indicatorElement = document.querySelector(selectors.dateIndicator)
 
         if (!inputElement || !gridElement) return
@@ -539,15 +651,41 @@ if (transferRoot) {
         const selectedDate = parseInputDate(inputElement.value)
         const today = new Date()
 
+        syncDatePickers(
+            monthLabelElement,
+            monthMenuElement,
+            yearLabelElement,
+            yearMenuElement,
+            currentCalendarDate,
+            (selectedMonth) => {
+                currentCalendarDate = new Date(currentCalendarDate.getFullYear(), selectedMonth, 1)
+                closeAllDatePickerMenus(monthMenuElement, document.querySelector(selectors.dateMonthButton), yearMenuElement, document.querySelector(selectors.dateYearButton))
+                renderCalendar(
+                    monthLabelElement,
+                    monthMenuElement,
+                    yearLabelElement,
+                    yearMenuElement,
+                    modalElement,
+                    triggerElement
+                )
+            },
+            (selectedYear) => {
+                currentCalendarDate = new Date(selectedYear, currentCalendarDate.getMonth(), 1)
+                closeAllDatePickerMenus(monthMenuElement, document.querySelector(selectors.dateMonthButton), yearMenuElement, document.querySelector(selectors.dateYearButton))
+                renderCalendar(
+                    monthLabelElement,
+                    monthMenuElement,
+                    yearLabelElement,
+                    yearMenuElement,
+                    modalElement,
+                    triggerElement
+                )
+            }
+        )
+
         if (indicatorElement) {
             indicatorElement.textContent = formatDateIndicator(currentCalendarDate)
         }
-
-        if (monthSelectElement) {
-            monthSelectElement.value = String(currentCalendarDate.getMonth())
-        }
-
-        populateYearSelect(yearSelectElement, currentCalendarDate.getFullYear())
         gridElement.innerHTML = ''
 
         const firstDayOfMonth = new Date(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth(), 1)
@@ -580,11 +718,13 @@ if (transferRoot) {
                 inputElement.value = formatDateForInput(cellDate)
                 syncSubmitState()
                 hideValidation()
-                closeModal(
-                    document.querySelector(selectors.dateModal),
-                    document.querySelector(selectors.dateTrigger),
-                    classes.hiddenDateModal
+                closeAllDatePickerMenus(
+                    monthMenuElement,
+                    document.querySelector(selectors.dateMonthButton),
+                    yearMenuElement,
+                    document.querySelector(selectors.dateYearButton)
                 )
+                closeModal(modalElement, triggerElement, classes.hiddenDateModal)
             })
 
             gridElement.appendChild(dayButton)
@@ -598,10 +738,27 @@ if (transferRoot) {
         const prevButton = document.querySelector(selectors.datePrev)
         const nextButton = document.querySelector(selectors.dateNext)
         const todayButton = document.querySelector(selectors.dateToday)
-        const monthSelectElement = document.querySelector(selectors.dateMonthSelect)
-        const yearSelectElement = document.querySelector(selectors.dateYearSelect)
+        const monthPickerElement = document.querySelector(selectors.dateMonthPicker)
+        const monthButtonElement = document.querySelector(selectors.dateMonthButton)
+        const monthLabelElement = document.querySelector(selectors.dateMonthLabel)
+        const monthMenuElement = document.querySelector(selectors.dateMonthMenu)
+        const yearPickerElement = document.querySelector(selectors.dateYearPicker)
+        const yearButtonElement = document.querySelector(selectors.dateYearButton)
+        const yearLabelElement = document.querySelector(selectors.dateYearLabel)
+        const yearMenuElement = document.querySelector(selectors.dateYearMenu)
 
         if (!triggerElement || !inputElement || !modalElement) return
+
+        const renderCurrentCalendar = () => {
+            renderCalendar(
+                monthLabelElement,
+                monthMenuElement,
+                yearLabelElement,
+                yearMenuElement,
+                modalElement,
+                triggerElement
+            )
+        }
 
         const openHandler = (event) => {
             event.preventDefault()
@@ -609,7 +766,7 @@ if (transferRoot) {
             currentCalendarDate = selectedDate
                 ? new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1)
                 : new Date(new Date().getFullYear(), new Date().getMonth(), 1)
-            renderCalendar()
+            renderCurrentCalendar()
             openModal(modalElement, triggerElement)
         }
 
@@ -621,28 +778,51 @@ if (transferRoot) {
         })
 
         document.querySelectorAll(selectors.dateClose).forEach((button) => {
-            button.addEventListener('click', () => closeModal(modalElement, triggerElement, classes.hiddenDateModal))
+            button.addEventListener('click', () => {
+                closeAllDatePickerMenus(monthMenuElement, monthButtonElement, yearMenuElement, yearButtonElement)
+                closeModal(modalElement, triggerElement, classes.hiddenDateModal)
+            })
         })
 
         prevButton?.addEventListener('click', () => {
             currentCalendarDate = new Date(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth() - 1, 1)
-            renderCalendar()
+            renderCurrentCalendar()
         })
 
         nextButton?.addEventListener('click', () => {
             currentCalendarDate = new Date(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth() + 1, 1)
-            renderCalendar()
+            renderCurrentCalendar()
         })
 
-        monthSelectElement?.addEventListener('change', () => {
-            currentCalendarDate = new Date(currentCalendarDate.getFullYear(), Number(monthSelectElement.value), 1)
-            renderCalendar()
-        })
+        if (monthButtonElement && monthMenuElement) {
+            monthButtonElement.addEventListener('click', (event) => {
+                event.preventDefault()
+                event.stopPropagation()
 
-        yearSelectElement?.addEventListener('change', () => {
-            currentCalendarDate = new Date(Number(yearSelectElement.value), currentCalendarDate.getMonth(), 1)
-            renderCalendar()
-        })
+                const shouldOpen = monthMenuElement.classList.contains(classes.hiddenDatePickerMenu)
+
+                closeAllDatePickerMenus(monthMenuElement, monthButtonElement, yearMenuElement, yearButtonElement)
+
+                if (shouldOpen) {
+                    openDatePickerMenu(monthMenuElement, monthButtonElement)
+                }
+            })
+        }
+
+        if (yearButtonElement && yearMenuElement) {
+            yearButtonElement.addEventListener('click', (event) => {
+                event.preventDefault()
+                event.stopPropagation()
+
+                const shouldOpen = yearMenuElement.classList.contains(classes.hiddenDatePickerMenu)
+
+                closeAllDatePickerMenus(monthMenuElement, monthButtonElement, yearMenuElement, yearButtonElement)
+
+                if (shouldOpen) {
+                    openDatePickerMenu(yearMenuElement, yearButtonElement)
+                }
+            })
+        }
 
         todayButton?.addEventListener('click', () => {
             const today = new Date()
@@ -650,7 +830,16 @@ if (transferRoot) {
             currentCalendarDate = new Date(today.getFullYear(), today.getMonth(), 1)
             syncSubmitState()
             hideValidation()
+            closeAllDatePickerMenus(monthMenuElement, monthButtonElement, yearMenuElement, yearButtonElement)
             closeModal(modalElement, triggerElement, classes.hiddenDateModal)
+        })
+
+        document.addEventListener('click', (event) => {
+            const eventTarget = event.target
+
+            if (!monthPickerElement?.contains(eventTarget) && !yearPickerElement?.contains(eventTarget)) {
+                closeAllDatePickerMenus(monthMenuElement, monthButtonElement, yearMenuElement, yearButtonElement)
+            }
         })
     }
 
