@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: sprout-tracker
+    env: php
+    plan: free
+    buildCommand: composer install && npm install && npm run build && php artisan optimize
+    startCommand: sh -c 'php artisan migrate --force && php -S 0.0.0.0:${PORT}'
+    envVars:
+      - key: APP_DEBUG
+        value: false
+      - key: APP_ENV
+        value: production
+      - key: LOG_CHANNEL
+        value: stack
+      - key: SESSION_DRIVER
+        value: database
+      - key: CACHE_STORE
+        value: database
+      - key: QUEUE_CONNECTION
+        value: database
